@@ -1,3 +1,12 @@
+---
+name: budderz_backend_issue_template
+about: Suggest an idea for this project
+title: FEAT
+labels: ''
+assignees: ''
+
+---
+
 <!-- Title convention
 Format → <Type><Scope>: <서술>
 Type : Label 중 대표성을 띄는 것 하나를 선택
