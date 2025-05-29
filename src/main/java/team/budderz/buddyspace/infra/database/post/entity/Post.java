@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.infra.database.post.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,4 +38,11 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private Boolean isNotice = false;
 
+    public Post(Group group, User user, String content, LocalDateTime reserveAt, Boolean isNotice) {
+        this.group = group;
+        this.user = user;
+        this.content = content;
+        this.reserveAt = reserveAt;
+        this.isNotice = isNotice;
+    }
 }
