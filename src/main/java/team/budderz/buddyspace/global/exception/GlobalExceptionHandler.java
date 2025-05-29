@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
         String message = exception.getBindingResult().getFieldError().getDefaultMessage();
 
         return ResponseEntity
-                 .status(status.value())
+                .status(status.value())
                 .body(BaseErrorResponse.builder()
                         .status(status.value())
                         .code(code)
