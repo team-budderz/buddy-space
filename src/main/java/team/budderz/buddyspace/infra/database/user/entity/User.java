@@ -41,7 +41,7 @@ public class User extends BaseEntity {
     private String phone;
 
     @Setter
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
