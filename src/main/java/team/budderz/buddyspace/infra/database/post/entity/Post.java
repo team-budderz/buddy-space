@@ -35,6 +35,7 @@ public class Post extends BaseEntity {
 
     private LocalDateTime reserveAt;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isNotice = false;
 
