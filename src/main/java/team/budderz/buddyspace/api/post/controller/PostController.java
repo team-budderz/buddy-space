@@ -19,7 +19,7 @@ public class PostController {
     // 게시글 생성
     @PostMapping("/group/{groupId}/posts")
     public BaseResponse<SavePostResponse> savePost (
-            @RequestParam Long groupId,
+            @PathVariable Long groupId,
             @RequestBody SavePostRequest request
             ) {
 
@@ -30,8 +30,8 @@ public class PostController {
     // 게시글 수정
     @PatchMapping("/group/{groupId}/posts/{postId}")
     public BaseResponse<UpdatePostResponse> updatePost (
-            @RequestParam Long groupId,
-            @RequestParam Long postId,
+            @PathVariable Long groupId,
+            @PathVariable Long postId,
             @RequestBody UpdatePostRequest request
             ) {
 
