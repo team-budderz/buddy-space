@@ -66,12 +66,7 @@ public class PostService {
 
         post.updatePost(request.getContent(), request.getIsNotice());
 
-        Post updatePost = Post.builder()
-                .content(request.getContent())
-                .isNotice(request.getIsNotice())
-                .build();
-
-        return new UpdatePostResponse(updatePost);
+        return new UpdatePostResponse(post);
     }
 
     // 게시글 삭제
