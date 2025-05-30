@@ -2,9 +2,11 @@ package team.budderz.buddyspace.infra.database.schedule.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.budderz.buddyspace.global.entity.BaseEntity;
+import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -29,13 +31,22 @@ public class Schedule extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime endAt;
 
-    private String place;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "group_id", nullable = false)
-//    private Group group;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "group_id", nullable = false)
+   private Group group;
+
+   @Builder
+    public Schedule(String title, String content, LocalDateTime startAt, LocalDateTime endAt, User author,
+        Group group) {
+        this.title = title;
+        this.content = content;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.author = author;
+        this.group = group;
+    }
 }
