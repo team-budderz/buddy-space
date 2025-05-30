@@ -9,6 +9,7 @@ import team.budderz.buddyspace.api.post.response.SavePostResponse;
 import team.budderz.buddyspace.api.post.response.UpdatePostResponse;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
+import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
@@ -65,12 +66,23 @@ public class PostService {
 
         post.updatePost(request.getContent(), request.getIsNotice());
 
-        Post updatePost = Post.builder()
-                .content(request.getContent())
-                .isNotice(request.getIsNotice())
-                .build();
+        return new UpdatePostResponse(post);
+    }
 
-        return new UpdatePostResponse(updatePost);
+    // 게시글 삭제
+    @Transactional
+    public Void deletePost (
+            Long groupId,
+            Long postId
+    ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
+
+        postRepository.delete(post);
+        return null;
     }
 
 }

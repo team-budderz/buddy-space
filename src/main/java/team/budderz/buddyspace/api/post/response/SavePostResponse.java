@@ -13,6 +13,8 @@ public class SavePostResponse {
     private final String content;
     private final LocalDateTime reserveAt;
     private final Boolean isNotice;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime modifiedAt;
 
     public SavePostResponse(Post post) {
         this.groupId = post.getGroup().getId();
@@ -20,5 +22,7 @@ public class SavePostResponse {
         this.content = post.getContent();
         this.reserveAt = post.getReserveAt();
         this.isNotice = post.getIsNotice();
+        this.createdAt =  post.getCreatedAt();
+        this.modifiedAt = post.getModifiedAt();
     }
 }

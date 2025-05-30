@@ -39,4 +39,14 @@ public class PostController {
         return new BaseResponse<>(response);
     }
 
+    // 게시글 삭제
+    @DeleteMapping("/group/{groupId}/posts/{postId}")
+    public BaseResponse<String> deletePost (
+            @PathVariable Long groupId,
+            @PathVariable Long postId
+    ) {
+        postService.deletePost(groupId, postId);
+        return new BaseResponse<>("게시글이 성공적으로 삭제되었습니다.");
+    }
+
 }
