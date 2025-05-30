@@ -39,11 +39,8 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private Boolean isNotice = false;
 
-    public Post(Group group, User user, String content, LocalDateTime reserveAt, Boolean isNotice) {
-        this.group = group;
-        this.user = user;
-        this.content = content;
-        this.reserveAt = reserveAt;
-        this.isNotice = isNotice;
+    public void updatePost(String content, Boolean isNotice) {
+        this.content = content != null ? content : this.content;
+        this.isNotice = isNotice != null ? isNotice: this.isNotice;
     }
 }
