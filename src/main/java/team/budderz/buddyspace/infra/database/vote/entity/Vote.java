@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.budderz.buddyspace.global.entity.BaseEntity;
+import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 @Entity
@@ -29,7 +30,7 @@ public class Vote extends BaseEntity {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "group_id", nullable = false)
-//    private Group group;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "group_id", nullable = false)
+   private Group group;
 }
