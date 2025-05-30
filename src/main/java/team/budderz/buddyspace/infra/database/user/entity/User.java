@@ -31,6 +31,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private LocalDate birthDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserGender gender;
 
@@ -50,6 +51,7 @@ public class User extends BaseEntity {
     @Setter
     private String providerId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
 
