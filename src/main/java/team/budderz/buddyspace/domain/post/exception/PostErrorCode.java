@@ -9,7 +9,8 @@ import team.budderz.buddyspace.global.response.ErrorCode;
 @AllArgsConstructor
 public enum PostErrorCode implements ErrorCode {
     GROUP_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P001","존재하지 않는 그룹 입니다.")
-    , USER_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P002","존재하지 않는 유저 입니다."),
+    , USER_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P002","존재하지 않는 유저 입니다.")
+    , POST_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P003","존재하지 않는 게시글 입니다.")
 
 
     ;

@@ -40,12 +40,12 @@ public class JwtUtil {
 
     }
 
-    public String createAccessToken(Long userId, String role) {
-        return createToken(userId, role, "ACCESS", ACCESS_EXP);
+    public String createAccessToken(Long userId, UserRole role) {
+        return createToken(userId, role.name(), "ACCESS", ACCESS_EXP);
     }
 
-    public String createRefreshToken(Long userId, String role) {
-        return createToken(userId, role, "REFRESH", REFRESH_EXP);
+    public String createRefreshToken(Long userId, UserRole role) {
+        return createToken(userId, role.name(), "REFRESH", REFRESH_EXP);
     }
 
     // 토큰 추출
