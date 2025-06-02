@@ -47,4 +47,19 @@ public class CommentController {
         return new BaseResponse<>(response);
     }
 
+    // 댓글 수정 (대댓글 포함)
+    @PatchMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
+    public BaseResponse<CommentResponse> updateComment (
+            @PathVariable Long groupId,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @RequestBody @Valid CommentRequest request,
+            @AuthenticationPrincipal UserAuth userAuth
+    ) {
+
+        Long userId = userAuth.getUserId();
+        CommentResponse response =  commentService.updateComment(groupId, postId, commentId, userId, request);
+        return new BaseResponse<>(response);
+    }
+
 }
