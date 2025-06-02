@@ -22,7 +22,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<BaseErrorResponse> handleValidationError(MethodArgumentNotValidException exception) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         String code = "VALIDATION_FAILED";
-        String message = exception.getBindingResult().getFieldError().getDefaultMessage();
+        String message;
+        if (!exception.getBindingResult().getFieldErrors().isEmpty()) {
+            message = exception.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        } else if (!exception.getBindingResult().getGlobalErrors().isEmpty()) {
+            message = exception.getBindingResult().getGlobalErrors().get(0).getDefaultMessage();
+        } else {
+            message = "입력값이 유효하지 않습니다.";
+        }
 
         return ResponseEntity
                 .status(status.value())
