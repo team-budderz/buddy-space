@@ -3,6 +3,7 @@ package team.budderz.buddyspace.domain.schedule.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static team.budderz.buddyspace.domain.schedule.exception.ScheduleErrorCode.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -40,12 +41,14 @@ class ScheduleServiceTest {
 	private ScheduleRepository scheduleRepository;
 	private Long userId;
 	private Long groupId;
+	private Long scheduleId;
 	private SaveScheduleRequest saveScheduleRequest;
 
 	@BeforeEach
 	void setUp() {
 		userId = 1L;
 		groupId = 2L;
+		scheduleId = 3L;
 		saveScheduleRequest = new SaveScheduleRequest("제목", "내용",
 			LocalDateTime.of(2025,5,30,10,0),
 			LocalDateTime.of(2025,5,30,12,0));
@@ -92,8 +95,163 @@ class ScheduleServiceTest {
 		ScheduleException ex = assertThrows(ScheduleException.class,
 			() -> scheduleService.saveSchedule(userId, groupId, saveScheduleRequest));
 
-		assertEquals(ScheduleErrorCode.GROUP_NOT_FOUND, ex.getErrorCode());
+		assertEquals(GROUP_NOT_FOUND, ex.getErrorCode());
 		verify(scheduleRepository, never()).save(any());
+	}
+
+	@Test
+	void updateSchedule_success() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		Schedule schedule = mock(Schedule.class);
+		when(group.getId()).thenReturn(2L);
+		when(schedule.getGroup()).thenReturn(group);
+		when(user.getId()).thenReturn(1L);
+		when(schedule.getAuthor()).thenReturn(user);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+		scheduleService.updateSchedule(userId, groupId, scheduleId, saveScheduleRequest);
+
+		verify(schedule).updateSchedule(saveScheduleRequest.title(), saveScheduleRequest.content(), saveScheduleRequest.startAt(), saveScheduleRequest.endAt());
+	}
+
+	@Test
+	void updateSchedule_groupNotFound() {
+		User user = mock(User.class);
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.empty());
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.updateSchedule(userId, groupId, scheduleId, saveScheduleRequest));
+
+		assertThat(ex.getErrorCode()).isEqualTo(GROUP_NOT_FOUND);
+	}
+
+	@Test
+	void updateSchedule_scheduleNotFound() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.updateSchedule(userId, groupId, scheduleId, saveScheduleRequest));
+
+		assertThat(ex.getErrorCode()).isEqualTo(SCHEDULE_NOT_FOUND);
+	}
+
+	@Test
+	void updateSchedule_groupMismatch() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		Schedule schedule = mock(Schedule.class);
+
+		Group otherGroup = mock(Group.class);
+		when(otherGroup.getId()).thenReturn(999L);
+		when(schedule.getGroup()).thenReturn(otherGroup);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.updateSchedule(userId, groupId, scheduleId, saveScheduleRequest));
+
+		assertThat(ex.getErrorCode()).isEqualTo(ScheduleErrorCode.SCHEDULE_GROUP_MISMATCH);
+	}
+
+	@Test
+	void updateSchedule_scheduleAuthorMismatch() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		Schedule schedule = mock(Schedule.class);
+		when(group.getId()).thenReturn(2L);
+		when(schedule.getGroup()).thenReturn(group);
+
+		User anotherUser = mock(User.class);
+		when(anotherUser.getId()).thenReturn(999L);
+		when(schedule.getAuthor()).thenReturn(anotherUser);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.updateSchedule(userId, groupId, scheduleId, saveScheduleRequest));
+
+		assertThat(ex.getErrorCode()).isEqualTo(ScheduleErrorCode.SCHEDULE_AUTHOR_MISMATCH);
+	}
+
+	@Test
+	void deleteSchedule_groupNotFound() {
+		User user = mock(User.class);
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.empty());
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.deleteSchedule(userId, groupId, scheduleId));
+
+		assertThat(ex.getErrorCode()).isEqualTo(GROUP_NOT_FOUND);
+	}
+
+	@Test
+	void deleteSchedule_scheduleNotFound() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.deleteSchedule(userId, groupId, scheduleId));
+
+		assertThat(ex.getErrorCode()).isEqualTo(SCHEDULE_NOT_FOUND);
+	}
+
+	@Test
+	void deleteSchedule_groupMismatch() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		Schedule schedule = mock(Schedule.class);
+
+		Group otherGroup = mock(Group.class);
+		when(otherGroup.getId()).thenReturn(999L);
+		when(schedule.getGroup()).thenReturn(otherGroup);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.deleteSchedule(userId, groupId, scheduleId));
+
+		assertThat(ex.getErrorCode()).isEqualTo(ScheduleErrorCode.SCHEDULE_GROUP_MISMATCH);
+	}
+
+	@Test
+	void deleteSchedule_scheduleAuthorMismatch() {
+		User user = mock(User.class);
+		Group group = mock(Group.class);
+		Schedule schedule = mock(Schedule.class);
+		when(group.getId()).thenReturn(2L);
+		when(schedule.getGroup()).thenReturn(group);
+
+		User anotherUser = mock(User.class);
+		when(anotherUser.getId()).thenReturn(999L);
+		when(schedule.getAuthor()).thenReturn(anotherUser);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+		when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+		ScheduleException ex = assertThrows(ScheduleException.class,
+			() -> scheduleService.deleteSchedule(userId, groupId, scheduleId));
+
+		assertThat(ex.getErrorCode()).isEqualTo(ScheduleErrorCode.SCHEDULE_AUTHOR_MISMATCH);
 	}
 
 }
