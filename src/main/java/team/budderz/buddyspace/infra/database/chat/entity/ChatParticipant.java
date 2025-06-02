@@ -20,18 +20,25 @@ import java.time.LocalDateTime;
 public class ChatParticipant extends BaseEntity {
 
     @Id
-    @Column(name = "chat_room_id")
-    private Long chatRoom;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_room_id", nullable = false)
+    private ChatRoom chatRoom;
 
     @Id
-    @Column(name = "user_id")
-    private Long user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
+    @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
 
+    @Column(name = "left_at")
     private LocalDateTime leftAt;
 
+    @Column(name = "last_read_message_id")
     private Long lastReadMessageId;
 
+    @Builder.Default // 생성 시점에 명확하게 true 지정
+    @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 }
