@@ -24,3 +24,10 @@ INSERT INTO groups (
 VALUES
       ('Hiking Club', 'Group for weekend hikes', 'PUBLIC', 'ONLINE', 'STUDY', true, 1, 1),
       ('Book Lovers', 'Discussing books monthly', 'PRIVATE', 'OFFLINE', 'EXERCISE', false, 2, NULL);
+
+-- 4. Post 데이터
+INSERT INTO posts (
+    id, group_id, user_id, content, reserve_at, is_notice)
+VALUES
+    (1, 1, 1, '내용 1번', null, false),
+    (2, 1, 2, '내용 2번', null, false);
