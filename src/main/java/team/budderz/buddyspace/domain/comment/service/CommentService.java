@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.comment.request.CommentRequest;
 import team.budderz.buddyspace.api.comment.response.CommentResponse;
+import team.budderz.buddyspace.api.comment.response.RecommentResponse;
 import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
@@ -27,7 +28,7 @@ public class CommentService {
 
     // 댓글 저장
     @Transactional
-    public CommentResponse savePost(
+    public CommentResponse saveComment(
             Long groupId,
             Long postId,
             Long userId,
@@ -52,6 +53,40 @@ public class CommentService {
 
         commentRepository.save(comment);
         return new CommentResponse(comment);
+    }
+
+    // 대댓글 저장
+    @Transactional
+    public RecommentResponse saveRecomment(
+            Long groupId,
+            Long postId,
+            Long commentId,
+            Long userId,
+            CommentRequest request
+    ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+
+
+        Comment reComment = Comment.builder()
+                .post(post)
+                .user(user)
+                .parent(comment)
+                .content(request.getContent())
+                .build();
+
+        commentRepository.save(reComment);
+        return new RecommentResponse(reComment);
     }
 
 
