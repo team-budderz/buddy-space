@@ -13,7 +13,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "post")
+@Table(name = "posts")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Post extends BaseEntity {
 
@@ -29,8 +29,7 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     private LocalDateTime reserveAt;
