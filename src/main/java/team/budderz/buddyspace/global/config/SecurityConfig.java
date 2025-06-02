@@ -31,10 +31,10 @@ public class SecurityConfig {
                 //.cors(cors -> cors.configurationSource(corsConfigurationSource)) // 배포 후 설정
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("**").permitAll()
-                        //.requestMatchers("/api/users/login","/api/users/signup").permitAll()
+                        //.requestMatchers("**").permitAll()
+                        .requestMatchers("/api/users/login","/api/users/signup").permitAll()
                         //.requestMatchers("**").hasRole("ADMIN") // 테스트용
-                        //.anyRequest().authenticated()
+                        .anyRequest().authenticated()
                         )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(httpBasic -> httpBasic.disable())
