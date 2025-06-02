@@ -6,7 +6,7 @@ import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import java.time.LocalDateTime;
 
 @Getter
-public class SaveCommentResponse {
+public class CommentResponse {
 
     private final Long groupId;
     private final Long userId;
@@ -15,7 +15,7 @@ public class SaveCommentResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public SaveCommentResponse(Comment comment) {
+    public CommentResponse(Comment comment) {
         this.groupId = comment.getPost().getGroup().getId();
         this.userId = comment.getUser().getId();
         this.postId = comment.getPost().getId();

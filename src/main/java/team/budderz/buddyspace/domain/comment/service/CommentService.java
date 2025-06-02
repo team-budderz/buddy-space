@@ -3,8 +3,8 @@ package team.budderz.buddyspace.domain.comment.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.comment.request.SaveCommentRequest;
-import team.budderz.buddyspace.api.comment.response.SaveCommentResponse;
+import team.budderz.buddyspace.api.comment.request.CommentRequest;
+import team.budderz.buddyspace.api.comment.response.CommentResponse;
 import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
@@ -27,11 +27,11 @@ public class CommentService {
 
     // 댓글 저장
     @Transactional
-    public SaveCommentResponse savePost(
+    public CommentResponse savePost(
             Long groupId,
             Long postId,
             Long userId,
-            SaveCommentRequest request
+            CommentRequest request
     ) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
@@ -51,7 +51,7 @@ public class CommentService {
                 .build();
 
         commentRepository.save(comment);
-        return new SaveCommentResponse(comment);
+        return new CommentResponse(comment);
     }
 
 

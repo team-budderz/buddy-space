@@ -4,8 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import team.budderz.buddyspace.api.comment.request.SaveCommentRequest;
-import team.budderz.buddyspace.api.comment.response.SaveCommentResponse;
+import team.budderz.buddyspace.api.comment.request.CommentRequest;
+import team.budderz.buddyspace.api.comment.response.CommentResponse;
 import team.budderz.buddyspace.domain.comment.service.CommentService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -19,15 +19,15 @@ public class CommentController {
 
     // 댓글 생성
     @PostMapping("/group/{groupId}/posts/{postId}/comments")
-    public BaseResponse<SaveCommentResponse> saveComment (
+    public BaseResponse<CommentResponse> saveComment (
             @PathVariable Long groupId,
             @PathVariable Long postId,
-            @RequestBody @Valid SaveCommentRequest request,
+            @RequestBody @Valid CommentRequest request,
             @AuthenticationPrincipal UserAuth userAuth
             ) {
 
         Long userId = userAuth.getUserId();
-        SaveCommentResponse response =  commentService.savePost(groupId, postId, userId, request);
+        CommentResponse response =  commentService.savePost(groupId, postId, userId, request);
         return new BaseResponse<>(response);
     }
 
