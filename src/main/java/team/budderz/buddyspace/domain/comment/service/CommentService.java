@@ -10,16 +10,21 @@ import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
+import team.budderz.buddyspace.infra.database.group.entity.Group;
+import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final GroupRepository groupRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
@@ -74,6 +79,7 @@ public class CommentService {
                 .build();
 
         commentRepository.save(reComment);
+        comment.getChildren().add(reComment);
         return new RecommentResponse(reComment);
     }
 
@@ -92,6 +98,5 @@ public class CommentService {
         comment.updateComment(request.getContent());
         return new CommentResponse(comment);
     }
-
 
 }
