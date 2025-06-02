@@ -9,14 +9,18 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupType;
  * 모임 생성 응답 DTO
  */
 public record SaveGroupResponse(
+
         String groupName,
+        String groupCoverImageUrl,
         GroupAccess groupAccess,
         GroupType groupType,
         GroupInterest groupInterest
 ) {
+
     public static SaveGroupResponse from(Group group) {
         return new SaveGroupResponse(
                 group.getName(),
+                group.getCoverImageUrl(),
                 group.getAccess(),
                 group.getType(),
                 group.getInterest()
