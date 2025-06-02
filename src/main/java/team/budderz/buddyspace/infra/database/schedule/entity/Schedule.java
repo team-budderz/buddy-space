@@ -35,18 +35,24 @@ public class Schedule extends BaseEntity {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-   @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "group_id", nullable = false)
-   private Group group;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
 
-   @Builder
-    public Schedule(String title, String content, LocalDateTime startAt, LocalDateTime endAt, User author,
-        Group group) {
+    @Builder
+    public Schedule(String title, String content, LocalDateTime startAt, LocalDateTime endAt, User author, Group group) {
         this.title = title;
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
         this.author = author;
         this.group = group;
+    }
+
+    public void updateSchedule(String title, String content, LocalDateTime startAt, LocalDateTime endAt) {
+        this.title = title;
+        this.content = content;
+        this.startAt = startAt;
+        this.endAt = endAt;
     }
 }
