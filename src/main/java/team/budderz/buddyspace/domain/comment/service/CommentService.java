@@ -99,4 +99,30 @@ public class CommentService {
         return new CommentResponse(comment);
     }
 
+    // 댓글 삭제
+    @Transactional
+    public Void deleteComment (
+            Long groupId,
+            Long postId,
+            Long commentId,
+            Long userId
+    ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+        if (!Objects.equals(comment.getUser().getId(), userId)
+                && !Objects.equals(group.getLeader().getId(), userId)) {
+            throw new BaseException(CommentErrorCode.UNAUTHORIZED_COMMENT_DELETE);
+        }
+
+        commentRepository.delete(comment);
+        return null;
+    }
+
 }

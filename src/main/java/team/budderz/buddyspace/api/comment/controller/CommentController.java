@@ -56,10 +56,22 @@ public class CommentController {
             @RequestBody @Valid CommentRequest request,
             @AuthenticationPrincipal UserAuth userAuth
     ) {
-
         Long userId = userAuth.getUserId();
         CommentResponse response =  commentService.updateComment(groupId, postId, commentId, userId, request);
         return new BaseResponse<>(response);
+    }
+
+     // 댓글 삭제
+    @DeleteMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
+    public BaseResponse<String> deletecomment (
+            @PathVariable Long groupId,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal UserAuth userAuth
+    ) {
+        Long userId = userAuth.getUserId();
+        commentService.deleteComment(groupId, postId, commentId, userId);
+        return new BaseResponse<>("댓글이 성공적으로 삭제되었습니다.");
     }
 
 }
