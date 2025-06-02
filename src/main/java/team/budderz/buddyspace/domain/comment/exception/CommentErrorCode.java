@@ -12,6 +12,7 @@ public enum CommentErrorCode implements ErrorCode {
     , USER_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P002","존재하지 않는 유저 입니다.")
     , POST_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P003","존재하지 않는 게시글 입니다.")
     , COMMENT_ID_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"P004","존재하지 않는 댓글 입니다.")
+    , UNAUTHORIZED_COMMENT_DELETE(HttpStatus.FORBIDDEN.value(), "P005", "댓글 삭제 권한이 없습니다.")
 
     ;
 
