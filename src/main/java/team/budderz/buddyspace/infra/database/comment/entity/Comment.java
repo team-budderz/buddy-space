@@ -13,7 +13,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import java.util.List;
 
 @Entity
-@Table(name = "comment")
+@Table(name = "comments")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Comment extends BaseEntity {
 
@@ -41,10 +41,6 @@ public class Comment extends BaseEntity {
     private List<Comment> children;
 
     public void updateComment(String content) {
-        this.content = content != null ? content : this.content;
-    }
-
-    public void updateRecomment(String content) {
         this.content = content != null ? content : this.content;
     }
 
