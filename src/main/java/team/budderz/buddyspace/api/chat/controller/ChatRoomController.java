@@ -2,10 +2,7 @@ package team.budderz.buddyspace.api.chat.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
 import team.budderz.buddyspace.domain.chat.service.ChatRoomService;
@@ -20,7 +17,8 @@ public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
 
-     public BaseResponse<CreateChatRoomResponse> createChatRoom(
+    @PostMapping
+    public BaseResponse<CreateChatRoomResponse> createChatRoom(
              @AuthenticationPrincipal UserAuth userAuth,
              @PathVariable Long groupId,
              @RequestBody CreateChatRoomRequest request

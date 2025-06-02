@@ -60,7 +60,7 @@ public class ChatRoomService {
             if (!existingRooms.isEmpty()) {
                 // 이미 존재 → 첫 번째 방 반환
                 ChatRoom existingRoom = existingRooms.get(0);
-                return new CreateChatRoomResponse(existingRoom.getId().toString(), "already_exists");
+                return new CreateChatRoomResponse(existingRoom.getId().toString(), existingRoom.getName(), "already_exists");
             }
         }
 
@@ -98,7 +98,7 @@ public class ChatRoomService {
         }
 
 
-        return new CreateChatRoomResponse(chatRoom.getId().toString(), "success");
+        return new CreateChatRoomResponse(chatRoom.getId().toString(), chatRoom.getName(), "success");
     }
 
     // DIRECT 방 이름 자동 생성
