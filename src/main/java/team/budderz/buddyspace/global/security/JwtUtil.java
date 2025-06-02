@@ -44,8 +44,8 @@ public class JwtUtil {
         return createToken(userId, role.name(), "ACCESS", ACCESS_EXP);
     }
 
-    public String createRefreshToken(Long userId, UserRole role) {
-        return createToken(userId, role.name(), "REFRESH", REFRESH_EXP);
+    public String createRefreshToken(Long userId) {
+        return createToken(userId, null, "REFRESH", REFRESH_EXP);
     }
 
     // 토큰 추출
