@@ -1,5 +1,6 @@
 package team.budderz.buddyspace.api.user.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,14 @@ public class UserController {
     @PostMapping("/login")
     public BaseResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         return new BaseResponse<>(userService.login(loginRequest));
+    }
+
+    @PostMapping("/logout")
+    public BaseResponse<Void> logout(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        userService.logout(token);
+
+        return new BaseResponse<>(null);
     }
 
 }
