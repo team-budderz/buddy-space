@@ -9,7 +9,6 @@ import team.budderz.buddyspace.api.post.response.SavePostResponse;
 import team.budderz.buddyspace.api.post.response.UpdatePostResponse;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
-import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
@@ -29,12 +28,13 @@ public class PostService {
     @Transactional
     public SavePostResponse savePost(
             Long groupId,
+            Long userId,
             SavePostRequest request
     ) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
 
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
 
         Post post = Post.builder()
@@ -54,6 +54,7 @@ public class PostService {
     public UpdatePostResponse updatePost(
             Long groupId,
             Long postId,
+            Long userId,
             UpdatePostRequest request
     ) {
 
@@ -64,6 +65,9 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
+
         post.updatePost(request.getContent(), request.getIsNotice());
 
         return new UpdatePostResponse(post);
@@ -73,13 +77,17 @@ public class PostService {
     @Transactional
     public Void deletePost (
             Long groupId,
-            Long postId
+            Long postId,
+            Long userId
     ) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
 
         postRepository.delete(post);
         return null;
