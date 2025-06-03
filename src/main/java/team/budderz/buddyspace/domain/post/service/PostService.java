@@ -84,8 +84,10 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
+        if (!Objects.equals(post.getUser().getId(), userId)
+                && !Objects.equals(group.getLeader().getId(), userId)) {
+            throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_DELETE);
+        }
 
         postRepository.delete(post);
         return null;
