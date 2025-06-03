@@ -16,6 +16,8 @@ import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -57,16 +59,12 @@ public class PostService {
             Long userId,
             UpdatePostRequest request
     ) {
-
-        // 인증, 인가 부분이 완료되면 로그인 한 유저가 게시글 작성자가 맞는지 아이디 조회
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
-
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
+        if (!Objects.equals(post.getUser().getId(), userId)) {
+            throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_UPDATE);
+        }
 
         post.updatePost(request.getContent(), request.getIsNotice());
 
