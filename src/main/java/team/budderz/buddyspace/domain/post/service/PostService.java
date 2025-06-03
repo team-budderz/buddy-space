@@ -42,13 +42,13 @@ public class PostService {
         Post post = Post.builder()
                 .group(group)
                 .user(user)
-                .content(request.getContent())
-                .reserveAt(request.getReserveAt())
-                .isNotice(request.getIsNotice())
+                .content(request.content())
+                .reserveAt(request.reserveAt())
+                .isNotice(request.isNotice())
                 .build();
 
         postRepository.save(post);
-        return new SavePostResponse(post);
+        return SavePostResponse.from(post);
     }
 
     // 게시글 수정
@@ -66,9 +66,9 @@ public class PostService {
             throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_UPDATE);
         }
 
-        post.updatePost(request.getContent(), request.getIsNotice());
+        post.updatePost(request.content(), request.isNotice());
 
-        return new UpdatePostResponse(post);
+        return UpdatePostResponse.from(post);
     }
 
     // 게시글 삭제
