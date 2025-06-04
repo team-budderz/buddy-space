@@ -111,7 +111,7 @@ public class PostService {
 
     // 게시글 공지 조회(내용 일부)
     @Transactional(readOnly = true)
-    public List<FindsNoticePostResponse> findsNoticePost(
+    public List<FindsNoticePostResponse> findNoticePostSummaries(
             Long groupId
     ) {
         List<Post> posts = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId);
