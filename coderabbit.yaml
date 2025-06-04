@@ -1,7 +1,0 @@
-review:
-language: korean
-exclude:
-  - test/**
-  - docs/**
-  - build/**
-style: assertive   # chill(부드럽게), assertive(직설적으로)
