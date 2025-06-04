@@ -23,6 +23,9 @@ public class Group extends BaseEntity {
 
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String coverImageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GroupAccess access;
@@ -34,6 +37,9 @@ public class Group extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GroupInterest interest;
+
+    @Column(name = "invite_link")
+    private String inviteLink;
 
     @Column(name = "is_neighborhood_auth_required")
     private boolean isNeighborhoodAuthRequired;
@@ -49,11 +55,24 @@ public class Group extends BaseEntity {
     /**
      * 모임 생성용 생성자
      */
-    public Group(String name, GroupAccess access, GroupType type, GroupInterest interest, User leader) {
+    public Group(String name, String coverImageUrl, GroupAccess access, GroupType type, GroupInterest interest, User leader) {
         this.name = name;
+        this.coverImageUrl = coverImageUrl;
         this.access = access;
         this.type = type;
         this.interest = interest;
         this.leader = leader;
+    }
+
+    public void updateGroupInfo(String name,
+                                String coverImageUrl,
+                                GroupAccess access,
+                                GroupType type,
+                                GroupInterest interest) {
+        this.name = name;
+        this.coverImageUrl = coverImageUrl;
+        this.access = access;
+        this.type = type;
+        this.interest = interest;
     }
 }

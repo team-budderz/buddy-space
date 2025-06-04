@@ -6,17 +6,19 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
 import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 
 /**
- * 모임 생성 응답 DTO
+ * 모임 생성/수정 응답 DTO
  */
-public record SaveGroupResponse(
+public record GroupResponse(
         String groupName,
+        String groupCoverImageUrl,
         GroupAccess groupAccess,
         GroupType groupType,
         GroupInterest groupInterest
 ) {
-    public static SaveGroupResponse from(Group group) {
-        return new SaveGroupResponse(
+    public static GroupResponse from(Group group) {
+        return new GroupResponse(
                 group.getName(),
+                group.getCoverImageUrl(),
                 group.getAccess(),
                 group.getType(),
                 group.getInterest()
