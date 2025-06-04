@@ -37,7 +37,6 @@ public class Membership extends BaseEntity {
     private JoinPath joinPath;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private MembershipRole membershipRole;
 
     @Column(name = "joined_at")
