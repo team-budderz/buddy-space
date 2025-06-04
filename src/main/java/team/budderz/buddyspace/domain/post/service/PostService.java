@@ -43,10 +43,12 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
 
-        Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
+        if (request.isNotice()) {
+            Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
 
-        if (noticeNum >= 5) {
-            throw new BaseException(PostErrorCode.NOTICE_LIMIT_EXCEEDED);
+            if (noticeNum >= 5) {
+                throw new BaseException(PostErrorCode.NOTICE_LIMIT_EXCEEDED);
+            }
         }
 
         Post post = Post.builder()
