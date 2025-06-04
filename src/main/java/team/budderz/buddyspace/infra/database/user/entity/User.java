@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Table(name = "users")
-@SQLDelete(sql = "update user set is_deleted = true where id = ?")
+@SQLDelete(sql = "update users set is_deleted = true where id = ?")
 public class User extends BaseEntity {
 
     @Id
@@ -80,10 +80,14 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public void updateUser(String password, String address, String phone) {
-        this.password = password;
+    public void updateUser(String address, String phone, String imageUrl) {
         this.address = address;
         this.phone = phone;
+        this.imageUrl = imageUrl;
+    }
+
+    public void updateUserPassword(String password) {
+        this.password = password;
     }
 
     public void softDelete() {
