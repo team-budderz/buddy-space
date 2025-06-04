@@ -10,8 +10,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.user.request.LoginRequest;
 import team.budderz.buddyspace.api.user.request.SignupRequest;
+import team.budderz.buddyspace.api.user.request.UserDeleteRequest;
+import team.budderz.buddyspace.api.user.request.UserUpdateRequest;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
+import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
 import team.budderz.buddyspace.domain.user.service.UserService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -37,6 +40,24 @@ public class UserController {
     public BaseResponse<Void> logout(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         userService.logout(token);
+
+        return new BaseResponse<>(null);
+    }
+
+    @PatchMapping
+    public BaseResponse<UserUpdateResponse> updateUser(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @Valid @RequestBody UserUpdateRequest updateRequest
+    ) {
+        return new BaseResponse<>(userService.updateUser(userAuth, updateRequest));
+    }
+
+    @DeleteMapping
+    public BaseResponse<Void> deleteUser(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @Valid @RequestBody UserDeleteRequest deleteRequest
+    ) {
+        userService.deleteUser(userAuth, deleteRequest);
 
         return new BaseResponse<>(null);
     }
