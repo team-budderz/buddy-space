@@ -7,10 +7,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.budderz.buddyspace.global.entity.BaseEntity;
+import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -37,6 +40,9 @@ public class Post extends BaseEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isNotice = false;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     public void updatePost(String content, Boolean isNotice) {
         this.content = content != null ? content : this.content;
