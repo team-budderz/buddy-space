@@ -17,7 +17,7 @@ public record FindsPostResponse(
                 post.getUser().getName(),
                 post.getCreatedAt(),
                 post.getContent(),
-                post.getComments().stream().count()
+                (long) post.getComments().size()
         );
     }
 }
