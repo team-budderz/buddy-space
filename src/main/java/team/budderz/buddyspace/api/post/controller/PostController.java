@@ -6,11 +6,15 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
+import team.budderz.buddyspace.api.post.response.FindsNoticePostResponse;
+import team.budderz.buddyspace.api.post.response.FindsPostResponse;
 import team.budderz.buddyspace.api.post.response.SavePostResponse;
 import team.budderz.buddyspace.api.post.response.UpdatePostResponse;
 import team.budderz.buddyspace.domain.post.service.PostService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -54,6 +58,15 @@ public class PostController {
         Long userId = userAuth.getUserId();
         postService.deletePost(groupId, postId, userId);
         return new BaseResponse<>("게시글이 성공적으로 삭제되었습니다.");
+    }
+
+    // 게시글 전체 조회
+    @GetMapping("/group/{groupId}/posts")
+    public BaseResponse<List<FindsPostResponse>> findsPost (
+            @PathVariable Long groupId
+    ) {
+        List<FindsPostResponse> response = postService.findsPost(groupId);
+        return new BaseResponse<>(response);
     }
 
 }

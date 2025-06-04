@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
+import team.budderz.buddyspace.api.post.response.FindsNoticePostResponse;
+import team.budderz.buddyspace.api.post.response.FindsPostResponse;
 import team.budderz.buddyspace.api.post.response.SavePostResponse;
 import team.budderz.buddyspace.api.post.response.UpdatePostResponse;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
@@ -16,7 +18,9 @@ import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +95,18 @@ public class PostService {
 
         postRepository.delete(post);
         return null;
+    }
+
+    // 게시글 전체 조회
+    @Transactional(readOnly = true)
+    public List<FindsPostResponse> findsPost(
+            Long groupId
+    ) {
+        List<Post> posts = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId);
+
+        return posts.stream()
+                .map(FindsPostResponse::from)
+                .collect(Collectors.toList());
     }
 
 }
