@@ -8,10 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import team.budderz.buddyspace.api.user.request.LoginRequest;
-import team.budderz.buddyspace.api.user.request.SignupRequest;
-import team.budderz.buddyspace.api.user.request.UserDeleteRequest;
-import team.budderz.buddyspace.api.user.request.UserUpdateRequest;
+import team.budderz.buddyspace.api.user.request.*;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
 import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
@@ -50,6 +47,16 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest updateRequest
     ) {
         return new BaseResponse<>(userService.updateUser(userAuth, updateRequest));
+    }
+
+    @PatchMapping("/password")
+    public BaseResponse<Void> updateUserPassword(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @Valid @RequestBody UserPasswordUpdateRequest updateRequest
+    ) {
+        userService.updateUserPassword(userAuth, updateRequest);
+
+        return new BaseResponse<>(null);
     }
 
     @DeleteMapping
