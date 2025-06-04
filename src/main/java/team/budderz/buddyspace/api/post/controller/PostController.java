@@ -69,4 +69,13 @@ public class PostController {
         return new BaseResponse<>(response);
     }
 
+    // 게시글 공지 조회(내용 일부)
+    @GetMapping("/group/{groupId}/posts/notice")
+    public BaseResponse<List<FindsNoticePostResponse>> findsNoticePost (
+            @PathVariable Long groupId
+    ) {
+        List<FindsNoticePostResponse> response = postService.findsNoticePost(groupId);
+        return new BaseResponse<>(response);
+    }
+
 }
