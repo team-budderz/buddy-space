@@ -150,6 +150,7 @@ public class PostService {
     // 게시글 상세 조회
     @Transactional(readOnly = true)
     public FindPostResponse findPost(
+            Long groupId,
             Long postId
     ) {
         Post post = postRepository.findById(postId)

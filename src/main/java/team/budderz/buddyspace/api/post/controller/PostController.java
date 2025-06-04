@@ -90,7 +90,7 @@ public class PostController {
             @PathVariable Long groupId,
             @PathVariable Long postId
     ) {
-        FindPostResponse response = postService.findPost(postId);
+        FindPostResponse response = postService.findPost(groupId, postId);
         return new BaseResponse<>(response);
     }
 }
