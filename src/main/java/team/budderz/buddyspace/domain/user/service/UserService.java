@@ -5,16 +5,28 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import team.budderz.buddyspace.api.user.request.LoginRequest;
-import team.budderz.buddyspace.api.user.request.SignupRequest;
+import team.budderz.buddyspace.api.user.request.*;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
+import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.global.exception.GlobalExceptionHandler;
 import team.budderz.buddyspace.global.security.JwtUtil;
+import team.budderz.buddyspace.global.security.UserAuth;
+import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
+import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
+import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
+import team.budderz.buddyspace.infra.database.mission.repository.MissionPostRepository;
+import team.budderz.buddyspace.infra.database.mission.repository.MissionRepository;
+import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
+import team.budderz.buddyspace.infra.database.schedule.repository.ScheduleRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
+import team.budderz.buddyspace.infra.database.vote.entity.VoteSelection;
+import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +39,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
+    private final MembershipRepository membershipRepository;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -58,7 +71,9 @@ public class UserService {
                 () -> new UserException(UserErrorCode.INVALID_USER_EMAIL)
         );
 
-        // 회원 탈퇴 여부 확인 로직 필요
+        if(user.getDeletedAt() != null) {
+            throw new UserException(UserErrorCode.INVALID_USER_ID);
+        }
 
         if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
@@ -94,5 +109,45 @@ public class UserService {
         redisTemplate.opsForValue().set("blacklist:" + token, "logout", expireIn, TimeUnit.MILLISECONDS);
     }
 
+    @Transactional
+    public UserUpdateResponse updateUser(UserAuth userAuth, UserUpdateRequest updateRequest) {
+        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+                () -> new UserException(UserErrorCode.INVALID_USER_ID)
+        );
+
+        if(!passwordEncoder.matches(updateRequest.password(), user.getPassword())) {
+            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
+        }
+
+       user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
+
+       return UserUpdateResponse.from(user);
+    }
+
+    @Transactional
+    public void updateUserPassword(UserAuth userAuth, UserPasswordUpdateRequest updateRequest) {
+        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+                () -> new UserException(UserErrorCode.INVALID_USER_ID)
+        );
+
+        String encodedPassword = passwordEncoder.encode(updateRequest.password());
+
+        user.updateUserPassword(encodedPassword);
+    }
+
+    @Transactional
+    public void deleteUser(UserAuth userAuth, UserDeleteRequest deleteRequest) {
+        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+                () -> new UserException(UserErrorCode.INVALID_USER_ID)
+        );
+
+        if(!passwordEncoder.matches(deleteRequest.password(), user.getPassword())) {
+            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
+        }
+
+        user.softDelete();
+
+        membershipRepository.deleteAllByUser_Id(userAuth.getUserId());
+    }
 
 }
