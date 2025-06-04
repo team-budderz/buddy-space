@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.schedule.request.SaveScheduleRequest;
 import team.budderz.buddyspace.api.schedule.response.SaveScheduleResponse;
+import team.budderz.buddyspace.api.schedule.response.ScheduleDetailResponse;
 import team.budderz.buddyspace.api.schedule.response.ScheduleResponse;
 import team.budderz.buddyspace.domain.schedule.service.ScheduleService;
 import team.budderz.buddyspace.global.response.BaseResponse;
@@ -64,12 +65,14 @@ public class ScheduleController {
 		@RequestParam("year") int year,
 		@RequestParam("month") int month
 	) {
-		// 사용자가 그룹에 포함되어 있는지 확인
-		List<ScheduleResponse> scheduleResponses =
-			scheduleService.findSchedulesByMonth(groupId, year, month)
-				.stream()
-				.map(ScheduleResponse::from)
-				.toList();
-		return new BaseResponse<>(scheduleResponses);
+		return new BaseResponse<>(scheduleService.findSchedulesByMonth(groupId, year, month));
+	}
+
+	@GetMapping("/groups/{groupId}/schedules/{scheduleId}")
+	public BaseResponse<ScheduleDetailResponse> findSchedule(
+		@PathVariable Long groupId,
+		@PathVariable Long scheduleId
+	) {
+		return new BaseResponse<>(scheduleService.findSchedule(groupId, scheduleId));
 	}
 }
