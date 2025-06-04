@@ -43,6 +43,12 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
 
+        Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
+
+        if (noticeNum >= 5) {
+            throw new BaseException(PostErrorCode.NOTICE_LIMIT_EXCEEDED);
+        }
+
         Post post = Post.builder()
                 .group(group)
                 .user(user)
@@ -68,6 +74,14 @@ public class PostService {
 
         if (!Objects.equals(post.getUser().getId(), userId)) {
             throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_UPDATE);
+        }
+
+        if (!post.getIsNotice() && request.isNotice()) {
+            Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
+
+            if (noticeNum >= 5) {
+                throw new BaseException(PostErrorCode.NOTICE_LIMIT_EXCEEDED);
+            }
         }
 
         post.updatePost(request.content(), request.isNotice());
