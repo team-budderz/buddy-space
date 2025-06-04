@@ -5,12 +5,11 @@ import jakarta.validation.constraints.Pattern;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 public record UserUpdateResponse(
-        String password,
         String address,
         String phone,
         String imageUrl
 ) {
     public static UserUpdateResponse from(User user) {
-        return new UserUpdateResponse(user.getPassword(), user.getAddress(), user.getPhone(), user.getImageUrl());
+        return new UserUpdateResponse(user.getAddress(), user.getPhone(), user.getImageUrl());
     }
 }
