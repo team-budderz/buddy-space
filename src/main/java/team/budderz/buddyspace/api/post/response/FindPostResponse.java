@@ -23,7 +23,7 @@ public record FindPostResponse(
                 post.getCreatedAt(),
                 post.getContent(),
                 (long) post.getComments().size(),
-                post.getComments().stream()
+                comments.stream()
                         .map(FindCommentResponse::from)
                         .collect(Collectors.toList())
         );
