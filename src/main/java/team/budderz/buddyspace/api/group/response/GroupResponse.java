@@ -9,6 +9,7 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupType;
  * 모임 생성/수정 응답 DTO
  */
 public record GroupResponse(
+        Long groupId,
         String groupName,
         String groupCoverImageUrl,
         GroupAccess groupAccess,
@@ -17,6 +18,7 @@ public record GroupResponse(
 ) {
     public static GroupResponse from(Group group) {
         return new GroupResponse(
+                group.getId(),
                 group.getName(),
                 group.getCoverImageUrl(),
                 group.getAccess(),
