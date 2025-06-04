@@ -5,14 +5,17 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
 @Getter
 @Table(name = "users")
+@SQLDelete(sql = "update user set is_deleted = true where id = ?")
 public class User extends BaseEntity {
 
     @Id
@@ -59,6 +62,12 @@ public class User extends BaseEntity {
     @JoinColumn(name = "neighborhood_id", nullable = true)
     private Neighborhood neighborhood;
 
+    @Column(columnDefinition = "BOOLEAN DEFAULT false", nullable = false)
+    private boolean isDeleted;
+
+    @Column(nullable = true)
+    private LocalDateTime deletedAt;
+
     public User(String name, String email, String password, LocalDate birthDate, UserGender gender, String address, String phone, UserProvider provider, UserRole role) {
         this.name = name;
         this.email = email;
@@ -69,5 +78,15 @@ public class User extends BaseEntity {
         this.phone = phone;
         this.provider = provider;
         this.role = role;
+    }
+
+    public void updateUser(String password, String address, String phone) {
+        this.password = password;
+        this.address = address;
+        this.phone = phone;
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
     }
 }
