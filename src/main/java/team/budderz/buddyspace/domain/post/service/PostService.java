@@ -5,12 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
-import team.budderz.buddyspace.api.post.response.FindsNoticePostResponse;
-import team.budderz.buddyspace.api.post.response.FindsPostResponse;
-import team.budderz.buddyspace.api.post.response.SavePostResponse;
-import team.budderz.buddyspace.api.post.response.UpdatePostResponse;
+import team.budderz.buddyspace.api.post.response.*;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
+import team.budderz.buddyspace.infra.database.comment.entity.Comment;
+import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
@@ -29,6 +28,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     // 게시글 저장
     @Transactional
@@ -131,5 +131,19 @@ public class PostService {
         return posts.stream()
                 .map(FindsPostResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    // 게시글 상세 조회
+    @Transactional(readOnly = true)
+    public FindPostResponse findPost(
+            Long postId
+    ) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
+
+        List<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+
+        return FindPostResponse.from(post, comments);
+
     }
 }

@@ -6,10 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
-import team.budderz.buddyspace.api.post.response.FindsNoticePostResponse;
-import team.budderz.buddyspace.api.post.response.FindsPostResponse;
-import team.budderz.buddyspace.api.post.response.SavePostResponse;
-import team.budderz.buddyspace.api.post.response.UpdatePostResponse;
+import team.budderz.buddyspace.api.post.response.*;
 import team.budderz.buddyspace.domain.post.service.PostService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -84,6 +81,16 @@ public class PostController {
             @PathVariable Long groupId
     ) {
         List<FindsPostResponse> response = postService.findsNoticePost(groupId);
+        return new BaseResponse<>(response);
+    }
+
+    // 게시글 상세 조회
+    @GetMapping("/group/{groupId}/posts/{postId}")
+    public BaseResponse<FindPostResponse> findPost(
+            @PathVariable Long groupId,
+            @PathVariable Long postId
+    ) {
+        FindPostResponse response = postService.findPost(postId);
         return new BaseResponse<>(response);
     }
 }
