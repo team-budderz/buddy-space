@@ -2,8 +2,14 @@ package team.budderz.buddyspace.domain.schedule.service;
 
 import static team.budderz.buddyspace.domain.schedule.exception.ScheduleErrorCode.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,5 +93,20 @@ public class ScheduleService {
 		}
 
 		scheduleRepository.deleteById(scheduleId);
+	}
+
+	public Slice<Schedule> findSchedulesByMonth(Long groupId, int year, int month, Long cursorId, int size) {
+		groupRepository.findById(groupId)
+			.orElseThrow(() -> new ScheduleException(GROUP_NOT_FOUND));
+
+		LocalDate monthStartDate = LocalDate.of(year, month, 1);
+		LocalDateTime monthStart = monthStartDate.atStartOfDay();
+		LocalDateTime monthEnd = monthStartDate
+			.withDayOfMonth(monthStartDate.lengthOfMonth())  // 해당 월의 마지막 날
+			.atTime(23, 59, 59);
+
+		Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.ASC, "startAt"));
+
+		return scheduleRepository.findAllByMonth(groupId, monthStart, monthEnd, cursorId, pageable);
 	}
 }
