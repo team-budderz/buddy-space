@@ -71,6 +71,9 @@ public class PostService {
             Long userId,
             UpdatePostRequest request
     ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
@@ -155,6 +158,9 @@ public class PostService {
             Long groupId,
             Long postId
     ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
