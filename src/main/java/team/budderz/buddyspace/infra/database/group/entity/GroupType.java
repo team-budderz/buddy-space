@@ -1,6 +1,5 @@
 package team.budderz.buddyspace.infra.database.group.entity;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
@@ -12,7 +11,7 @@ import static team.budderz.buddyspace.domain.group.constant.GroupDefaults.*;
  * 모임 유형
  */
 @Getter
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public enum GroupType {
 
     ONLINE("온라인", DEFAULT_ONLINE_GROUP_COVER_IMAGE_URL),
