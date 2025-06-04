@@ -120,4 +120,16 @@ public class PostService {
                 .map(FindsNoticePostResponse::from)
                 .collect(Collectors.toList());
     }
+
+    // 게시글 공지 조회
+    @Transactional(readOnly = true)
+    public List<FindsPostResponse> findsNoticePost(
+            Long groupId
+    ) {
+        List<Post> posts = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId);
+
+        return posts.stream()
+                .map(FindsPostResponse::from)
+                .collect(Collectors.toList());
+    }
 }
