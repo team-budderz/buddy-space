@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import team.budderz.buddyspace.api.user.request.LoginRequest;
-import team.budderz.buddyspace.api.user.request.SignupRequest;
-import team.budderz.buddyspace.api.user.request.UserDeleteRequest;
-import team.budderz.buddyspace.api.user.request.UserUpdateRequest;
+import team.budderz.buddyspace.api.user.request.*;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
 import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
@@ -118,11 +115,24 @@ public class UserService {
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
 
-       String encodedpassword = passwordEncoder.encode(updateRequest.password());
+        if(!passwordEncoder.matches(updateRequest.password(), user.getPassword())) {
+            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
+        }
 
-       user.updateUser(encodedpassword, updateRequest.address(), updateRequest.phone());
+       user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
 
        return UserUpdateResponse.from(user);
+    }
+
+    @Transactional
+    public void updateUserPassword(UserAuth userAuth, UserPasswordUpdateRequest updateRequest) {
+        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+                () -> new UserException(UserErrorCode.INVALID_USER_ID)
+        );
+
+        String encodedPassword = passwordEncoder.encode(updateRequest.password());
+
+        user.updateUserPassword(encodedPassword);
     }
 
     @Transactional
