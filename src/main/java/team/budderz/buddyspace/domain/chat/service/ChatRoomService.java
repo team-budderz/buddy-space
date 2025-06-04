@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
+import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
@@ -25,12 +28,13 @@ import java.util.Set;
 @Transactional
 public class ChatRoomService {
 
-    private final ChatRoomRepository chatRoomRepository;
-    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final GroupRepository groupRepository;
+    private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
-    // 방 생성
+    // 채팅방 생성 -------------------------------------------------------------------------------------------------------
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
         // 그룹 조회
         Group group = groupRepository.findById(groupId)
@@ -109,6 +113,37 @@ public class ChatRoomService {
                 .sorted()
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("DIRECT");
+    }
+
+    // 채팅방 목록 조회 -------------------------------------------------------------------------------------------------------
+    public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
+        // 1. 해당 그룹에서 user 가 참가중(isActive=true)인 채팅방 조회
+        List<ChatParticipant> participants = chatParticipantRepository
+                .findByUserAndGroupAndIsActive(userId, groupId);
+
+        // 2. 각 채팅방별로 lastMessage, unreadCount 계산
+        List<ChatRoomSummaryResponse> result = participants.stream()
+                .map(participant -> {
+                    ChatRoom chatRoom = participant.getChatRoom();
+                    ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomOrderBySentAtDesc(chatRoom);
+
+                    long lastReadId = participant.getLastReadMessageId() != null ? participant.getLastReadMessageId() : 0L;
+
+                    long unreadCount = chatMessageRepository.countByChatRoomAndIdGreaterThan(chatRoom, lastReadId);
+
+
+                    return ChatRoomSummaryResponse.builder()
+                            .roomId(chatRoom.getId())
+                            .name(chatRoom.getName())
+                            .lastMessage(lastMessage != null ? lastMessage.getContent() : "")
+                            .lastMessageType(lastMessage != null ? lastMessage.getMessageType().name() : "TEXT")
+                            .lastMessageTime(lastMessage != null ? lastMessage.getSentAt() : null)
+                            .unreadCount(unreadCount)
+                            .build();
+                })
+                .toList();
+
+        return result;
     }
 
 }
