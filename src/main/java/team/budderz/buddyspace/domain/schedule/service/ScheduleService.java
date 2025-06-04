@@ -4,6 +4,7 @@ import static team.budderz.buddyspace.domain.schedule.exception.ScheduleErrorCod
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.domain.PageRequest;
@@ -95,7 +96,7 @@ public class ScheduleService {
 		scheduleRepository.deleteById(scheduleId);
 	}
 
-	public Slice<Schedule> findSchedulesByMonth(Long groupId, int year, int month, Long cursorId, int size) {
+	public List<Schedule> findSchedulesByMonth(Long groupId, int year, int month) {
 		groupRepository.findById(groupId)
 			.orElseThrow(() -> new ScheduleException(GROUP_NOT_FOUND));
 
@@ -105,8 +106,6 @@ public class ScheduleService {
 			.withDayOfMonth(monthStartDate.lengthOfMonth())  // 해당 월의 마지막 날
 			.atTime(23, 59, 59);
 
-		Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.ASC, "startAt"));
-
-		return scheduleRepository.findAllByMonth(groupId, monthStart, monthEnd, cursorId, pageable);
+		return scheduleRepository.findAllByMonth(groupId, monthStart, monthEnd);
 	}
 }

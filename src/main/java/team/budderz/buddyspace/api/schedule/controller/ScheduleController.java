@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.api.schedule.controller;
 
-import org.springframework.data.domain.Slice;
+import java.util.List;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.schedule.request.SaveScheduleRequest;
 import team.budderz.buddyspace.api.schedule.response.SaveScheduleResponse;
 import team.budderz.buddyspace.api.schedule.response.ScheduleResponse;
-import team.budderz.buddyspace.api.schedule.response.SchedulesSliceResponse;
 import team.budderz.buddyspace.domain.schedule.service.ScheduleService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -59,17 +59,17 @@ public class ScheduleController {
 	}
 
 	@GetMapping("/groups/{groupId}/schedules")
-	public BaseResponse<SchedulesSliceResponse<ScheduleResponse>> findSchedulesByMonth(
+	public BaseResponse<List<ScheduleResponse>> findSchedulesByMonth(
 		@PathVariable Long groupId,
 		@RequestParam("year") int year,
-		@RequestParam("month") int month,
-		@RequestParam(required = false) Long cursorId,
-		@RequestParam(defaultValue = "10") int size
+		@RequestParam("month") int month
 	) {
 		// 사용자가 그룹에 포함되어 있는지 확인
-		Slice<ScheduleResponse> scheduleResponses =
-			scheduleService.findSchedulesByMonth(groupId, year, month, cursorId, size)
-				.map(ScheduleResponse::from);
-		return new BaseResponse<>(SchedulesSliceResponse.from(scheduleResponses, ScheduleResponse::scheduleId));
+		List<ScheduleResponse> scheduleResponses =
+			scheduleService.findSchedulesByMonth(groupId, year, month)
+				.stream()
+				.map(ScheduleResponse::from)
+				.toList();
+		return new BaseResponse<>(scheduleResponses);
 	}
 }
