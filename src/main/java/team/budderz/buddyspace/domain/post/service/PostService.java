@@ -130,7 +130,7 @@ public class PostService {
     public List<FindsNoticePostResponse> findNoticePostSummaries(
             Long groupId
     ) {
-        List<Post> posts = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId);
+        List<Post> posts = postRepository.findByGroupIdAndIsNoticeTrueOrderByCreatedAtDesc(groupId);
 
         return posts.stream()
                 .map(FindsNoticePostResponse::from)
@@ -142,7 +142,7 @@ public class PostService {
     public List<FindsPostResponse> findsNoticePost(
             Long groupId
     ) {
-        List<Post> posts = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId);
+        List<Post> posts = postRepository.findByGroupIdAndIsNoticeTrueOrderByCreatedAtDesc(groupId);
 
         return posts.stream()
                 .map(FindsPostResponse::from)

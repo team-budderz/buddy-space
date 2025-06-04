@@ -7,7 +7,9 @@ import team.budderz.buddyspace.infra.database.post.entity.Post;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    Long countByGroupIdAndIsNoticeTrue(Long groupId);
+
     List<Post> findByGroupIdOrderByCreatedAtDesc(Long groupId);
 
-    Long countByGroupIdAndIsNoticeTrue(Long groupId);
+    List<Post> findByGroupIdAndIsNoticeTrueOrderByCreatedAtDesc(Long groupId);
 }
