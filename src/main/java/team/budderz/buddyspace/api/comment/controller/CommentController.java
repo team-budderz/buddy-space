@@ -6,10 +6,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.comment.request.CommentRequest;
 import team.budderz.buddyspace.api.comment.response.CommentResponse;
+import team.budderz.buddyspace.api.comment.response.FindsRecommentResponse;
 import team.budderz.buddyspace.api.comment.response.RecommentResponse;
 import team.budderz.buddyspace.domain.comment.service.CommentService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -72,6 +75,17 @@ public class CommentController {
         Long userId = userAuth.getUserId();
         commentService.deleteComment(groupId, postId, commentId, userId);
         return new BaseResponse<>("댓글이 성공적으로 삭제되었습니다.");
+    }
+
+    // 대댓글 조회
+    @GetMapping("/group/{groupId}/post/{postId}/comments/{commentId}")
+    public BaseResponse<List<FindsRecommentResponse>> findsRecomment(
+            @PathVariable Long groupId,
+            @PathVariable Long postId,
+            @PathVariable Long commentId
+    ) {
+        List<FindsRecommentResponse> responses = commentService.findsRecomment(groupId, postId, commentId);
+        return new BaseResponse<>(responses);
     }
 
 }

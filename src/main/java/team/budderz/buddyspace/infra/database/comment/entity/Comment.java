@@ -10,6 +10,7 @@ import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,8 +38,8 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private List<Comment> children;
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> children = new ArrayList<>();
 
     public void updateComment(String content) {
         this.content = content != null ? content : this.content;
