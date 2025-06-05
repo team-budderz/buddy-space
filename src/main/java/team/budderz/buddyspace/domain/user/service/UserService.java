@@ -49,21 +49,21 @@ public class UserService {
 
         String encodedPassword = passwordEncoder.encode(signupRequest.password());
 
-        User user = new User(
-                signupRequest.name(),
-                signupRequest.email(),
-                encodedPassword,
-                signupRequest.birthDate(),
-                signupRequest.gender(),
-                signupRequest.address(),
-                signupRequest.phone(),
-                signupRequest.provider(),
-                signupRequest.role()
-        );
+        User user = User.builder()
+                .name(signupRequest.name())
+                .email(signupRequest.email())
+                .password(encodedPassword)
+                .birthDate(signupRequest.birthDate())
+                .gender(signupRequest.gender())
+                .address(signupRequest.address())
+                .phone(signupRequest.phone())
+                .provider(signupRequest.provider())
+                .role(signupRequest.role())
+                .build();
 
-        User savedUser = userRepository.save(user);
+        userRepository.save(user);
 
-        return SignupResponse.from(savedUser);
+        return SignupResponse.from(user);
     }
 
     public LoginResponse login(LoginRequest loginRequest) {
