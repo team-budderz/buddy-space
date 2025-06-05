@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
+import team.budderz.buddyspace.api.vote.request.SubmitVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
 import team.budderz.buddyspace.api.vote.response.VoteDetailResponse;
 import team.budderz.buddyspace.api.vote.response.VoteResponse;
@@ -71,5 +72,16 @@ public class VoteController {
 		@PathVariable Long voteId
 	) {
 		return new BaseResponse<>(voteService.findVote(groupId, voteId));
+	}
+
+	@PostMapping("/groups/{groupId}/votes/{voteId}/submit")
+	public BaseResponse<Void> submitVote(
+		@AuthenticationPrincipal UserAuth userAuth,
+		@PathVariable Long groupId,
+		@PathVariable Long voteId,
+		@Valid @RequestBody SubmitVoteRequest request
+	) {
+		voteService.sumbitVote(userAuth.getUserId(), groupId, voteId, request);
+		return new BaseResponse<>(null);
 	}
 }

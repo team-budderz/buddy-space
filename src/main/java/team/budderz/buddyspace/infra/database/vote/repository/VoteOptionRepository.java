@@ -14,5 +14,5 @@ public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
 	void deleteAllByVoteId(Long voteId);
 
 	@Query("SELECT vo.id FROM VoteOption vo WHERE vo.vote.id = :voteId")
-	List<Long> findAllVoteOptionId(Long voteId);
+	List<Long> findAllVoteOptionIdsByVoteId(Long voteId);
 }

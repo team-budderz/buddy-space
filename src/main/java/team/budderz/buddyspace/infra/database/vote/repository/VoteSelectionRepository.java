@@ -1,5 +1,7 @@
 package team.budderz.buddyspace.infra.database.vote.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +17,14 @@ public interface VoteSelectionRepository extends JpaRepository<VoteSelection, Lo
 		)
 	""")
 	void deleteAllByVoteOptionIn(Long voteId);
+
+	@Modifying
+	@Query("""
+		DELETE FROM VoteSelection vs
+		WHERE vs.user.id = :userId 
+		AND vs.voteOption.id IN (
+			SELECT vo.id FROM VoteOption vo WHERE vo.vote.id = :voteId
+		)
+	""")
+	void deleteByUserIdAndVoteId(Long userId, Long voteId);
 }

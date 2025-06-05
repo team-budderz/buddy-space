@@ -7,8 +7,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
+import team.budderz.buddyspace.api.vote.request.SubmitVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
 import team.budderz.buddyspace.api.vote.response.VoteDetailResponse;
 import team.budderz.buddyspace.api.vote.response.VoteResponse;
@@ -18,6 +20,8 @@ import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.entity.Vote;
+import team.budderz.buddyspace.infra.database.vote.entity.VoteOption;
+import team.budderz.buddyspace.infra.database.vote.entity.VoteSelection;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteOptionRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteSelectionRepository;
@@ -115,5 +119,39 @@ public class VoteService {
 		}
 
 		return VoteDetailResponse.from(vote);
+	}
+
+	@Transactional
+	public void sumbitVote(Long userId, Long groupId, Long voteId, SubmitVoteRequest request) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new VoteException(USER_NOT_FOUND));
+
+		groupRepository.findById(groupId)
+			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
+
+		Vote vote = voteRepository.findById(voteId)
+			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
+
+		if (!vote.getGroup().getId().equals(groupId)) {
+			throw new VoteException(VOTE_GROUP_MISMATCH);
+		}
+
+		// voteId에 대해 해당 유저가 한 이전 투표 삭제
+		voteSelectionRepository.deleteByUserIdAndVoteId(userId, voteId);
+
+		List<VoteOption> selectedOptions = voteOptionRepository.findAllById(request.voteOptionIds());
+		for (VoteOption option : selectedOptions) {
+			// 요청된 voteOptionId가 해당 vote에 속하는지 검증
+			if (!option.getVote().getId().equals(voteId)) {
+				throw new VoteException(VOTE_OPTION_MISMATCH);
+			}
+
+			// 새로운 투표 저장
+			VoteSelection voteSelection = VoteSelection.builder()
+				.user(user)
+				.voteOption(option)
+				.build();
+			voteSelectionRepository.save(voteSelection);
+		}
 	}
 }
