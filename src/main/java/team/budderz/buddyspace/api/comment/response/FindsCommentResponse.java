@@ -4,18 +4,24 @@ import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 
 import java.time.LocalDateTime;
 
-public record FindCommentResponse(
+public record FindsCommentResponse(
         String userImgUrl,
         String userName,
         String content,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long commentNum
 ) {
-    public static FindCommentResponse from(Comment comment) {
-        return new FindCommentResponse(
+    public static FindsCommentResponse from(Comment comment) {
+        if (comment.getChildren().isEmpty()) {
+            return null;
+        }
+
+        return new FindsCommentResponse(
                 comment.getUser().getImageUrl(),
                 comment.getUser().getName(),
                 comment.getContent(),
-                comment.getCreatedAt()
+                comment.getCreatedAt(),
+                (long) comment.getChildren().size()
         );
     }
 }
