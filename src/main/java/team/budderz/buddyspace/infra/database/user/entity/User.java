@@ -2,6 +2,7 @@ package team.budderz.buddyspace.infra.database.user.entity;
 
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -68,6 +69,7 @@ public class User extends BaseEntity {
     @Column(nullable = true)
     private LocalDateTime deletedAt;
 
+    @Builder
     public User(String name, String email, String password, LocalDate birthDate, UserGender gender, String address, String phone, UserProvider provider, UserRole role) {
         this.name = name;
         this.email = email;
