@@ -3,6 +3,7 @@ package team.budderz.buddyspace.api.vote.controller;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,5 +29,18 @@ public class VoteController {
 		@Valid @RequestBody SaveVoteRequest request
 	) {
 		return new BaseResponse<>(voteService.saveVote(userAuth.getUserId(), groupId, request));
+	}
+
+	@PutMapping("/groups/{groupId}/votes/{voteId}")
+	public BaseResponse<SaveVoteResponse> updateVote(
+		@AuthenticationPrincipal UserAuth userAuth,
+		@PathVariable Long groupId,
+		@PathVariable Long voteId,
+		@Valid @RequestBody SaveVoteRequest request
+	) {
+		System.out.println("==============");
+		SaveVoteResponse saveVoteResponse = voteService.updateVote(userAuth.getUserId(), groupId, voteId, request);
+		System.out.println("==============");
+		return new BaseResponse<>(saveVoteResponse);
 	}
 }

@@ -8,6 +8,7 @@ import team.budderz.buddyspace.infra.database.vote.entity.VoteOption;
 
 public record SaveVoteResponse(
 	Long voteId,
+	String title,
 	boolean isAnonymous,
 	List<String> options,
 	String authorName,
@@ -17,6 +18,7 @@ public record SaveVoteResponse(
 	public static SaveVoteResponse from(Vote vote) {
 		return new SaveVoteResponse(
 			vote.getId(),
+			vote.getTitle(),
 			vote.isAnonymous(),
 			vote.getOptions().stream().map(VoteOption::getContent).toList(),
 			vote.getAuthor().getName(),
