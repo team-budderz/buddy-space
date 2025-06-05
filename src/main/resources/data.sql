@@ -15,7 +15,7 @@ VALUES
 INSERT INTO users (name, email, password, birth_date, gender, address, phone, image_url, provider, provider_id, role, neighborhood_id)
 VALUES
     ('Alice', 'alice@example.com', 'Password123@', '1995-05-10', 'F', 'Seoul, Gangnam-gu', '010-1234-5678', NULL, 'LOCAL', NULL, 'USER', 1),
-    ('Bob', 'bob@example.com', 'securepw', '1990-10-22', 'M', 'Busan, Haeundae-gu', '010-8765-4321', NULL, 'KAKAO', 'kakao123', 'USER', NULL);
+    ('Bob', 'bob@example.com', 'securepw', '1990-10-22', 'M', 'Busan, Haeundae-gu', '010-8765-4321', NULL, 'LOCAL', 'NULL', 'USER', NULL);
 
 
 -- 3. Group 데이터
