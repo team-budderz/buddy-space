@@ -45,7 +45,7 @@ public class CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+        if (post.doesNotBelongToGroup(groupId)) {
             throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
         }
 
@@ -77,11 +77,11 @@ public class CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+        if (post.doesNotBelongToGroup(groupId)) {
             throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
         }
 
-        if (!Objects.equals(comment.getPost().getId(), postId)) {
+        if (comment.doesNotBelongToPost(postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
         }
 
@@ -112,15 +112,15 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+        if (post.doesNotBelongToGroup(groupId)) {
             throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
         }
 
-        if (!Objects.equals(comment.getPost().getId(), postId)) {
+        if (comment.doesNotBelongToPost(postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
         }
 
-        if (!Objects.equals(comment.getUser().getId(), userId)) {
+        if (comment.isNotWrittenBy(userId)) {
             throw new BaseException(CommentErrorCode.UNAUTHORIZED_COMMENT_UPDATE);
         }
 
@@ -145,15 +145,15 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+        if (post.doesNotBelongToGroup(groupId)) {
             throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
         }
 
-        if (!Objects.equals(comment.getPost().getId(), postId)) {
+        if (comment.doesNotBelongToPost(postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
         }
 
-        if (!Objects.equals(comment.getUser().getId(), userId)
+        if (comment.isNotWrittenBy(userId)
                 && !Objects.equals(group.getLeader().getId(), userId)) {
             throw new BaseException(CommentErrorCode.UNAUTHORIZED_COMMENT_DELETE);
         }
@@ -175,11 +175,11 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+        if (post.doesNotBelongToGroup(groupId)) {
             throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
         }
 
-        if (!Objects.equals(comment.getPost().getId(), postId)) {
+        if (comment.doesNotBelongToPost(postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
         }
 
