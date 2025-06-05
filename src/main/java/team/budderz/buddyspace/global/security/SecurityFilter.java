@@ -34,9 +34,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if(token != null) {
             // 블랙리스트 확인
-            if(Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
+            if(redisTemplate.hasKey(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
+                return; // 예외처리 하면 최상위 예외로 발생
             }
 
             try {
