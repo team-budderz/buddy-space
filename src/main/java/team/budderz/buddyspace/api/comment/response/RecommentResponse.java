@@ -1,27 +1,27 @@
 package team.budderz.buddyspace.api.comment.response;
 
-import lombok.Getter;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 
 import java.time.LocalDateTime;
 
-@Getter
-public class RecommentResponse {
-    private final Long groupId;
-    private final Long userId;
-    private final Long postId;
-    private final Long commentId;
-    private final String content;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime modifiedAt;
-
-    public RecommentResponse(Comment comment) {
-        this.groupId = comment.getPost().getGroup().getId();
-        this.userId = comment.getUser().getId();
-        this.postId = comment.getPost().getId();
-        this.commentId = comment.getParent().getId();
-        this.content = comment.getContent();
-        this.createdAt =  comment.getCreatedAt();
-        this.modifiedAt = comment.getModifiedAt();
+public record RecommentResponse(
+        Long groupId,
+        Long userId,
+        Long postId,
+        Long commentId,
+        String content,
+        LocalDateTime createdAt,
+        LocalDateTime modifiedAt
+) {
+    public static RecommentResponse from(Comment comment) {
+        return new RecommentResponse(
+                comment.getPost().getGroup().getId(),
+                comment.getUser().getId(),
+                comment.getPost().getId(),
+                comment.getParent().getId(),
+                comment.getContent(),
+                comment.getCreatedAt(),
+                comment.getModifiedAt()
+        );
     }
 }
