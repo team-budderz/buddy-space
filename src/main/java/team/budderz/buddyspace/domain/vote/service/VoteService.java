@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
+import team.budderz.buddyspace.api.vote.response.VoteDetailResponse;
 import team.budderz.buddyspace.api.vote.response.VoteResponse;
 import team.budderz.buddyspace.domain.vote.exception.VoteException;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
@@ -100,5 +101,19 @@ public class VoteService {
 			.stream()
 			.map(VoteResponse::from)
 			.toList();
+	}
+
+	public VoteDetailResponse findVote(Long groupId, Long voteId) {
+		groupRepository.findById(groupId)
+			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
+
+		Vote vote = voteRepository.findById(voteId)
+			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
+
+		if (!vote.getGroup().getId().equals(groupId)) {
+			throw new VoteException(VOTE_GROUP_MISMATCH);
+		}
+
+		return VoteDetailResponse.from(vote);
 	}
 }

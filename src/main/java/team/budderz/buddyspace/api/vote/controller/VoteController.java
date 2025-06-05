@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
+import team.budderz.buddyspace.api.vote.response.VoteDetailResponse;
 import team.budderz.buddyspace.api.vote.response.VoteResponse;
 import team.budderz.buddyspace.domain.vote.service.VoteService;
 import team.budderz.buddyspace.global.response.BaseResponse;
@@ -62,5 +63,13 @@ public class VoteController {
 		@PathVariable Long groupId
 	) {
 		return new BaseResponse<>(voteService.findVote(groupId));
+	}
+
+	@GetMapping("/groups/{groupId}/votes/{voteId}")
+	public BaseResponse<VoteDetailResponse> findVote(
+		@PathVariable Long groupId,
+		@PathVariable Long voteId
+	) {
+		return new BaseResponse<>(voteService.findVote(groupId, voteId));
 	}
 }
