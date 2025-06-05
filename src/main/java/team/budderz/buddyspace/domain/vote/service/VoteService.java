@@ -2,12 +2,15 @@ package team.budderz.buddyspace.domain.vote.service;
 
 import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
+import team.budderz.buddyspace.api.vote.response.VoteResponse;
 import team.budderz.buddyspace.domain.vote.exception.VoteException;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
@@ -87,5 +90,15 @@ public class VoteService {
 		voteSelectionRepository.deleteAllByVoteOptionIn(voteId);
 		voteOptionRepository.deleteAllByVoteId(voteId);
 		voteRepository.deleteById(voteId);
+	}
+
+	public List<VoteResponse> findVote(Long groupId) {
+		groupRepository.findById(groupId)
+			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
+
+		return voteRepository.findByGroupIdOrderByCreatedAtDesc(groupId)
+			.stream()
+			.map(VoteResponse::from)
+			.toList();
 	}
 }

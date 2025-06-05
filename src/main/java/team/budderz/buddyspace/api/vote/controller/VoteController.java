@@ -1,7 +1,10 @@
 package team.budderz.buddyspace.api.vote.controller;
 
+import java.util.List;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -13,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
+import team.budderz.buddyspace.api.vote.response.VoteResponse;
 import team.budderz.buddyspace.domain.vote.service.VoteService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -51,5 +55,12 @@ public class VoteController {
 	) {
 		voteService.deleteVote(userAuth.getUserId(), groupId, voteId);
 		return new BaseResponse<>(null);
+	}
+
+	@GetMapping("/groups/{groupId}/votes")
+	public BaseResponse<List<VoteResponse>> findVote(
+		@PathVariable Long groupId
+	) {
+		return new BaseResponse<>(voteService.findVote(groupId));
 	}
 }
