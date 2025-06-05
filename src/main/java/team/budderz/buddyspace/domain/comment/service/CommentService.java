@@ -45,11 +45,11 @@ public class CommentService {
         Comment comment = Comment.builder()
                 .post(post)
                 .user(user)
-                .content(request.getContent())
+                .content(request.content())
                 .build();
 
         commentRepository.save(comment);
-        return new CommentResponse(comment);
+        return CommentResponse.from(comment);
     }
 
     // 대댓글 저장
@@ -75,12 +75,12 @@ public class CommentService {
                 .post(post)
                 .user(user)
                 .parent(comment)
-                .content(request.getContent())
+                .content(request.content())
                 .build();
 
         commentRepository.save(reComment);
         comment.getChildren().add(reComment);
-        return new RecommentResponse(reComment);
+        return RecommentResponse.from(reComment);
     }
 
     // 댓글 수정
@@ -95,8 +95,15 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
-        comment.updateComment(request.getContent());
-        return new CommentResponse(comment);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+        if (!Objects.equals(comment.getUser().getId(), userId)) {
+            throw new BaseException(CommentErrorCode.UNAUTHORIZED_COMMENT_UPDATE);
+        }
+
+        comment.updateComment(request.content());
+        return CommentResponse.from(comment);
     }
 
     // 댓글 삭제
