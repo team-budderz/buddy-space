@@ -50,7 +50,7 @@ public class User extends BaseEntity {
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
-    private UserProvider provider; //이넘 LOCAL,KAKAO
+    private UserProvider provider; //이넘 LOCAL,GOOGLE
 
     @Setter
     private String providerId;
