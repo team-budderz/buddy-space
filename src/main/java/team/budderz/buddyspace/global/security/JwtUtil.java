@@ -27,25 +27,25 @@ public class JwtUtil {
     private static final long REFRESH_EXP = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     // 토큰 생성
-    public String createToken(Long userId, String role, String tokenType, long expireTime) {
+    public String createToken(Long userId, String email, String role, String tokenType, long expireTime) {
         Date now = new Date();
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
+                .claim("email", email)
                 .claim("role", role)
                 .claim("tokenType", tokenType)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + expireTime))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
-
     }
 
-    public String createAccessToken(Long userId, UserRole role) {
-        return createToken(userId, role.name(), "ACCESS", ACCESS_EXP);
+    public String createAccessToken(Long userId, String email, UserRole role) {
+        return createToken(userId, email, role.name(), "ACCESS", ACCESS_EXP);
     }
 
     public String createRefreshToken(Long userId) {
-        return createToken(userId, null, "REFRESH", REFRESH_EXP);
+        return createToken(userId, null, null, "REFRESH", REFRESH_EXP);
     }
 
     // 토큰 추출
@@ -66,17 +66,6 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
-
-    // 인증 정보 추출 (UserAuth 객체)
-    public UserAuth extractUserAuth(String token) {
-        Claims body = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return new UserAuth(Long.parseLong(body.getSubject()), UserRole.valueOf(body.get("role", String.class)));
     }
 
     // 만료시간
@@ -106,4 +95,15 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
+    public String getEmailFromToken(String token) {
+        return getClaims(token).get("email", String.class);
+    }
+
+    public Long getUserIdFromToken(String token) {
+        return Long.parseLong(getClaims(token).getSubject());
+    }
+
+    public long getRefreshTokenExpireTime() {
+        return REFRESH_EXP;
+    }
 }

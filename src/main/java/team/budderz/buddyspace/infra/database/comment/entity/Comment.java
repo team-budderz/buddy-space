@@ -12,6 +12,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "comments")
@@ -38,11 +39,20 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
+    @Builder.Default
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> children = new ArrayList<>();
 
     public void updateComment(String content) {
         this.content = content != null ? content : this.content;
+    }
+
+    public boolean doesNotBelongToPost(Long postId) {
+        return !Objects.equals(this.post.getId(), postId);
+    }
+
+    public boolean isNotWrittenBy(Long userId) {
+        return !Objects.equals(this.user.getId(), userId);
     }
 
 }
