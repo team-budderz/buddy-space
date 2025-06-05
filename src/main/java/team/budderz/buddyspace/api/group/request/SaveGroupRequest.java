@@ -8,9 +8,9 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
 
 /**
- * 모임 생성/수정 요청 DTO
+ * 모임 생성 요청 DTO
  */
-public record GroupRequest(
+public record SaveGroupRequest(
 
         /**
          * 모임 이름 (필수, 최대 20자)
@@ -19,6 +19,9 @@ public record GroupRequest(
         @Size(max = 20, message = "모임 이름은 20자를 초과할 수 없습니다.")
         String name,
 
+        /**
+         * 모임 커버 이미지 주소 (선택)
+         */
         String coverImageUrl,
 
         /**
