@@ -14,6 +14,7 @@ import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.global.exception.GlobalExceptionHandler;
 import team.budderz.buddyspace.global.security.JwtUtil;
 import team.budderz.buddyspace.global.security.UserAuth;
+import team.budderz.buddyspace.global.util.RedisUtil;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
@@ -40,6 +41,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
     private final MembershipRepository membershipRepository;
+    private final RedisUtil redisUtil;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -66,23 +68,29 @@ public class UserService {
         return SignupResponse.from(user);
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.email()).orElseThrow(
-                () -> new UserException(UserErrorCode.INVALID_USER_EMAIL)
-        );
-
-        if(user.getDeletedAt() != null) {
-            throw new UserException(UserErrorCode.INVALID_USER_ID);
-        }
-
-        if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
-            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
+    public LoginResponse login(User user) {
+        if (user.isDeleted()) {
+            throw new UserException(UserErrorCode.INVALID_USER_EMAIL);
         }
 
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
+        redisUtil.setData("RT:" + user.getId(), refreshToken, jwtUtil.getRefreshTokenExpireTime());
+
         return new LoginResponse(accessToken, refreshToken);
+    }
+
+    public LoginResponse login(LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.email()).orElseThrow(
+                () -> new UserException(UserErrorCode.INVALID_USER_EMAIL)
+        );
+
+        if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
+        }
+
+        return login(user);
     }
 
     public void logout(String token) {
@@ -107,6 +115,10 @@ public class UserService {
 
         // 데이터 충돌 방지를 위한 prefix 설정
         redisTemplate.opsForValue().set("blacklist:" + token, "logout", expireIn, TimeUnit.MILLISECONDS);
+
+        // refresh token 삭제
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        redisUtil.deleteData("RT:" + userId);
     }
 
     @Transactional
