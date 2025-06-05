@@ -2,24 +2,16 @@ package team.budderz.buddyspace.global.oauth2.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
-import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
-import team.budderz.buddyspace.domain.user.exception.UserException;
-import team.budderz.buddyspace.domain.user.service.UserService;
-import team.budderz.buddyspace.global.security.JwtUtil;
-import team.budderz.buddyspace.global.util.RedisUtil;
-import team.budderz.buddyspace.infra.database.user.entity.User;
-import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
+import team.budderz.buddyspace.global.oauth2.service.CustomOAuth2UserService;
 
 import java.io.IOException;
 import java.util.Map;
@@ -28,31 +20,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
-    @Value("${oauth2.redirect-uri}")
-    private String redirectUri;
-    private final UserService userService;
-    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
-        DefaultOAuth2User oAuth2User = (DefaultOAuth2User) authentication.getPrincipal();
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+        // CustomOAuth2UserService 에서 저장해둔 loginResponse 꺼냄
+        LoginResponse tokens = (LoginResponse) RequestContextHolder.getRequestAttributes()
+                .getAttribute(CustomOAuth2UserService.LOGIN_RESPONSE_ATTR, RequestAttributes.SCOPE_REQUEST);
 
-        String email = (String) attributes.get("email");
+        if (tokens == null) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("로그인 처리에 실패했습니다.");
+            return;
+        }
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserException(UserErrorCode.INVALID_USER_EMAIL));
-
-        LoginResponse tokens = userService.login(user);
-
-        // JSON 응답
+        // JSON 응답 처리
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writeValueAsString(tokens);
-        response.getWriter().write(json);
+        response.getWriter().write(objectMapper.writeValueAsString(tokens));
     }
 }
