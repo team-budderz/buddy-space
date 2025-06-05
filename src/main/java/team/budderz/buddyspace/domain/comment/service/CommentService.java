@@ -130,7 +130,7 @@ public class CommentService {
 
     // 댓글 삭제
     @Transactional
-    public Void deleteComment (
+    public void deleteComment (
             Long groupId,
             Long postId,
             Long commentId,
@@ -159,7 +159,6 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);
-        return null;
     }
 
     // 대댓글 조회
