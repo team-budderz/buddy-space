@@ -39,6 +39,9 @@ public class CommentService {
             Long userId,
             CommentRequest request
     ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
 
@@ -64,6 +67,8 @@ public class CommentService {
             Long userId,
             CommentRequest request
     ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
@@ -95,11 +100,21 @@ public class CommentService {
             Long userId,
             CommentRequest request
     ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+        if (!Objects.equals(comment.getPost().getId(), postId)) {
+            throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
+        }
 
         if (!Objects.equals(comment.getUser().getId(), userId)) {
             throw new BaseException(CommentErrorCode.UNAUTHORIZED_COMMENT_UPDATE);
@@ -118,13 +133,20 @@ public class CommentService {
             Long userId
     ) {
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+        if (!Objects.equals(comment.getPost().getId(), postId)) {
+            throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
+        }
 
         if (!Objects.equals(comment.getUser().getId(), userId)
                 && !Objects.equals(group.getLeader().getId(), userId)) {
@@ -150,6 +172,10 @@ public class CommentService {
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        if (!Objects.equals(comment.getPost().getId(), postId)) {
+            throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
+        }
 
         List<Comment> comments = commentRepository.findByParentOrderByCreatedAtAsc(comment);
 
