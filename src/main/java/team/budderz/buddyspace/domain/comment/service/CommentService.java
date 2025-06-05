@@ -39,14 +39,15 @@ public class CommentService {
             Long userId,
             CommentRequest request
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
-
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+            throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
+        }
 
         Comment comment = Comment.builder()
                 .post(post)
@@ -67,9 +68,6 @@ public class CommentService {
             Long userId,
             CommentRequest request
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
-
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
 
@@ -78,6 +76,14 @@ public class CommentService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+
+        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+            throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
+        }
+
+        if (!Objects.equals(comment.getPost().getId(), postId)) {
+            throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
+        }
 
         Comment reComment = Comment.builder()
                 .post(post)
@@ -100,17 +106,15 @@ public class CommentService {
             Long userId,
             CommentRequest request
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.GROUP_ID_NOT_FOUND));
-
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+            throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
+        }
 
         if (!Objects.equals(comment.getPost().getId(), postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
@@ -141,8 +145,9 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.USER_ID_NOT_FOUND));
+        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+            throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
+        }
 
         if (!Objects.equals(comment.getPost().getId(), postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);
@@ -164,14 +169,15 @@ public class CommentService {
             Long postId,
             Long commentId
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
-
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        if (!Objects.equals(post.getGroup().getId(), groupId)) {
+            throw new BaseException(CommentErrorCode.POST_NOT_BELONG_TO_GROUP);
+        }
 
         if (!Objects.equals(comment.getPost().getId(), postId)) {
             throw new BaseException(CommentErrorCode.COMMENT_NOT_BELONG_TO_POST);

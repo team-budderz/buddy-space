@@ -15,6 +15,7 @@ public enum CommentErrorCode implements ErrorCode {
     , UNAUTHORIZED_COMMENT_DELETE(HttpStatus.FORBIDDEN.value(), "C005", "댓글 삭제 권한이 없습니다.")
     , UNAUTHORIZED_COMMENT_UPDATE(HttpStatus.FORBIDDEN.value(), "C006", "댓글 수정 권한이 없습니다.")
     , COMMENT_NOT_BELONG_TO_POST( HttpStatus.BAD_REQUEST.value(), "C007", "해당 게시글에 속한 댓글이 아닙니다.")
+    , POST_NOT_BELONG_TO_GROUP( HttpStatus.BAD_REQUEST.value(), "C008", "해당 그룹에 속한 게시글이 아닙니다.")
 
     ;
 
