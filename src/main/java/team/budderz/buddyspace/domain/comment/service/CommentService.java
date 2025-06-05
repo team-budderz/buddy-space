@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.comment.request.CommentRequest;
 import team.budderz.buddyspace.api.comment.response.CommentResponse;
+import team.budderz.buddyspace.api.comment.response.FindsRecommentResponse;
 import team.budderz.buddyspace.api.comment.response.RecommentResponse;
 import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
@@ -17,7 +18,9 @@ import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -130,6 +133,29 @@ public class CommentService {
 
         commentRepository.delete(comment);
         return null;
+    }
+
+    // 대댓글 조회
+    @Transactional(readOnly = true)
+    public List<FindsRecommentResponse> findsRecomment(
+            Long groupId,
+            Long postId,
+            Long commentId
+    ) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.POST_ID_NOT_FOUND));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(CommentErrorCode.COMMENT_ID_NOT_FOUND));
+
+        List<Comment> comments = commentRepository.findByParentOrderByCreatedAtAsc(comment);
+
+        return comments.stream()
+                .map(FindsRecommentResponse::from)
+                .collect(Collectors.toList());
     }
 
 }
