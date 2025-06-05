@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
@@ -15,6 +16,7 @@ import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRep
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
+import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
@@ -26,10 +28,12 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ChatRoomService {
 
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
+    private final MembershipRepository membershipRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -43,6 +47,12 @@ public class ChatRoomService {
         // 생성자(유저) 조회
         User createdBy = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        // 그룹 참여 여부 확인
+        boolean isMember = membershipRepository.existsByUser_IdAndGroup_Id(userId, groupId);
+        if (!isMember) {
+            throw new IllegalArgumentException("그룹에 참여하지 않은 사용자입니다.");
+        }
 
         // 동일한 참여자 중복 제거(Set) + 생성자 본인 추가(본인 자동 참여)
         Set<Long> uniqueParticipantIds = new java.util.HashSet<>(request.getParticipantIds());
@@ -66,6 +76,9 @@ public class ChatRoomService {
                 ChatRoom existingRoom = existingRooms.get(0);
                 return new CreateChatRoomResponse(existingRoom.getId().toString(), existingRoom.getName(), "already_exists");
             }
+
+
+
         }
 
         // 방 이름 설정
@@ -101,6 +114,9 @@ public class ChatRoomService {
             chatParticipantRepository.save(participantEntity);
         }
 
+        log.info("userId = {}", userId);
+        log.info("groupId = {}", groupId);
+        log.info("isMember = {}", isMember);
 
         return new CreateChatRoomResponse(chatRoom.getId().toString(), chatRoom.getName(), "success");
     }
