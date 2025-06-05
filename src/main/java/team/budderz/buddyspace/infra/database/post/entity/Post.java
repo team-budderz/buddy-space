@@ -14,6 +14,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "posts")
@@ -47,5 +48,9 @@ public class Post extends BaseEntity {
     public void updatePost(String content, Boolean isNotice) {
         this.content = content != null ? content : this.content;
         this.isNotice = isNotice != null ? isNotice: this.isNotice;
+    }
+
+    public boolean doesNotBelongToGroup (Long groupId) {
+        return !Objects.equals(this.getGroup().getId(), groupId);
     }
 }
