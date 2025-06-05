@@ -51,6 +51,6 @@ public class Post extends BaseEntity {
     }
 
     public boolean doesNotBelongToGroup (Long groupId) {
-        return Objects.equals(this.getGroup().getId(), groupId);
+        return !Objects.equals(this.getGroup().getId(), groupId);
     }
 }
