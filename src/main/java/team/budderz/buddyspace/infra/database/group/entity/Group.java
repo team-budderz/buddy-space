@@ -1,5 +1,6 @@
 package team.budderz.buddyspace.infra.database.group.entity;
 
+import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -65,14 +66,17 @@ public class Group extends BaseEntity {
     }
 
     public void updateGroupInfo(String name,
+                                String description,
                                 String coverImageUrl,
                                 GroupAccess access,
                                 GroupType type,
                                 GroupInterest interest) {
-        this.name = name;
-        this.coverImageUrl = coverImageUrl;
-        this.access = access;
-        this.type = type;
-        this.interest = interest;
+
+        if (!StringUtils.isBlank(name)) this.name = name;
+        if (!StringUtils.isBlank(description)) this.description = description;
+        if (!StringUtils.isBlank(coverImageUrl)) this.coverImageUrl = coverImageUrl;
+        if (access != null) this.access = access;
+        if (type != null) this.type = type;
+        if (interest != null) this.interest = interest;
     }
 }

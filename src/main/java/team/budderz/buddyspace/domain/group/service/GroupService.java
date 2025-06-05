@@ -4,16 +4,14 @@ import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.api.group.response.GroupResponse;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
-import team.budderz.buddyspace.infra.database.group.entity.Group;
-import team.budderz.buddyspace.infra.database.group.entity.GroupAccess;
-import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
-import team.budderz.buddyspace.infra.database.group.entity.GroupType;
+import team.budderz.buddyspace.infra.database.group.entity.*;
 import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.membership.entity.Membership;
@@ -26,6 +24,8 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -33,7 +33,6 @@ public class GroupService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final MembershipRepository membershipRepository;
-
     private final PostRepository postRepository;
     private final MissionRepository missionRepository;
     private final VoteRepository voteRepository;
@@ -96,6 +95,7 @@ public class GroupService {
     public GroupResponse updateGroup(Long userId,
                                      Long groupId,
                                      String name,
+                                     String description,
                                      String coverImageUrl,
                                      GroupAccess access,
                                      GroupType type,
@@ -108,13 +108,51 @@ public class GroupService {
             throw new GroupException(GroupErrorCode.FUNCTION_ACCESS_DENIED);
         }
 
-        if (StringUtils.isBlank(coverImageUrl)) {
-            coverImageUrl = type.getDefaultCoverImageUrl();
-        }
-
-        group.updateGroupInfo(name, coverImageUrl, access, type, interest);
+        group.updateGroupInfo(name, description, coverImageUrl, access, type, interest);
 
         return GroupResponse.from(group);
+    }
+
+    /**
+     * 사용자가 가입한 모임 목록 조회
+     *
+     * @param userId 사용자 ID
+     * @return 조회된 모임 정보 목록
+     */
+    @Transactional(readOnly = true)
+    public List<GroupListResponse> findGroupsByUser(Long userId) {
+        return groupRepository.findGroupsByUser(userId);
+    }
+
+    /**
+     * 온라인 모임 목록 조회 (100개)
+     *
+     * @param sortType 정렬 기준
+     * @return 조회된 모임 정보 목록
+     */
+    @Transactional(readOnly = true)
+    public List<GroupListResponse> findOnlineGroups(GroupSortType sortType) {
+        return groupRepository.findOnlineGroups(sortType);
+    }
+
+    /**
+     * 오프라인 모임 목록 조회 (100개)
+     * - 로그인한 사용자의 동네 기준
+     *
+     * @param userId 사용자 ID
+     * @param sortType 정렬 기준
+     * @return 조회된 모임 정보 목록
+     */
+    @Transactional(readOnly = true)
+    public List<GroupListResponse> findOfflineGroups(Long userId, GroupSortType sortType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        if (user.getNeighborhood() == null) {
+            throw new GroupException(GroupErrorCode.NEIGHBORHOOD_NOT_FOUND);
+        }
+
+        return groupRepository.findOfflineGroups(user.getNeighborhood(), sortType);
     }
 
     /**

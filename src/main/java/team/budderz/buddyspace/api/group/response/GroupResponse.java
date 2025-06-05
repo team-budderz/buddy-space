@@ -11,6 +11,7 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 public record GroupResponse(
         Long groupId,
         String groupName,
+        String groupDescription,
         String groupCoverImageUrl,
         GroupAccess groupAccess,
         GroupType groupType,
@@ -20,6 +21,7 @@ public record GroupResponse(
         return new GroupResponse(
                 group.getId(),
                 group.getName(),
+                group.getDescription(),
                 group.getCoverImageUrl(),
                 group.getAccess(),
                 group.getType(),
