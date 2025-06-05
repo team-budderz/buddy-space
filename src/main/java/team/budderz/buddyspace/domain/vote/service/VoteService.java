@@ -3,6 +3,8 @@ package team.budderz.buddyspace.domain.vote.service;
 import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,7 +120,33 @@ public class VoteService {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
 		}
 
-		return VoteDetailResponse.from(vote);
+		// optionId 기준으로 유저 리스트 매핑
+		Map<Long, List<String>> voterMap = voteSelectionRepository.findVoterNamesGroupedByOptionId(voteId);
+		Map<Long, Integer> countMap = voterMap.entrySet().stream()
+			.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size()));
+
+		List<VoteDetailResponse.OptionDetailResponse> optionDetailResponses;
+
+		if (!vote.isAnonymous()) {
+			optionDetailResponses = vote.getOptions().stream()
+				.map(option -> new VoteDetailResponse.OptionDetailResponse(
+					option.getId(),
+					option.getContent(),
+					countMap.getOrDefault(option.getId(), 0),
+					voterMap.getOrDefault(option.getId(), List.of())
+				)).toList();
+		} else {
+			optionDetailResponses = vote.getOptions().stream()
+				.map(option -> new VoteDetailResponse.OptionDetailResponse(
+					option.getId(),
+					option.getContent(),
+					voterMap.getOrDefault(option.getId(), List.of()).size(),
+					List.of()
+				))
+				.toList();
+		}
+
+		return VoteDetailResponse.from(vote, optionDetailResponses);
 	}
 
 	@Transactional
