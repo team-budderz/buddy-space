@@ -79,7 +79,7 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
+        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
         return new LoginResponse(accessToken, refreshToken);
@@ -148,6 +148,14 @@ public class UserService {
         user.softDelete();
 
         membershipRepository.deleteAllByUser_Id(userAuth.getUserId());
+    }
+
+    //소셜로그인 테스트
+    public SignupResponse getMyPage(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserException(UserErrorCode.INVALID_USER_ID)
+        );
+        return SignupResponse.from(user);
     }
 
 }
