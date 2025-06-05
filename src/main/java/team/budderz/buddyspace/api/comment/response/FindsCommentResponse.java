@@ -12,8 +12,15 @@ public record FindsCommentResponse(
         Long commentNum
 ) {
     public static FindsCommentResponse from(Comment comment) {
+
         if (comment.getChildren().isEmpty()) {
-            return null;
+            return new FindsCommentResponse(
+                    comment.getUser().getImageUrl(),
+                    comment.getUser().getName(),
+                    comment.getContent(),
+                    comment.getCreatedAt(),
+                    0L
+            );
         }
 
         return new FindsCommentResponse(
