@@ -2,6 +2,7 @@ package team.budderz.buddyspace.global.oauth2.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -24,6 +25,9 @@ import java.util.UUID;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private static final String DEFAULT_ADDRESS = "주소 미입력";
+    private static final String DEFAULT_PHONE = "010-1111-2222";
 
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -36,16 +40,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String provider = userRequest.getClientRegistration().getRegistrationId(); // google
         UserProvider userProvider = UserProvider.valueOf(provider.toUpperCase()); // GOOGLE
 
-        userRepository.findByEmailAndProvider(email, userProvider)
+        String randomPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+
+        User user = userRepository.findByEmailAndProvider(email, userProvider)
                 .orElseGet(() -> {
                     User newUser = new User(
                             name,
                             email,
-                            UUID.randomUUID().toString(),
+                            randomPassword,
                             LocalDate.of(2000,1,1),
-                            UserGender.F,
-                            "소셜 로그인 - 주소 미입력",
-                            "010-1111-2222",
+                            UserGender.UNKNOWN,
+                            DEFAULT_ADDRESS,
+                            DEFAULT_PHONE,
                             userProvider,
                             UserRole.USER
                     );
