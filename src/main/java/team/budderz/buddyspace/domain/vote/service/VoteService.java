@@ -2,6 +2,7 @@ package team.budderz.buddyspace.domain.vote.service;
 
 import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -134,7 +135,9 @@ public class VoteService {
 					option.getContent(),
 					countMap.getOrDefault(option.getId(), 0),
 					voterMap.getOrDefault(option.getId(), List.of())
-				)).toList();
+				))
+				.sorted(Comparator.comparingInt(VoteDetailResponse.OptionDetailResponse::voteCount).reversed())
+				.toList();
 		} else {
 			optionDetailResponses = vote.getOptions().stream()
 				.map(option -> new VoteDetailResponse.OptionDetailResponse(
@@ -143,6 +146,7 @@ public class VoteService {
 					voterMap.getOrDefault(option.getId(), List.of()).size(),
 					List.of()
 				))
+				.sorted(Comparator.comparingInt(VoteDetailResponse.OptionDetailResponse::voteCount).reversed())
 				.toList();
 		}
 
