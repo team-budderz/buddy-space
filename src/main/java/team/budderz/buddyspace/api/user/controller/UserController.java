@@ -69,4 +69,10 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
+    //소셜로그인 테스트
+    @GetMapping("/me")
+    public BaseResponse<SignupResponse> getMyInfo(@AuthenticationPrincipal UserAuth userAuth) {
+        return new BaseResponse<>(userService.getMyPage(userAuth.getUserId()));
+    }
+
 }
