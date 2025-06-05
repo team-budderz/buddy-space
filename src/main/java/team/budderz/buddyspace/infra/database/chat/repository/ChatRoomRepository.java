@@ -8,6 +8,7 @@ import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import java.util.List;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+    // DIRECT 채팅방(1:1 채팅방)이 이미 존재하는지 확인
     @Query("""
         SELECT cr FROM ChatRoom cr
         WHERE cr.chatRoomType = 'DIRECT'
