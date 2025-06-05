@@ -35,7 +35,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             // 토큰이 존재하고, 유효한지, 그리고 ACCESS 토큰인지 확인
             if (token != null && jwtUtil.validateToken(token) && jwtUtil.isAccessToken(token)) {
                 // 인증 성공 → 사용자 정보(UserAuth)를 WebSocket 세션에 저장
-                attributes.put("userAuth", jwtUtil.extractUserAuth(token));
+                //attributes.put("userAuth", jwtUtil.extractUserAuth(token));
                 return true; // → WebSocket 연결 허용
             } else {
                 // 인증 실패 → WebSocket 연결 거부
