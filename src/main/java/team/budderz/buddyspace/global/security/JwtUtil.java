@@ -96,7 +96,14 @@ public class JwtUtil {
     }
 
     public String getEmailFromToken(String token) {
-        Claims claims = getClaims(token);
-        return claims.get("email", String.class);
+        return getClaims(token).get("email", String.class);
+    }
+
+    public Long getUserIdFromToken(String token) {
+        return Long.parseLong(getClaims(token).getSubject());
+    }
+
+    public long getRefreshTokenExpireTime() {
+        return REFRESH_EXP;
     }
 }
