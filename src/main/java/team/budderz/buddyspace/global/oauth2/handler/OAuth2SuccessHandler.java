@@ -1,5 +1,6 @@
 package team.budderz.buddyspace.global.oauth2.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,26 +46,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         LoginResponse tokens = userService.login(user);
 
-        addTokenCookies(response, tokens);
+        // JSON 응답
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        response.sendRedirect(redirectUri);
-    }
-
-    private void addTokenCookies(HttpServletResponse response, LoginResponse tokens) {
-        Cookie accessCookie = createCookie("accessToken", tokens.accessToken(), 1800); // 30분
-        Cookie refreshCookie = createCookie("refreshToken", tokens.refreshToken(), 604800); // 7일
-
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
-    }
-
-    private Cookie createCookie(String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true); // JS 접근 금지
-        cookie.setSecure(true);   // HTTPS에서만 전송
-        cookie.setMaxAge(maxAge);
-
-        return cookie;
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(tokens);
+        response.getWriter().write(json);
     }
 }
