@@ -78,7 +78,7 @@ public class CommentController {
     }
 
     // 대댓글 조회
-    @GetMapping("/group/{groupId}/post/{postId}/comments/{commentId}")
+    @GetMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
     public BaseResponse<List<FindsRecommentResponse>> findsRecomment(
             @PathVariable Long groupId,
             @PathVariable Long postId,
