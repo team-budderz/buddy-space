@@ -9,6 +9,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,7 +24,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
+    private final UserDetailsService userDetailsService;
 
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
@@ -43,15 +47,12 @@ public class SecurityFilter extends OncePerRequestFilter {
                         return;
                     }
 
-                    // 인증 객체 설정
-                    UserAuth userAuth = jwtUtil.extractUserAuth(token);
+                    String email = jwtUtil.getEmailFromToken(token);
 
-                    List<SimpleGrantedAuthority> authorities = List.of(
-                            new SimpleGrantedAuthority("ROLE_" + userAuth.getRole().name())
-                    );
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userAuth, null, authorities);
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
