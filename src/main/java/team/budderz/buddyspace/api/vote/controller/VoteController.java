@@ -84,4 +84,14 @@ public class VoteController {
 		voteService.sumbitVote(userAuth.getUserId(), groupId, voteId, request);
 		return new BaseResponse<>(null);
 	}
+
+	@PostMapping("/groups/{groupId}/votes/{voteId}/close")
+	public BaseResponse<Void> closeVote(
+		@AuthenticationPrincipal UserAuth userAuth,
+		@PathVariable Long groupId,
+		@PathVariable Long voteId
+	) {
+		voteService.closeVote(userAuth.getUserId(), groupId, voteId);
+		return new BaseResponse<>(null);
+	}
 }

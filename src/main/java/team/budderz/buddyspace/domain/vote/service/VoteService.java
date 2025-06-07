@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.request.SubmitVoteRequest;
@@ -100,6 +99,7 @@ public class VoteService {
 		voteRepository.deleteById(voteId);
 	}
 
+	@Transactional(readOnly = true)
 	public List<VoteResponse> findVote(Long groupId) {
 		groupRepository.findById(groupId)
 			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
@@ -110,6 +110,7 @@ public class VoteService {
 			.toList();
 	}
 
+	@Transactional(readOnly = true)
 	public VoteDetailResponse findVote(Long groupId, Long voteId) {
 		groupRepository.findById(groupId)
 			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
@@ -185,5 +186,24 @@ public class VoteService {
 				.build();
 			voteSelectionRepository.save(voteSelection);
 		}
+	}
+
+	@Transactional
+	public void closeVote(Long userId, Long groupId, Long voteId) {
+		groupRepository.findById(groupId)
+			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
+
+		Vote vote = voteRepository.findById(voteId)
+			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
+
+		if (!vote.getAuthor().getId().equals(userId)) {
+			throw new VoteException(VOTE_GROUP_MISMATCH);
+		}
+
+		if (!vote.getGroup().getId().equals(groupId)) {
+			throw new VoteException(VOTE_GROUP_MISMATCH);
+		}
+
+		vote.close();
 	}
 }

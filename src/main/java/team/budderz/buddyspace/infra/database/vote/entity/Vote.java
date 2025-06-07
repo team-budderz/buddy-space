@@ -77,6 +77,10 @@ public class Vote extends BaseEntity {
         }
     }
 
+    public void close() {
+       this.isClosed = true;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
