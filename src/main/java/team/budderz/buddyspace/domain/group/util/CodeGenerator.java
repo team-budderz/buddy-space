@@ -2,7 +2,7 @@ package team.budderz.buddyspace.domain.group.util;
 
 import java.security.SecureRandom;
 
-public class InviteCodeGenerator {
+public class CodeGenerator {
 
     private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int CODE_LENGTH = 16;

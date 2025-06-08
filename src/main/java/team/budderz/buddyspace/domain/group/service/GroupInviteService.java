@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.group.response.GroupInviteResponse;
-import team.budderz.buddyspace.domain.group.util.InviteCodeGenerator;
+import team.budderz.buddyspace.domain.group.util.CodeGenerator;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
@@ -27,7 +27,7 @@ public class GroupInviteService {
 
         String code;
         do {
-            code = InviteCodeGenerator.generate();
+            code = CodeGenerator.generate();
         } while (validator.isExistsGroupByCode(code));
 
         group.updateInviteCode(code);
