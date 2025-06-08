@@ -2,6 +2,7 @@ package team.budderz.buddyspace.infra.database.membership.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.budderz.buddyspace.global.entity.BaseEntity;
@@ -12,7 +13,12 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "memberships")
+@Table(name = "memberships", uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_membership_user_group",
+                columnNames = {"user_id", "group_id"}
+        )
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Membership extends BaseEntity {
 
@@ -37,67 +43,72 @@ public class Membership extends BaseEntity {
     private JoinPath joinPath;
 
     @Enumerated(EnumType.STRING)
-    private MembershipRole membershipRole;
+    private MemberRole memberRole;
 
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
 
     public void approve() {
         this.joinStatus = JoinStatus.APPROVED;
-        this.membershipRole = MembershipRole.MEMBER;
+        this.memberRole = MemberRole.MEMBER;
         this.joinedAt = LocalDateTime.now();
     }
 
     public void block() {
         this.joinStatus = JoinStatus.BLOCKED;
-        this.membershipRole = null;
+        this.memberRole = null;
         this.joinedAt = null;
     }
 
+    public void updateMemberRole(MemberRole memberRole) {
+        this.memberRole = memberRole;
+    }
+
+    @Builder
     private Membership(User user,
                        Group group,
                        JoinStatus joinStatus,
                        JoinPath joinPath,
-                       MembershipRole membershipRole,
+                       MemberRole memberRole,
                        LocalDateTime joinedAt) {
         this.user = user;
         this.group = group;
         this.joinStatus = joinStatus;
         this.joinPath = joinPath;
-        this.membershipRole = membershipRole;
+        this.memberRole = memberRole;
         this.joinedAt = joinedAt;
     }
 
     public static Membership fromCreator(User user, Group group) {
-        return new Membership(
-                user,
-                group,
-                JoinStatus.APPROVED,
-                JoinPath.CREATOR,
-                MembershipRole.LEADER,
-                LocalDateTime.now()
-        );
+        return Membership.builder()
+                .user(user)
+                .group(group)
+                .joinStatus(JoinStatus.APPROVED)
+                .joinPath(JoinPath.CREATOR)
+                .memberRole(MemberRole.LEADER)
+                .joinedAt(LocalDateTime.now())
+                .build();
     }
 
     public static Membership fromRequest(User user, Group group) {
-        return new Membership(
-                user,
-                group,
-                JoinStatus.REQUESTED,
-                JoinPath.REQUEST,
-                null,
-                null
-        );
+        return Membership.builder()
+                .user(user)
+                .group(group)
+                .joinStatus(JoinStatus.REQUESTED)
+                .joinPath(JoinPath.REQUEST)
+                .memberRole(null)
+                .joinedAt(null)
+                .build();
     }
 
     public static Membership fromInvite(User user, Group group) {
-        return new Membership(
-                user,
-                group,
-                JoinStatus.APPROVED,
-                JoinPath.INVITE,
-                MembershipRole.MEMBER,
-                LocalDateTime.now()
-        );
+        return Membership.builder()
+                .user(user)
+                .group(group)
+                .joinStatus(JoinStatus.APPROVED)
+                .joinPath(JoinPath.INVITE)
+                .memberRole(MemberRole.MEMBER)
+                .joinedAt(LocalDateTime.now())
+                .build();
     }
 }
