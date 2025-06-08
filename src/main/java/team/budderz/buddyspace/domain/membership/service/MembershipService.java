@@ -10,6 +10,7 @@ import team.budderz.buddyspace.domain.membership.exception.MembershipException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
+import team.budderz.buddyspace.infra.database.membership.entity.JoinPath;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
 import team.budderz.buddyspace.infra.database.membership.entity.Membership;
@@ -18,6 +19,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -101,27 +103,39 @@ public class MembershipService {
         membershipRepository.deleteByUser_IdAndGroup_Id(memberId, groupId);
     }
 
+    /**
+     * 초대 링크로 모임 가입
+     *
+     * @param loginUserId 로그인 사용자 ID
+     * @param inviteCode  초대 코드
+     * @return 해당 멤버의 가입 상태 정보
+     */
     @Transactional
     public MembershipResponse inviteJoin(Long loginUserId, String inviteCode) {
         Group group = validator.findGroupByCode(inviteCode);
         User user = findUserById(loginUserId);
 
-        membershipRepository.findByUser_IdAndGroup_Id(user.getId(), group.getId()).ifPresent(membership -> {
-            if (membership.getJoinStatus() == JoinStatus.REQUESTED) {
-                throw new MembershipException(MembershipErrorCode.ALREADY_REQUESTED);
-            }
-            if (membership.getJoinStatus() == JoinStatus.APPROVED) {
+        Optional<Membership> existing = membershipRepository.findByUser_IdAndGroup_Id(user.getId(), group.getId());
+
+        Membership membership = existing.map(m -> {
+            if (m.getJoinStatus() == JoinStatus.APPROVED) {
                 throw new MembershipException(MembershipErrorCode.ALREADY_JOINED);
             }
-            if (membership.getJoinStatus() == JoinStatus.BLOCKED) {
+            if (m.getJoinStatus() == JoinStatus.BLOCKED) {
                 throw new MembershipException(MembershipErrorCode.BLOCKED_MEMBER);
             }
+
+            // 가입 요청 중인 경우 승인 처리
+            m.approve();
+            m.updateJoinPath(JoinPath.INVITE);
+            return m;
+
+        }).orElseGet(() -> {
+            Membership newMembership = Membership.fromInvite(user, group);
+            return membershipRepository.save(newMembership);
         });
 
-        Membership membership = Membership.fromInvite(user, group);
-        Membership saved = membershipRepository.save(membership);
-
-        return MembershipResponse.of(group, List.of(saved));
+        return MembershipResponse.of(group, List.of(membership));
     }
 
     /**
@@ -213,8 +227,8 @@ public class MembershipService {
      * 모임 리더 위임
      *
      * @param loginUserId 로그인 사용자 ID (전 리더)
-     * @param groupId 모임 ID
-     * @param memberId 위임할 멤버 ID (새 리더)
+     * @param groupId     모임 ID
+     * @param memberId    위임할 멤버 ID (새 리더)
      * @return 변경된 모임 멤버 권한 정보 리스트
      */
     @Transactional
@@ -236,7 +250,7 @@ public class MembershipService {
      * 모임에 가입된 멤버 목록 조회
      *
      * @param loginUserId 로그인 사용자 ID
-     * @param groupId 모임 ID
+     * @param groupId     모임 ID
      * @return 특정 모임에 가입된 멤버 목록 정보
      */
     @Transactional(readOnly = true)
@@ -253,7 +267,7 @@ public class MembershipService {
      * 모임에 가입 요청 중인 회원 목록 조회
      *
      * @param loginUserId 로그인 사용자 ID (모임 리더)
-     * @param groupId 모임 ID
+     * @param groupId     모임 ID
      * @return 특정 모임에 가입 요청 중인 회원 목록 정보
      */
     @Transactional(readOnly = true)
@@ -270,7 +284,7 @@ public class MembershipService {
      * 모임에서 차단된 회원 목록 조회
      *
      * @param loginUserId 로그인 사용자 ID (모임 리더)
-     * @param groupId 모임 ID
+     * @param groupId     모임 ID
      * @return 특정 모임에서 차단된 회원 목록 정보
      */
     @Transactional(readOnly = true)

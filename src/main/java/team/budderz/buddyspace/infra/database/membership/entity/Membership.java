@@ -64,6 +64,10 @@ public class Membership extends BaseEntity {
         this.memberRole = memberRole;
     }
 
+    public void updateJoinPath(JoinPath joinPath) {
+        this.joinPath = joinPath;
+    }
+
     @Builder
     private Membership(User user,
                        Group group,
