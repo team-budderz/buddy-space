@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import team.budderz.buddyspace.infra.database.membership.entity.MembershipRole;
+import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
 
 @Getter
 @Entity
@@ -22,19 +22,19 @@ public class GroupPermission {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MembershipRole role;
+    private MemberRole role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PermissionType type;
 
-    private GroupPermission(Group group, MembershipRole role, PermissionType type) {
+    private GroupPermission(Group group, MemberRole role, PermissionType type) {
         this.group = group;
         this.role = role;
         this.type = type;
     }
 
-    public static GroupPermission of(Group group, MembershipRole role, PermissionType type) {
+    public static GroupPermission of(Group group, MemberRole role, PermissionType type) {
         return new GroupPermission(group, role, type);
     }
 }

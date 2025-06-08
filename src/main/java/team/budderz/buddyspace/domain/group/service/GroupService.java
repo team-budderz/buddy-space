@@ -15,7 +15,7 @@ import team.budderz.buddyspace.infra.database.group.entity.*;
 import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.membership.entity.Membership;
-import team.budderz.buddyspace.infra.database.membership.entity.MembershipRole;
+import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.mission.repository.MissionRepository;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
@@ -171,7 +171,7 @@ public class GroupService {
         }
 
         boolean hasOtherMembers =
-                membershipRepository.existsByGroup_IdAndMembershipRoleNot(groupId, MembershipRole.LEADER);
+                membershipRepository.existsByGroup_IdAndMemberRoleNot(groupId, MemberRole.LEADER);
 
         if (hasOtherMembers) {
             throw new GroupException(GroupErrorCode.MEMBERS_EXIST_IN_GROUP);
