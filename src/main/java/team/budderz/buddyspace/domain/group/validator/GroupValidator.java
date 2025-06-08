@@ -42,7 +42,7 @@ public class GroupValidator {
     /**
      * 사용자 모임 리더 여부 검증
      *
-     * @param userId 사용자 ID
+     * @param userId  사용자 ID
      * @param groupId 모임 ID
      */
     public void validateLeader(Long userId, Long groupId) {
@@ -58,7 +58,7 @@ public class GroupValidator {
     /**
      * 사용자 모임 멤버 여부 검증
      *
-     * @param userId 사용자 ID
+     * @param userId  사용자 ID
      * @param groupId 모임 ID
      */
     public void validateMember(Long userId, Long groupId) {
@@ -75,8 +75,8 @@ public class GroupValidator {
      * 콘텐츠 소유자 여부 검증
      *
      * @param loginUserId 로그인 사용자 ID
-     * @param groupId 모임 ID
-     * @param AuthorId 콘텐츠 생성자 ID
+     * @param groupId     모임 ID
+     * @param AuthorId    콘텐츠 생성자 ID
      */
     public void validateOwner(Long loginUserId, Long groupId, Long AuthorId) {
         validateMember(loginUserId, groupId);
@@ -89,9 +89,9 @@ public class GroupValidator {
     /**
      * 사용자의 모임 기능별 접근 권한 검증 (생성)
      *
-     * @param userId 사용자 ID
+     * @param userId  사용자 ID
      * @param groupId 모임 ID
-     * @param type 실행할 기능 (CREATE_*)
+     * @param type    실행할 기능 (CREATE_*)
      */
     public void validatePermission(Long userId, Long groupId, PermissionType type) {
         validateMember(userId, groupId);
@@ -101,9 +101,9 @@ public class GroupValidator {
     /**
      * 사용자의 모임 기능별 접근 권한 검증 (삭제)
      *
-     * @param userId 사용자 ID
-     * @param groupId 모임 ID
-     * @param type 실행할 기능 (DELETE_*)
+     * @param userId   사용자 ID
+     * @param groupId  모임 ID
+     * @param type     실행할 기능 (DELETE_*)
      * @param authorId 삭제할 콘텐츠의 생성자 ID
      */
     public void validatePermission(Long userId, Long groupId, PermissionType type, Long authorId) {
@@ -113,6 +113,15 @@ public class GroupValidator {
             case DELETE -> validateDeletePermission(userId, groupId, type, authorId);
             default -> throw new GroupException(GroupErrorCode.PERMISSION_TYPE_NOT_SUPPORTED);
         }
+    }
+
+    public boolean isExistsGroupByCode(String code) {
+        return groupRepository.existsByInviteCode(code);
+    }
+
+    public Group findGroupByCode(String code) {
+        return groupRepository.findByInviteCode(code)
+                .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
     }
 
     private void existsGroup(Long groupId) {

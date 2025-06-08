@@ -21,7 +21,9 @@ public enum PermissionType {
     CREATE_VOTE(CREATE, VOTE),
     DELETE_VOTE(DELETE, VOTE),
 
-    CREATE_CHAT_ROOM(CREATE, CHAT_ROOM);
+    CREATE_CHAT_ROOM(CREATE, CHAT_ROOM),
+
+    CREATE_INVITE_LINK(CREATE, INVITE_LINK);
 
     private final PermissionAction action;
     private final ContentType content;

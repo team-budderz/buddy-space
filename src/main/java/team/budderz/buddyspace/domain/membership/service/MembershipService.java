@@ -101,6 +101,29 @@ public class MembershipService {
         membershipRepository.deleteByUser_IdAndGroup_Id(memberId, groupId);
     }
 
+    @Transactional
+    public MembershipResponse inviteJoin(Long loginUserId, String inviteCode) {
+        Group group = validator.findGroupByCode(inviteCode);
+        User user = findUserById(loginUserId);
+
+        membershipRepository.findByUser_IdAndGroup_Id(user.getId(), group.getId()).ifPresent(membership -> {
+            if (membership.getJoinStatus() == JoinStatus.REQUESTED) {
+                throw new MembershipException(MembershipErrorCode.ALREADY_REQUESTED);
+            }
+            if (membership.getJoinStatus() == JoinStatus.APPROVED) {
+                throw new MembershipException(MembershipErrorCode.ALREADY_JOINED);
+            }
+            if (membership.getJoinStatus() == JoinStatus.BLOCKED) {
+                throw new MembershipException(MembershipErrorCode.BLOCKED_MEMBER);
+            }
+        });
+
+        Membership membership = Membership.fromInvite(user, group);
+        Membership saved = membershipRepository.save(membership);
+
+        return MembershipResponse.of(group, List.of(saved));
+    }
+
     /**
      * 모임 멤버 강제 탈퇴
      *
