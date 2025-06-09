@@ -10,10 +10,9 @@ import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.api.group.response.GroupResponse;
 import team.budderz.buddyspace.domain.group.service.GroupService;
 import team.budderz.buddyspace.global.response.BaseResponse;
+import team.budderz.buddyspace.global.response.PageResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
 import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
-
-import java.util.List;
 
 /**
  * 모임 기본 CRUD
@@ -69,28 +68,51 @@ public class GroupController {
         return new BaseResponse<>(null);
     }
 
-    @GetMapping("/user")
-    public BaseResponse<List<GroupListResponse>> findGroupsByUser(@AuthenticationPrincipal UserAuth userAuth) {
+    @GetMapping("/my")
+    public BaseResponse<PageResponse<GroupListResponse>> findGroupsByUser(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @RequestParam(defaultValue = "0") int page
+
+    ) {
         Long loginUserId = userAuth.getUserId();
-        List<GroupListResponse> responses = groupService.findGroupsByUser(loginUserId);
+        PageResponse<GroupListResponse> responses = groupService.findGroupsByUser(loginUserId, page);
 
         return new BaseResponse<>(responses);
     }
 
     @GetMapping("/on")
-    public BaseResponse<List<GroupListResponse>> findOnlineGroups(@RequestParam String sort) {
+    public BaseResponse<PageResponse<GroupListResponse>> findOnlineGroups(
+            @RequestParam String sort,
+            @RequestParam(required = false) String interest,
+            @RequestParam(defaultValue = "0") int page
+    ) {
         GroupSortType sortType = GroupSortType.from(sort);
-        List<GroupListResponse> responses = groupService.findOnlineGroups(sortType);
+        PageResponse<GroupListResponse> responses = groupService.findOnlineGroups(sortType, interest, page);
 
         return new BaseResponse<>(responses);
     }
 
     @GetMapping("/off")
-    public BaseResponse<List<GroupListResponse>> findOfflineGroups(@AuthenticationPrincipal UserAuth userAuth,
-                                                                   @RequestParam String sort) {
+    public BaseResponse<PageResponse<GroupListResponse>> findOfflineGroups(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @RequestParam String sort,
+            @RequestParam(required = false) String interest,
+            @RequestParam(defaultValue = "0") int page
+    ) {
         Long loginUserId = userAuth.getUserId();
         GroupSortType sortType = GroupSortType.from(sort);
-        List<GroupListResponse> responses = groupService.findOfflineGroups(loginUserId, sortType);
+        PageResponse<GroupListResponse> responses = groupService.findOfflineGroups(loginUserId, sortType, interest, page);
+
+        return new BaseResponse<>(responses);
+    }
+
+    @GetMapping("/search")
+    public BaseResponse<PageResponse<GroupListResponse>> searchGroupsByName(
+            @RequestParam String keyword,
+            @RequestParam(required = false) String interest,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        PageResponse<GroupListResponse> responses = groupService.searchGroupsByName(keyword, interest, page);
 
         return new BaseResponse<>(responses);
     }

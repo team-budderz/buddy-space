@@ -39,13 +39,16 @@ public class GroupPermissionService {
     public GroupPermissionResponse updateGroupPermission(Long loginUserId,
                                                          Long groupId,
                                                          List<GroupPermissionRequest> requests) {
+        // 요청에서 전달받은 권한 설정 리스트에서 모든 PermissionType 을 Set 으로 변환
         Set<PermissionType> requestedTypes = requests.stream()
                 .map(GroupPermissionRequest::type)
                 .collect(Collectors.toSet());
 
+        // 시스템에 정의된 모든 PermissionType 값을 Set 으로 생성 (필수 권한 목록)
         Set<PermissionType> requiredTypes = Arrays.stream(PermissionType.values())
                 .collect(Collectors.toSet());
 
+        // 요청에 포함된 권한 타입이 모든 필수 타입을 포함하지 않으면 예외 발생
         if (!requestedTypes.containsAll(requiredTypes)) {
             throw new GroupException(GroupErrorCode.MISSING_PERMISSION_TYPE);
         }
@@ -53,13 +56,16 @@ public class GroupPermissionService {
         validator.validateLeader(loginUserId, groupId);
         Group group = validator.findGroupOrThrow(groupId);
 
+        // 기존 모임 권한 설정 전체 삭제 (초기화)
         groupPermissionRepository.deleteAllByGroup_Id(groupId);
 
+        // 요청으로 들어온 권한 설정 저장
         List<GroupPermission> saved = requests.stream()
                 .map(request -> {
                     PermissionType type = request.type();
                     MemberRole role = request.role();
 
+                    // 삭제 권한은 리더/부리더만 가능
                     if (type.getAction() == PermissionAction.DELETE && role == MemberRole.MEMBER) {
                         throw new GroupException(GroupErrorCode.INVALID_PERMISSION_SETTING);
                     }
@@ -72,6 +78,13 @@ public class GroupPermissionService {
         return GroupPermissionResponse.of(group, saved);
     }
 
+    /**
+     * 모임 기능별 접근 권한 조회
+     *
+     * @param loginUserId 로그인 사용자 ID (모임 리더)
+     * @param groupId 모임 ID
+     * @return 조회된 기능별 권한 정보
+     */
     @Transactional(readOnly = true)
     public GroupPermissionResponse findGroupPermissions(Long loginUserId, Long groupId) {
         Group group = validator.findGroupOrThrow(groupId);

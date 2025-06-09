@@ -41,6 +41,7 @@ public class MembershipService {
         User user = findUserById(userId);
         Group group = validator.findGroupOrThrow(groupId);
 
+        // 이미 가입 요청/승인 중이거나 차단된 회원일 경우 예외
         membershipRepository.findByUser_IdAndGroup_Id(userId, groupId).ifPresent(membership -> {
             if (membership.getJoinStatus() == JoinStatus.REQUESTED) {
                 throw new MembershipException(MembershipErrorCode.ALREADY_REQUESTED);
