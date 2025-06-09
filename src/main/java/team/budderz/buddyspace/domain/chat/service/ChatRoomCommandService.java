@@ -15,6 +15,7 @@ import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
+import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -61,6 +62,8 @@ public class ChatRoomCommandService {
 
         // DIRECT 방이면 중복 체크
         if (chatRoomType == ChatRoomType.DIRECT) {
+            groupValidator.validatePermission(userId, groupId, PermissionType.CREATE_DIRECT_CHAT_ROOM);
+
             // 참여자 수 2명만 허용 (보통 DIRECT 1:1)
             if (uniqueParticipantIds.size() != 2) {
                 throw new ChatException(ChatErrorCode.INVALID_PARTICIPANT_COUNT);
