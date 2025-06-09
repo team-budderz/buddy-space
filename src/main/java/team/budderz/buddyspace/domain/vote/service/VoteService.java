@@ -16,8 +16,10 @@ import team.budderz.buddyspace.api.vote.request.SubmitVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
 import team.budderz.buddyspace.api.vote.response.VoteDetailResponse;
 import team.budderz.buddyspace.api.vote.response.VoteResponse;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.vote.exception.VoteException;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
+import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
@@ -36,14 +38,14 @@ public class VoteService {
 	private final VoteOptionRepository voteOptionRepository;
 	private final VoteRepository voteRepository;
 	private final VoteSelectionRepository voteSelectionRepository;
+	private final GroupValidator validator;
 
 	@Transactional
 	public SaveVoteResponse saveVote(Long userId, Long groupId, SaveVoteRequest request) {
+		validator.validatePermission(userId, groupId, PermissionType.CREATE_SCHEDULE);
+		Group group = validator.findGroupOrThrow(groupId);
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new VoteException(USER_NOT_FOUND));
-
-		Group group = groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
 
 		Vote vote = Vote.builder()
 			.title(request.title())
@@ -59,15 +61,9 @@ public class VoteService {
 
 	@Transactional
 	public SaveVoteResponse updateVote(Long userId, Long groupId, Long voteId, SaveVoteRequest request) {
-		groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
-
 		Vote vote = voteRepository.findById(voteId)
 			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
-
-		if (!vote.getAuthor().getId().equals(userId)) {
-			throw new VoteException(VOTE_AUTHOR_MISMATCH);
-		}
+		validator.validateOwner(userId, groupId, vote.getAuthor().getId());
 
 		if (!vote.getGroup().getId().equals(groupId)) {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
@@ -80,15 +76,9 @@ public class VoteService {
 
 	@Transactional
 	public void deleteVote(Long userId, Long groupId, Long voteId) {
-		groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
-
 		Vote vote = voteRepository.findById(voteId)
 			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
-
-		if (!vote.getAuthor().getId().equals(userId)) {
-			throw new VoteException(VOTE_AUTHOR_MISMATCH);
-		}
+		validator.validatePermission(userId, groupId, PermissionType.DELETE_VOTE, vote.getAuthor().getId());
 
 		if (!vote.getGroup().getId().equals(groupId)) {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
@@ -101,8 +91,7 @@ public class VoteService {
 
 	@Transactional(readOnly = true)
 	public List<VoteResponse> findVote(Long groupId) {
-		groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
+		validator.findGroupOrThrow(groupId);
 
 		return voteRepository.findByGroupIdOrderByCreatedAtDesc(groupId)
 			.stream()
@@ -112,8 +101,7 @@ public class VoteService {
 
 	@Transactional(readOnly = true)
 	public VoteDetailResponse findVote(Long groupId, Long voteId) {
-		groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
+		validator.findGroupOrThrow(groupId);
 
 		Vote vote = voteRepository.findById(voteId)
 			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
@@ -156,11 +144,10 @@ public class VoteService {
 
 	@Transactional
 	public void submitVote(Long userId, Long groupId, Long voteId, SubmitVoteRequest request) {
+		validator.validateMember(userId, groupId);
+
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new VoteException(USER_NOT_FOUND));
-
-		groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
 
 		Vote vote = voteRepository.findById(voteId)
 			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
@@ -193,15 +180,9 @@ public class VoteService {
 
 	@Transactional
 	public void closeVote(Long userId, Long groupId, Long voteId) {
-		groupRepository.findById(groupId)
-			.orElseThrow(() -> new VoteException(GROUP_NOT_FOUND));
-
 		Vote vote = voteRepository.findById(voteId)
 			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
-
-		if (!vote.getAuthor().getId().equals(userId)) {
-			throw new VoteException(VOTE_AUTHOR_MISMATCH);
-		}
+		validator.validateOwner(userId, groupId, vote.getAuthor().getId());
 
 		if (!vote.getGroup().getId().equals(groupId)) {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
