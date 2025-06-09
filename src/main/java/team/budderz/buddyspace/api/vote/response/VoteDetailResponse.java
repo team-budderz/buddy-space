@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import team.budderz.buddyspace.infra.database.vote.entity.Vote;
-import team.budderz.buddyspace.infra.database.vote.entity.VoteOption;
 
 public record VoteDetailResponse(
 	Long voteId,
@@ -16,13 +15,13 @@ public record VoteDetailResponse(
 	String authorImageUrl,
 	LocalDate createdAt
 ) {
-	public static VoteDetailResponse from(Vote vote, List<OptionDetailResponse> OptionDetailResponse) {
+	public static VoteDetailResponse from(Vote vote, List<OptionDetailResponse> optionDetailResponse) {
 		return new VoteDetailResponse(
 			vote.getId(),
 			vote.getTitle(),
 			vote.isClosed(),
 			vote.isAnonymous(),
-			OptionDetailResponse,
+			optionDetailResponse,
 			vote.getAuthor().getName(),
 			vote.getAuthor().getImageUrl(),
 			vote.getCreatedAt().toLocalDate()

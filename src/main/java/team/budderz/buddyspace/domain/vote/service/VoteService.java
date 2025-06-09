@@ -155,7 +155,7 @@ public class VoteService {
 	}
 
 	@Transactional
-	public void sumbitVote(Long userId, Long groupId, Long voteId, SubmitVoteRequest request) {
+	public void submitVote(Long userId, Long groupId, Long voteId, SubmitVoteRequest request) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new VoteException(USER_NOT_FOUND));
 
@@ -173,6 +173,9 @@ public class VoteService {
 		voteSelectionRepository.deleteByUserIdAndVoteId(userId, voteId);
 
 		List<VoteOption> selectedOptions = voteOptionRepository.findAllById(request.voteOptionIds());
+		if (selectedOptions.size() != request.voteOptionIds().size()) {
+			throw new VoteException(VOTE_OPTION_NOT_FOUND);
+		}
 		for (VoteOption option : selectedOptions) {
 			// 요청된 voteOptionId가 해당 vote에 속하는지 검증
 			if (!option.getVote().getId().equals(voteId)) {
@@ -197,11 +200,15 @@ public class VoteService {
 			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
 
 		if (!vote.getAuthor().getId().equals(userId)) {
-			throw new VoteException(VOTE_GROUP_MISMATCH);
+			throw new VoteException(VOTE_AUTHOR_MISMATCH);
 		}
 
 		if (!vote.getGroup().getId().equals(groupId)) {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
+		}
+
+		if (vote.isClosed()) {
+			throw new VoteException(ALREADY_CLOSED_VOTE);
 		}
 
 		vote.close();

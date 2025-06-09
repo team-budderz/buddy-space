@@ -81,7 +81,7 @@ public class VoteController {
 		@PathVariable Long voteId,
 		@Valid @RequestBody SubmitVoteRequest request
 	) {
-		voteService.sumbitVote(userAuth.getUserId(), groupId, voteId, request);
+		voteService.submitVote(userAuth.getUserId(), groupId, voteId, request);
 		return new BaseResponse<>(null);
 	}
 
