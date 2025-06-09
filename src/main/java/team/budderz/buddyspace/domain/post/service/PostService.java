@@ -103,24 +103,19 @@ public class PostService {
 
     // 게시글 삭제
     @Transactional
-    public Void deletePost (
+    public void deletePost (
             Long groupId,
             Long postId,
             Long userId
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getUser().getId(), userId)
-                && !Objects.equals(group.getLeader().getId(), userId)) {
-            throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_DELETE);
-        }
+        validator.validatePermission(userId, groupId, PermissionType.DELETE_POST, post.getUser().getId());
 
         postRepository.delete(post);
-        return null;
     }
 
     // 게시글 전체 조회
