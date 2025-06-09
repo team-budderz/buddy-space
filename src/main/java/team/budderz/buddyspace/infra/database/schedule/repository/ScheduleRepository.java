@@ -1,12 +1,11 @@
 package team.budderz.buddyspace.infra.database.schedule.repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import team.budderz.buddyspace.infra.database.schedule.entity.Schedule;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 	@Query(""" 
@@ -18,4 +17,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 		"""
 	)
 	List<Schedule> findAllByMonth(Long groupId, LocalDateTime monthStart, LocalDateTime monthEnd);
+
+	void deleteAllByGroup_Id(Long groupId);
 }
