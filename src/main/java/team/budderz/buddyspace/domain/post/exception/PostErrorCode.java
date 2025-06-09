@@ -14,7 +14,7 @@ public enum PostErrorCode implements ErrorCode {
     , UNAUTHORIZED_POST_UPDATE(HttpStatus.FORBIDDEN.value(), "P004", "게시글 수정 권한이 없습니다.")
     , UNAUTHORIZED_POST_DELETE(HttpStatus.FORBIDDEN.value(), "P005", "게시글 삭제 권한이 없습니다.")
     , NOTICE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST.value(), "P006", "공지사항은 최대 5개까지만 등록할 수 있습니다.")
-    , NOTICE_POST_ONLY_ALLOWED_BY_LEADER(HttpStatus.BAD_REQUEST.value(), "P007", "공지글은 리더만 설정 가능합니다.")
+    , NOTICE_POST_ONLY_ALLOWED_BY_LEADER(HttpStatus.FORBIDDEN.value(), "P007", "공지글은 리더만 설정 가능합니다.")
     ;
 
 
