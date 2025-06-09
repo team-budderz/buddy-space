@@ -77,17 +77,18 @@ public class PostService {
             Long userId,
             UpdatePostRequest request
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getUser().getId(), userId)) {
-            throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_UPDATE);
-        }
+        validator.validateOwner(userId, groupId, post.getUser().getId());
 
-        if (!post.getIsNotice() && request.isNotice()) {
+        if (request.isNotice()) {
+            if (!Objects.equals(userId, group.getLeader().getId())) {
+                throw new BaseException(PostErrorCode.NOTICE_POST_ONLY_ALLOWED_BY_LEADER);
+            }
+
             Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
 
             if (noticeNum >= 5) {
