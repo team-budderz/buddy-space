@@ -6,12 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
 import team.budderz.buddyspace.api.post.response.*;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
-import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
+import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -26,9 +27,9 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final GroupValidator validator;
 
     // 게시글 저장
     @Transactional
@@ -37,13 +38,18 @@ public class PostService {
             Long userId,
             SavePostRequest request
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.USER_ID_NOT_FOUND));
 
+        validator.validatePermission(userId, groupId, PermissionType.CREATE_POST);
+
         if (request.isNotice()) {
+            if (!Objects.equals(userId, group.getLeader().getId())) {
+                throw new BaseException(PostErrorCode.NOTICE_POST_ONLY_ALLOWED_BY_LEADER);
+            }
+
             Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
 
             if (noticeNum >= 5) {
@@ -71,17 +77,18 @@ public class PostService {
             Long userId,
             UpdatePostRequest request
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getUser().getId(), userId)) {
-            throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_UPDATE);
-        }
+        validator.validateOwner(userId, groupId, post.getUser().getId());
 
-        if (!post.getIsNotice() && request.isNotice()) {
+        if (request.isNotice()) {
+            if (!Objects.equals(userId, group.getLeader().getId())) {
+                throw new BaseException(PostErrorCode.NOTICE_POST_ONLY_ALLOWED_BY_LEADER);
+            }
+
             Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
 
             if (noticeNum >= 5) {
@@ -96,24 +103,19 @@ public class PostService {
 
     // 게시글 삭제
     @Transactional
-    public Void deletePost (
+    public void deletePost (
             Long groupId,
             Long postId,
             Long userId
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        if (!Objects.equals(post.getUser().getId(), userId)
-                && !Objects.equals(group.getLeader().getId(), userId)) {
-            throw new BaseException(PostErrorCode.UNAUTHORIZED_POST_DELETE);
-        }
+        validator.validatePermission(userId, groupId, PermissionType.DELETE_POST, post.getUser().getId());
 
         postRepository.delete(post);
-        return null;
     }
 
     // 게시글 전체 조회
@@ -158,8 +160,7 @@ public class PostService {
             Long groupId,
             Long postId
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
