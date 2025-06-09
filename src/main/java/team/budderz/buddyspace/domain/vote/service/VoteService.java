@@ -42,7 +42,7 @@ public class VoteService {
 
 	@Transactional
 	public SaveVoteResponse saveVote(Long userId, Long groupId, SaveVoteRequest request) {
-		validator.validatePermission(userId, groupId, PermissionType.CREATE_SCHEDULE);
+		validator.validatePermission(userId, groupId, PermissionType.CREATE_VOTE);
 		Group group = validator.findGroupOrThrow(groupId);
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new VoteException(USER_NOT_FOUND));
