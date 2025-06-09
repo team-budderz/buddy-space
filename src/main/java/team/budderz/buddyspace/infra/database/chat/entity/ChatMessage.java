@@ -40,7 +40,8 @@ public class ChatMessage extends BaseEntity {
 
     private LocalDateTime sentAt;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "attachment_id")
-//    private AttachmentFile attachment;
+    // 첨부파일 URL 만 저장 (연관관계 X)
+    @Column(name = "attachment_url")
+    private String attachmentUrl;
+
 }

@@ -1,21 +1,15 @@
 package team.budderz.buddyspace.api.chat.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
 
 import java.util.List;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class CreateChatRoomRequest {
-
-    private String name; // 채팅방 이름
-    private String description;
-    private String chatRoomType;  // GROUP or DIRECT
-    private List<Long> participantIds;  // 참여자 유저 ID 목록
-
-}
+/**
+ * 채팅방 생성 요청 DTO
+ */
+public record CreateChatRoomRequest(
+        String name,              // 채팅방 이름
+        String description,
+        ChatRoomType chatRoomType,  // GROUP or DIRECT
+        List<Long> participantIds   // 참여자 유저 ID 목록
+) {}
