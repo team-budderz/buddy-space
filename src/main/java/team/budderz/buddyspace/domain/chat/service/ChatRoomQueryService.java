@@ -12,11 +12,13 @@ import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
 import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
+import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 
 import java.util.List;
@@ -29,14 +31,13 @@ public class ChatRoomQueryService {
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MembershipRepository membershipRepository;
+    private final GroupValidator groupValidator;
 
     // 채팅방 목록 조회 -------------------------------------------------------------------------------------------------
     public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
 
-        boolean isMember = membershipRepository.existsByUser_IdAndGroup_Id(userId, groupId);
-        if (!isMember) {
-            throw new ChatException(ChatErrorCode.USER_NOT_IN_GROUP);
-        }
+        // 그룹 멤버인지 확인
+        groupValidator.validateMember(userId, groupId);
 
         List<ChatParticipant> participants = chatParticipantRepository
                 .findByUserAndGroupAndIsActive(userId, groupId);
@@ -62,26 +63,22 @@ public class ChatRoomQueryService {
                 .toList();
     }
 
-    // 채팅방 입장 후 과거 매시지 조회 -------------------------------------------------------------------------------------------------
+    // 채팅방 입장 후 과거 메시지 조회 -------------------------------------------------------------------------------------------------
     @Transactional(readOnly = true)
     public GetChatMessagesResponse getChatMessages(Long groupId, Long roomId, Long userId, int page, int size) {
 
-        // 1️⃣ 그룹 멤버인지 확인
-        boolean isMember = membershipRepository.existsByUser_IdAndGroup_Id(userId, groupId);
-        if (!isMember) {
-            throw new ChatException(ChatErrorCode.USER_NOT_IN_GROUP);
-        }
+        groupValidator.validateMember(userId, groupId);
 
-        // 2️⃣ 채팅방 참여자인지 확인
+        // 채팅방 참여자인지 확인
         ChatParticipant participant = chatParticipantRepository
                 .findByUserAndChatRoom_IdAndChatRoom_Group_IdAndIsActiveTrue(userId, roomId, groupId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_IN_CHAT_ROOM));
 
-        // 3️⃣ 메시지 페이징 조회
+        // 메시지 페이징 조회
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentAt")); // 최신순
         Page<ChatMessage> messagePage = chatMessageRepository.findByChatRoom_Id(roomId, pageable);
 
-        // 4️⃣ DTO 변환
+        //  DTO 변환
         List<ChatMessageResponse> messages = messagePage.stream()
                 .map(msg -> new ChatMessageResponse(
                         msg.getId(),

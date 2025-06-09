@@ -17,6 +17,7 @@ public enum ChatErrorCode implements ErrorCode {
     USER_NOT_FOUND(404, "C003", "존재하지 않는 사용자입니다."),
     DUPLICATE_DIRECT_ROOM(409, "C004", "이미 존재하는 DIRECT 채팅방입니다."),
     INVALID_PARTICIPANT_COUNT(400, "C005", "참여자 수가 올바르지 않습니다."),
+    GROUP_NOT_FOUND(404, "C008", "존재하지 않는 그룹입니다."),
     MESSAGE_NOT_FOUND(404, "C006", "존재하지 않는 메시지입니다.");
 
     private final int status;
