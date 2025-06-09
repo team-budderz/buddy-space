@@ -76,12 +76,12 @@ public class GroupValidator {
      *
      * @param loginUserId 로그인 사용자 ID
      * @param groupId     모임 ID
-     * @param AuthorId    콘텐츠 생성자 ID
+     * @param authorId    콘텐츠 생성자 ID
      */
-    public void validateOwner(Long loginUserId, Long groupId, Long AuthorId) {
+    public void validateOwner(Long loginUserId, Long groupId, Long authorId) {
         validateMember(loginUserId, groupId);
 
-        if (!loginUserId.equals(AuthorId)) {
+        if (!loginUserId.equals(authorId)) {
             throw new GroupException(GroupErrorCode.FUNCTION_ACCESS_DENIED);
         }
     }
