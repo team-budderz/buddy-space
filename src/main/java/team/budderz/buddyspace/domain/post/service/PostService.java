@@ -160,8 +160,7 @@ public class PostService {
             Long groupId,
             Long postId
     ) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new BaseException(PostErrorCode.GROUP_ID_NOT_FOUND));
+        Group group = validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
