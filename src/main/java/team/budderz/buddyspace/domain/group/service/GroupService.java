@@ -2,20 +2,25 @@ package team.budderz.buddyspace.domain.group.service;
 
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.api.group.response.GroupResponse;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
+import team.budderz.buddyspace.global.response.PageResponse;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.*;
 import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
-import team.budderz.buddyspace.infra.database.membership.entity.Membership;
 import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
+import team.budderz.buddyspace.infra.database.membership.entity.Membership;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.mission.repository.MissionRepository;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
@@ -24,7 +29,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
-import java.util.List;
+import static team.budderz.buddyspace.domain.group.constant.GroupDefaults.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +46,7 @@ public class GroupService {
     private final GroupPermissionRepository groupPermissionRepository;
 
     private final GroupPermissionService groupPermissionService;
+    private final GroupValidator validator;
 
     /**
      * 모임 생성
@@ -74,6 +80,7 @@ public class GroupService {
         Membership membership = Membership.fromCreator(leader, group);
         membershipRepository.save(membership);
 
+        // 모임 기능별 권한 기본값 설정
         groupPermissionService.saveDefaultPermission(group);
 
         return GroupResponse.from(saved);
@@ -101,12 +108,8 @@ public class GroupService {
                                      GroupType type,
                                      GroupInterest interest) {
 
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
-
-        if (!group.getLeader().getId().equals(userId)) {
-            throw new GroupException(GroupErrorCode.FUNCTION_ACCESS_DENIED);
-        }
+        validator.validateLeader(userId, groupId);
+        Group group = validator.findGroupOrThrow(groupId);
 
         group.updateGroupInfo(name, description, coverImageUrl, access, type, interest);
 
@@ -120,8 +123,11 @@ public class GroupService {
      * @return 조회된 모임 정보 목록
      */
     @Transactional(readOnly = true)
-    public List<GroupListResponse> findGroupsByUser(Long userId) {
-        return groupRepository.findGroupsByUser(userId);
+    public PageResponse<GroupListResponse> findGroupsByUser(Long userId, int page) {
+        Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+        Page<GroupListResponse> result = groupRepository.findGroupsByUser(userId, pageable);
+
+        return PageResponse.from(result);
     }
 
     /**
@@ -131,8 +137,12 @@ public class GroupService {
      * @return 조회된 모임 정보 목록
      */
     @Transactional(readOnly = true)
-    public List<GroupListResponse> findOnlineGroups(GroupSortType sortType) {
-        return groupRepository.findOnlineGroups(sortType);
+    public PageResponse<GroupListResponse> findOnlineGroups(GroupSortType sortType, String interest, int page) {
+        GroupInterest interestType = StringUtils.isNotBlank(interest) ? GroupInterest.fromName(interest) : null;
+        Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+        Page<GroupListResponse> result = groupRepository.findOnlineGroups(sortType, interestType, pageable);
+
+        return PageResponse.from(result);
     }
 
     /**
@@ -144,7 +154,10 @@ public class GroupService {
      * @return 조회된 모임 정보 목록
      */
     @Transactional(readOnly = true)
-    public List<GroupListResponse> findOfflineGroups(Long userId, GroupSortType sortType) {
+    public PageResponse<GroupListResponse> findOfflineGroups(Long userId, GroupSortType sortType, String interest, int page) {
+        GroupInterest interestType = StringUtils.isNotBlank(interest) ? GroupInterest.fromName(interest) : null;
+        Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
@@ -152,7 +165,21 @@ public class GroupService {
             throw new GroupException(GroupErrorCode.NEIGHBORHOOD_NOT_FOUND);
         }
 
-        return groupRepository.findOfflineGroups(user.getNeighborhood(), sortType);
+        Page<GroupListResponse> result = groupRepository.findOfflineGroups(user.getNeighborhood(), sortType, interestType, pageable);
+        return PageResponse.from(result);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<GroupListResponse> searchGroupsByName(String keyword, String interest, int page) {
+        GroupInterest interestType = StringUtils.isNotBlank(interest) ? GroupInterest.fromName(interest) : null;
+        Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+
+        if (StringUtils.isBlank(keyword)) {
+            return PageResponse.from(Page.empty(pageable)); // 검색 키워드 없이 요청한 경우 빈 페이지 반환
+        }
+
+        Page<GroupListResponse> result = groupRepository.searchGroupsByName(keyword, interestType, pageable);
+        return PageResponse.from(result);
     }
 
     /**
@@ -163,16 +190,14 @@ public class GroupService {
      */
     @Transactional
     public void deleteGroup(Long userId, Long groupId) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
+        validator.validateLeader(userId, groupId);
+        Group group = validator.findGroupOrThrow(groupId);
 
-        if (!group.getLeader().getId().equals(userId)) {
-            throw new GroupException(GroupErrorCode.FUNCTION_ACCESS_DENIED);
-        }
-
+        // 모임에 리더를 제외하고 가입된 회원이 존재하는지 확인
         boolean hasOtherMembers =
                 membershipRepository.existsByGroup_IdAndMemberRoleNot(groupId, MemberRole.LEADER);
 
+        // 리더를 제외하고 가입된 회원이 있으면 모임 삭제 불가
         if (hasOtherMembers) {
             throw new GroupException(GroupErrorCode.MEMBERS_EXIST_IN_GROUP);
         }
@@ -187,11 +212,11 @@ public class GroupService {
      * @param groupId 모임 ID
      */
     private void deleteAllGroupRelatedData(Long groupId) {
-//        postRepository.deleteAllByGroup_Id(groupId);
-//        missionRepository.deleteAllByGroup_Id(groupId);
-//        voteRepository.deleteAllByGroup_Id(groupId);
-//        scheduleRepository.deleteAllByGroup_Id(groupId);
-//        chatRoomRepository.deleteAllByGroup_Id(groupId);
+        postRepository.deleteAllByGroup_Id(groupId);
+        missionRepository.deleteAllByGroup_Id(groupId);
+        voteRepository.deleteAllByGroup_Id(groupId);
+        scheduleRepository.deleteAllByGroup_Id(groupId);
+        chatRoomRepository.deleteAllByGroup_Id(groupId);
         membershipRepository.deleteAllByGroup_Id(groupId);
         groupPermissionRepository.deleteAllByGroup_Id(groupId);
     }

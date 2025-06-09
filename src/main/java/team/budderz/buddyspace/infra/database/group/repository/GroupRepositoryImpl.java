@@ -5,14 +5,15 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
-import team.budderz.buddyspace.infra.database.group.entity.GroupAccess;
-import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
-import team.budderz.buddyspace.infra.database.group.entity.GroupType;
-import team.budderz.buddyspace.infra.database.group.entity.QGroup;
+import team.budderz.buddyspace.infra.database.group.entity.*;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 import team.budderz.buddyspace.infra.database.membership.entity.QMembership;
 import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
@@ -20,18 +21,27 @@ import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
+
 @Repository
 @RequiredArgsConstructor
 public class GroupRepositoryImpl implements GroupQueryRepository {
 
     private final JPAQueryFactory queryFactory;
-    private static final long GROUP_FETCH_LIMIT = 100L;
 
+    /**
+     * 내 모임 목록 조회
+     *
+     * @param userId 로그인 사용자 ID
+     * @param pageable 페이징 정보
+     * @return 조회된 모임 목록 정보
+     */
     @Override
-    public List<GroupListResponse> findGroupsByUser(Long userId) {
+    public Page<GroupListResponse> findGroupsByUser(Long userId, Pageable pageable) {
         QGroup group = QGroup.group;
         QMembership membership = QMembership.membership;
 
+        // 사용자 ID 기준으로 가입한 모임 목록 조회, joinedAt 기준 정렬
         List<Tuple> joined = queryFactory
                 .select(
                         group.id,
@@ -49,16 +59,21 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                         membership.joinStatus.eq(JoinStatus.APPROVED)
                 )
                 .orderBy(membership.joinedAt.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
+        // 조회된 모임 ID 목록 추출
         List<Long> groupIds = joined.stream()
                 .map(tuple -> tuple.get(group.id))
                 .toList();
 
         if (groupIds.isEmpty()) {
-            return Collections.emptyList();
+            // 사용자가 가입한 모임이 없을 경우 빈 페이지 반환
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
+        // 각 모임별 가입 회원 수 집계
         List<Tuple> counts = queryFactory
                 .select(
                         membership.group.id,
@@ -72,12 +87,14 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 .groupBy(membership.group.id)
                 .fetch();
 
+        // 모임 ID + 회원 수 맵 생성
         Map<Long, Long> memberCounts = counts.stream()
                 .collect(Collectors.toMap(
                         tuple -> tuple.get(membership.group.id),
                         tuple -> tuple.get(membership.id.count())
                 ));
 
+        // 최종 결과 리스트 구성
         List<GroupListResponse> result = new ArrayList<>();
 
         for (Tuple t : joined) {
@@ -93,33 +110,123 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
             ));
         }
 
-        return result;
+        // 페이징 처리를 위한 전체 개수 조회
+        Long total = queryFactory
+                .select(membership.count())
+                .from(membership)
+                .where(
+                        membership.user.id.eq(userId),
+                        membership.joinStatus.eq(JoinStatus.APPROVED)
+                )
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * 온라인 모임 목록 조회 - 관심사 및 정렬 포함
+     *
+     * @param sortType 정렬 (인기순/최신순)
+     * @param interest 관심사
+     * @param pageable 페이징 정보
+     * @return 조회된 모임 목록
+     */
     @Override
-    public List<GroupListResponse> findOnlineGroups(GroupSortType sortType) {
-        return findGroupsByCondition(Set.of(GroupType.ONLINE, GroupType.HYBRID), null, sortType);
+    public Page<GroupListResponse> findOnlineGroups(GroupSortType sortType, GroupInterest interest, Pageable pageable) {
+        return findGroupsByCondition(Set.of(GroupType.ONLINE, GroupType.HYBRID), null, sortType, interest, pageable);
     }
 
+    /**
+     * 오프라인 모임 목록 조회 - 동네, 관심사, 정렬 포함
+     *
+     * @param neighborhood 사용자 동네 정보
+     * @param sortType 정렬 (인기순/최신순)
+     * @param interest 관심사
+     * @param pageable 페이징 정보
+     * @return 조회된 모임 목록
+     */
     @Override
-    public List<GroupListResponse> findOfflineGroups(Neighborhood neighborhood, GroupSortType sortType) {
-        return findGroupsByCondition(Set.of(GroupType.OFFLINE, GroupType.HYBRID), neighborhood, sortType);
+    public Page<GroupListResponse> findOfflineGroups(Neighborhood neighborhood, GroupSortType sortType, GroupInterest interest, Pageable pageable) {
+        return findGroupsByCondition(Set.of(GroupType.OFFLINE, GroupType.HYBRID), neighborhood, sortType, interest, pageable);
     }
 
-    private List<GroupListResponse> findGroupsByCondition(Set<GroupType> groupTypes,
-                                                          @Nullable Neighborhood neighborhood,
-                                                          GroupSortType sortType) {
+    /**
+     * 모임 이름 검색 - 관심사, 정렬 포함
+     *
+     * @param keyword 검색 키워드 (부분 일치)
+     * @param interest 관심사
+     * @param pageable 페이징 정보
+     * @return 조회된 모임 목록
+     */
+    @Override
+    public Page<GroupListResponse> searchGroupsByName(String keyword, GroupInterest interest, Pageable pageable) {
         QGroup group = QGroup.group;
         QMembership membership = QMembership.membership;
 
         BooleanBuilder conditions = new BooleanBuilder();
+        conditions.and(group.access.eq(GroupAccess.PUBLIC)); // 공개 모임만 검색
 
-        conditions.and(group.type.in(groupTypes));
-        conditions.and(group.access.eq(GroupAccess.PUBLIC));
-
-        if (neighborhood != null) {
-            conditions.and(group.neighborhood.eq(neighborhood));
+        // 공백 제거 + 소문자로 변환하여 이름 LIKE 검색
+        if (StringUtils.isNotBlank(keyword)) {
+            conditions.and(
+                    stringTemplate("REPLACE(LOWER({0}), ' ', '')", group.name)
+                            .like("%" + keyword.toLowerCase().replace(" ", "") + "%")
+            );
         }
+
+        if (interest != null) {
+            conditions.and(group.interest.eq(interest)); // 관심사 필터링
+        }
+
+        List<GroupListResponse> content = queryFactory
+                .select(Projections.constructor(GroupListResponse.class,
+                        group.id,
+                        group.name,
+                        group.description,
+                        group.coverImageUrl,
+                        group.type,
+                        group.interest,
+                        membership.id.countDistinct().as("memberCount")
+                ))
+                .from(group)
+                .leftJoin(membership).on(
+                        membership.group.eq(group),
+                        membership.joinStatus.eq(JoinStatus.APPROVED)
+                )
+                .where(conditions)
+                .groupBy(group.id)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(group.count())
+                .from(group)
+                .where(conditions)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * 조건 기반 모임 목록 조회
+     *
+     * @param groupTypes 모임 유형 (온/오프라인)
+     * @param neighborhood 사용자 동네 정보
+     * @param sortType 정렬 (인기순/최신순)
+     * @param interest 관심사
+     * @param pageable 페이징 정보
+     * @return 조회된 모임 목록
+     */
+    private Page<GroupListResponse> findGroupsByCondition(Set<GroupType> groupTypes,
+                                                          @Nullable Neighborhood neighborhood,
+                                                          GroupSortType sortType,
+                                                          GroupInterest interest,
+                                                          Pageable pageable) {
+        QGroup group = QGroup.group;
+        QMembership membership = QMembership.membership;
+
+        BooleanBuilder conditions = buildConditions(groupTypes, interest, neighborhood);
 
         JPAQuery<GroupListResponse> query = queryFactory
                 .select(Projections.constructor(GroupListResponse.class,
@@ -129,15 +236,17 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                         group.coverImageUrl,
                         group.type,
                         group.interest,
-                        membership.id.count().as("memberCount")
+                        membership.id.countDistinct().as("memberCount")
                 ))
                 .from(group)
                 .leftJoin(membership).on(
-                        membership.group.eq(group)
-                                .and(membership.joinStatus.eq(JoinStatus.APPROVED))
+                        membership.group.eq(group),
+                        membership.joinStatus.eq(JoinStatus.APPROVED)
                 )
                 .where(conditions)
-                .groupBy(group.id);
+                .groupBy(group.id)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
 
         if (sortType == GroupSortType.POPULAR) {
             query.orderBy(membership.id.count().desc());
@@ -145,6 +254,35 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
             query.orderBy(group.createdAt.desc());
         }
 
-        return query.limit(GROUP_FETCH_LIMIT).fetch();
+        List<GroupListResponse> content = query.fetch();
+
+        Long total = queryFactory
+                .select(group.count())
+                .from(group)
+                .where(conditions)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    private BooleanBuilder buildConditions(Set<GroupType> types, GroupInterest interest, Neighborhood neighborhood) {
+        QGroup group = QGroup.group;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        builder.and(group.access.eq(GroupAccess.PUBLIC));
+
+        if (types != null && !types.isEmpty()) {
+            builder.and(group.type.in(types));
+        }
+
+        if (interest != null) {
+            builder.and(group.interest.eq(interest));
+        }
+
+        if (neighborhood != null) {
+            builder.and(group.neighborhood.eq(neighborhood));
+        }
+
+        return builder;
     }
 }

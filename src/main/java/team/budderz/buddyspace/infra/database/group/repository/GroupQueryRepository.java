@@ -1,16 +1,19 @@
 package team.budderz.buddyspace.infra.database.group.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
+import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
 import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
 import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 
-import java.util.List;
-
 public interface GroupQueryRepository {
 
-    List<GroupListResponse> findGroupsByUser(Long userId);
+    Page<GroupListResponse> findGroupsByUser(Long userId, Pageable pageable);
 
-    List<GroupListResponse> findOnlineGroups(GroupSortType sortType);
+    Page<GroupListResponse> findOnlineGroups(GroupSortType sortType, GroupInterest interest, Pageable pageable);
 
-    List<GroupListResponse> findOfflineGroups(Neighborhood neighborhood, GroupSortType sortType);
+    Page<GroupListResponse> findOfflineGroups(Neighborhood neighborhood, GroupSortType sortType, GroupInterest interest, Pageable pageable);
+
+    Page<GroupListResponse> searchGroupsByName(String keyword, GroupInterest interest, Pageable pageable);
 }
