@@ -110,15 +110,17 @@ public class VoteService {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
 		}
 
-		// optionId 기준으로 유저 리스트 매핑
-		Map<Long, List<String>> voterMap = voteSelectionRepository.findVoterNamesGroupedByOptionId(voteId);
+		List<VoteDetailResponse.OptionDetailResponse> optionDetailResponses = getOptionDetailResponses(vote);
+		return VoteDetailResponse.from(vote, optionDetailResponses);
+	}
+
+	private List<VoteDetailResponse.OptionDetailResponse> getOptionDetailResponses(Vote vote) {
+		Map<Long, List<String>> voterMap = voteSelectionRepository.findVoterNamesGroupedByOptionId(vote.getId());
 		Map<Long, Integer> countMap = voterMap.entrySet().stream()
 			.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size()));
 
-		List<VoteDetailResponse.OptionDetailResponse> optionDetailResponses;
-
 		if (!vote.isAnonymous()) {
-			optionDetailResponses = vote.getOptions().stream()
+			return vote.getOptions().stream()
 				.map(option -> new VoteDetailResponse.OptionDetailResponse(
 					option.getId(),
 					option.getContent(),
@@ -128,7 +130,7 @@ public class VoteService {
 				.sorted(Comparator.comparingInt(VoteDetailResponse.OptionDetailResponse::voteCount).reversed())
 				.toList();
 		} else {
-			optionDetailResponses = vote.getOptions().stream()
+			return vote.getOptions().stream()
 				.map(option -> new VoteDetailResponse.OptionDetailResponse(
 					option.getId(),
 					option.getContent(),
@@ -138,8 +140,6 @@ public class VoteService {
 				.sorted(Comparator.comparingInt(VoteDetailResponse.OptionDetailResponse::voteCount).reversed())
 				.toList();
 		}
-
-		return VoteDetailResponse.from(vote, optionDetailResponses);
 	}
 
 	@Transactional
@@ -158,9 +158,12 @@ public class VoteService {
 
 		// voteId에 대해 해당 유저가 한 이전 투표 삭제
 		voteSelectionRepository.deleteByUserIdAndVoteId(userId, voteId);
+		saveVoteOptions(voteId, request.voteOptionIds(), user);
+	}
 
-		List<VoteOption> selectedOptions = voteOptionRepository.findAllById(request.voteOptionIds());
-		if (selectedOptions.size() != request.voteOptionIds().size()) {
+	private void saveVoteOptions(Long voteId, List<Long> voteOptionIds, User user) {
+		List<VoteOption> selectedOptions = voteOptionRepository.findAllById(voteOptionIds);
+		if (selectedOptions.size() != voteOptionIds.size()) {
 			throw new VoteException(VOTE_OPTION_NOT_FOUND);
 		}
 		for (VoteOption option : selectedOptions) {
