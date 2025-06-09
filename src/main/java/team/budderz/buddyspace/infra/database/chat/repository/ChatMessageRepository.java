@@ -1,5 +1,7 @@
 package team.budderz.buddyspace.infra.database.chat.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
@@ -11,4 +13,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     // 안 읽은 메시지 수
     long countByChatRoomAndIdGreaterThan(ChatRoom chatRoom, Long lastReadMessageId);
+
+    // 페이징 처리된 채팅방 메시지 조회
+    Page<ChatMessage> findByChatRoom_Id(Long chatRoomId, Pageable pageable);
 }

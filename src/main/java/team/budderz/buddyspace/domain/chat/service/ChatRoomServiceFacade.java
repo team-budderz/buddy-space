@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
+import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
 
 import java.util.List;
 
@@ -18,15 +19,22 @@ public class ChatRoomServiceFacade {
     private final ChatRoomCommandService chatRoomCommandService;
     private final ChatRoomQueryService chatRoomQueryService;
 
-    // 채팅방 생성 (쓰기)
+    // 채팅방 생성
     @Transactional
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
         return chatRoomCommandService.createChatRoom(groupId, userId, request);
     }
 
-    // 채팅방 목록 조회 (읽기)
+    // 채팅방 목록 조회
     @Transactional(readOnly = true)
     public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
         return chatRoomQueryService.getMyChatRooms(groupId, userId);
     }
+
+    // 채팅방 입장 후 과거 매시지 조회
+    @Transactional(readOnly = true)
+    public GetChatMessagesResponse getChatMessages(Long groupId, Long roomId, Long userId, int page, int size) {
+        return chatRoomQueryService.getChatMessages(groupId, roomId, userId, page, size);
+    }
+
 }

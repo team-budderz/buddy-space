@@ -21,4 +21,5 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         """)
     List<ChatRoom> findDirectRoomByParticipants(@Param("participantIds") List<Long> participantIds,
                                                 @Param("size") long size);
+
 }

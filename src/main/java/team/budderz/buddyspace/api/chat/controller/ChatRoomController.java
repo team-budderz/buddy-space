@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
+import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
 import team.budderz.buddyspace.domain.chat.service.ChatRoomCommandService;
 import team.budderz.buddyspace.domain.chat.service.ChatRoomServiceFacade;
 import team.budderz.buddyspace.global.response.BaseResponse;
@@ -46,5 +47,18 @@ public class ChatRoomController {
          return new BaseResponse<>(rooms);
      }
 
+    // 채팅방 입장 후 과거 메시지 조회 -----------------------------------------------------------------------------------------------------
+    @GetMapping("/{roomId}/messages")
+    public BaseResponse<GetChatMessagesResponse> getChatMessages(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Long userId = userAuth.getUserId();
+        GetChatMessagesResponse response = chatRoomService.getChatMessages(groupId, roomId, userId, page, size);
+        return new BaseResponse<>(response);
+    }
 
 }
