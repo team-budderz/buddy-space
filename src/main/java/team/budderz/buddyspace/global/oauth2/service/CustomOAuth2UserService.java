@@ -9,6 +9,10 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import team.budderz.buddyspace.api.user.response.LoginResponse;
+import team.budderz.buddyspace.domain.user.service.UserService;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.entity.UserGender;
 import team.budderz.buddyspace.infra.database.user.entity.UserProvider;
@@ -26,6 +30,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+
+    public static final String LOGIN_RESPONSE_ATTR = "LOGIN_RESPONSE";
     private static final String DEFAULT_ADDRESS = "주소 미입력";
     private static final String DEFAULT_PHONE = "010-1111-2222";
 
@@ -58,6 +65,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     newUser.setProviderId(providerId);
                     return userRepository.save(newUser);
                 });
+
+        LoginResponse loginResponse = userService.login(user);
+
+        // RequestContext에 저장
+        RequestContextHolder.getRequestAttributes()
+                .setAttribute(LOGIN_RESPONSE_ATTR, loginResponse, RequestAttributes.SCOPE_REQUEST);
+
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,

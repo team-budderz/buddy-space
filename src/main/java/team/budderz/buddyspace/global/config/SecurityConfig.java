@@ -27,9 +27,6 @@ public class SecurityConfig {
     //private final CorsConfigurationSource corsConfigurationSource; // 배포 후 설정
 
     @Bean
-    public PasswordEncoder passwordEncoder() {return new BCryptPasswordEncoder();}
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // 운영할 땐 disable xx
