@@ -8,6 +8,7 @@ import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
@@ -20,9 +21,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 // 생성, 수정 등 "쓰기" 성향
 @Service
@@ -36,25 +35,26 @@ public class ChatRoomCommandService {
     private final MembershipRepository membershipRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
+    private final GroupValidator groupValidator;
 
     // 채팅방 생성 -------------------------------------------------------------------------------------------------------
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
         // 그룹 조회
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
+        Group group = groupValidator.findGroupOrThrow(groupId);
 
-        // 생성자(유저) 조회
+        // 생성자(유저) 조회: User 엔티티 반환 위해
         User createdBy = userRepository.findById(userId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_FOUND));
 
-        // 그룹 참여 여부 확인
-        boolean isMember = membershipRepository.existsByUser_IdAndGroup_Id(userId, groupId);
-        if (!isMember) {
-            throw new ChatException(ChatErrorCode.USER_NOT_IN_GROUP);
-        }
+        // 그룹 멤버 여부 확인
+        groupValidator.validateMember(userId, groupId);
 
         // 동일한 참여자 중복 제거(Set) + 생성자 본인 추가(본인 자동 참여)
-        Set<Long> uniqueParticipantIds = new HashSet<>(request.participantIds());
+        Set<Long> uniqueParticipantIds = new HashSet<>(
+               Optional.ofNullable(request.participantIds())
+                       .orElse(Collections.emptyList())
+        );
+
         uniqueParticipantIds.add(userId);
 
         ChatRoomType chatRoomType = request.chatRoomType();
@@ -113,9 +113,7 @@ public class ChatRoomCommandService {
             chatParticipantRepository.save(participantEntity);
         }
 
-        log.info("userId = {}", userId);
-        log.info("groupId = {}", groupId);
-        log.info("isMember = {}", isMember);
+        log.info("ChatRoom 생성 요청 - userId: {}, groupId: {}", userId, groupId);
 
         return new CreateChatRoomResponse(chatRoom.getId().toString(), chatRoom.getName(), "success");
     }
