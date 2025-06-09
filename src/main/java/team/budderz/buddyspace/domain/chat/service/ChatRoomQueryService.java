@@ -18,7 +18,6 @@ import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
-import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 
 import java.util.List;
