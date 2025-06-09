@@ -39,8 +39,8 @@ public class Group extends BaseEntity {
     @Column(nullable = false)
     private GroupInterest interest;
 
-    @Column(name = "invite_link")
-    private String inviteLink;
+    @Column(name = "invite_link", unique = true)
+    private String inviteCode;
 
     @Column(name = "is_neighborhood_auth_required")
     private boolean isNeighborhoodAuthRequired;
@@ -52,6 +52,10 @@ public class Group extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "neighborhood_id")
     private Neighborhood neighborhood;
+
+    public void updateInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
 
     /**
      * 모임 생성용 생성자
