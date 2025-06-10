@@ -121,13 +121,13 @@ public class PostService {
     // 게시글 전체 조회
     @Transactional(readOnly = true)
     public List<FindsPostResponse> findsPost(
-            Long groupId
+            Long groupId,
+            int page
     ) {
-        List<Post> posts = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId);
+        int pageSize = 10;
+        int offset = page * pageSize;
 
-        return posts.stream()
-                .map(FindsPostResponse::from)
-                .collect(Collectors.toList());
+        return postRepository.findsPost(groupId, offset, pageSize);
     }
 
     // 게시글 공지 조회(내용 일부)
