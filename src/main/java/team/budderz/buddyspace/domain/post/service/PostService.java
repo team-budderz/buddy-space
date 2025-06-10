@@ -18,6 +18,7 @@ import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -84,16 +85,29 @@ public class PostService {
 
         validator.validateOwner(userId, groupId, post.getUser().getId());
 
+        // 공지일 경우, 리더만 수정 가능
         if (request.isNotice()) {
             if (!Objects.equals(userId, group.getLeader().getId())) {
                 throw new BaseException(PostErrorCode.NOTICE_POST_ONLY_ALLOWED_BY_LEADER);
             }
 
             Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
-
+            // 공지는 최대 5개까지
             if (noticeNum >= 5) {
                 throw new BaseException(PostErrorCode.NOTICE_LIMIT_EXCEEDED);
             }
+        }
+
+        // 예약 글이면서, 예약 시간이 현재 이후 일때만 reserveAt 수정 허용
+        boolean isResverable =  post.getReserveAt() != null &&
+                                post.getReserveAt().isAfter(LocalDateTime.now());
+
+        if (request.reserveAt() != null) {
+            if(!isResverable) {
+                throw new BaseException(PostErrorCode.NOT_ALLOWED_TO_EDIT_RESERVE_TIME);
+            }
+
+            post.updateReserveAt(request.reserveAt());
         }
 
         post.updatePost(request.content(), request.isNotice());
