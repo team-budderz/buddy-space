@@ -33,11 +33,11 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .where(
                         post.group.id.eq(groupId),
-                        post.reserveAt.loe(LocalDateTime.now())
+                        post.reserveAt.isNull().or(post.reserveAt.loe(LocalDateTime.now()))
                 )
                 .orderBy(post.createdAt.desc())
                 .offset(offset)
-                .limit(10)
+                .limit(pageSize)
                 .fetch();
 
         return results;
@@ -54,7 +54,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .where(
                         post.group.id.eq(groupId),
                         post.isNotice.isTrue(),
-                        post.reserveAt.loe(LocalDateTime.now())
+                        post.reserveAt.isNull().or(post.reserveAt.loe(LocalDateTime.now()))
                 )
                 .orderBy(post.createdAt.desc())
                 .fetch();
@@ -84,7 +84,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .where(
                         post.group.id.eq(groupId),
                         post.isNotice.isTrue(),
-                        post.reserveAt.loe(LocalDateTime.now())
+                        post.reserveAt.isNull().or(post.reserveAt.loe(LocalDateTime.now()))
                 )
                 .orderBy(post.createdAt.desc())
                 .fetch();
