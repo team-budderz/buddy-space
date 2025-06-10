@@ -1,0 +1,63 @@
+<!-- test-websocket.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>WebSocket STOMP SockJS 테스트</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket STOMP 테스트</h1>
+
+<button onclick="connect()">Connect</button>
+<button onclick="disconnect()">Disconnect</button>
+
+<br><br>
+
+<input type="text" id="message" placeholder="메시지 입력" />
+<button onclick="sendMessage()">Send</button>
+
+<ul id="messages"></ul>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+        const socket = new SockJS('http://localhost:8080/ws');  // WebSocketConfig에서 .addEndpoint("/ws") 확인
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/chat/room/1', function (message) {
+                console.log('Received: ', message.body);
+                showMessage(message.body);
+            });
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        console.log("Disconnected");
+    }
+
+    function sendMessage() {
+        const messageContent = document.getElementById("message").value;
+        stompClient.send("/app/chat.send", {}, JSON.stringify({
+            content: messageContent,
+            sender: "TestUser"
+        }));
+    }
+
+    function showMessage(message) {
+        const messages = document.getElementById("messages");
+        const li = document.createElement("li");
+        li.appendChild(document.createTextNode(message));
+        messages.appendChild(li);
+    }
+</script>
+</body>
+</html>
