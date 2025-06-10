@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //.requestMatchers("**").permitAll()
                         .requestMatchers(
+                                "/test-websocket.html",
+                                "/static/**",
                                 "/api/users/login",
                                 "/api/users/signup",
                                 "/oauth2/**",
