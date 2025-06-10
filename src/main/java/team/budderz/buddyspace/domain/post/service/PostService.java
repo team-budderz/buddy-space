@@ -143,11 +143,7 @@ public class PostService {
     public List<FindsPostResponse> findsNoticePost(
             Long groupId
     ) {
-        List<Post> posts = postRepository.findByGroupIdAndIsNoticeTrueOrderByCreatedAtDesc(groupId);
-
-        return posts.stream()
-                .map(FindsPostResponse::from)
-                .collect(Collectors.toList());
+        return postRepository.findsNoticePost(groupId);
     }
 
     // 게시글 상세 조회

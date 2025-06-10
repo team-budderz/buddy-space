@@ -66,4 +66,29 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 })
                 .toList();
     }
+
+    // 게시글 공지 조회(예약된 게시글 제외)
+    @Override
+    public List<FindsPostResponse> findsNoticePost(Long groupId) {
+        QPost post = QPost.post;
+
+        List<FindsPostResponse> results = jpaQueryFactory
+                .select(Projections.constructor(FindsPostResponse.class,
+                        post.user.imageUrl,
+                        post.user.name,
+                        post.createdAt,
+                        post.content,
+                        post.comments.size().longValue()
+                ))
+                .from(post)
+                .where(
+                        post.group.id.eq(groupId),
+                        post.isNotice.isTrue(),
+                        post.reserveAt.loe(LocalDateTime.now())
+                )
+                .orderBy(post.createdAt.desc())
+                .fetch();
+
+        return results;
+    }
 }

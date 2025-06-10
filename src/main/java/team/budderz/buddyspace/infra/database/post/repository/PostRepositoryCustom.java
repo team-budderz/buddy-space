@@ -10,4 +10,6 @@ public interface PostRepositoryCustom {
     List<FindsPostResponse> findsPost(Long groupId, int offset, int pageSize);
 
     List<FindsNoticePostResponse>  findsShortNoticePost(Long groupId);
+
+    List<FindsPostResponse> findsNoticePost(Long groupId);
 }
