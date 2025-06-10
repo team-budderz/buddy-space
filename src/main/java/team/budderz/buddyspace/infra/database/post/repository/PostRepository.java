@@ -8,7 +8,5 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom {
     Long countByGroupIdAndIsNoticeTrue(Long groupId);
 
-    List<Post> findByGroupIdAndIsNoticeTrueOrderByCreatedAtDesc(Long groupId);
-
     void deleteAllByGroup_Id(Long groupId);
 }
