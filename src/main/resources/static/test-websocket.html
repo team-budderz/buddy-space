@@ -30,7 +30,7 @@
 
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/chat/room/1', function (message) {
+            stompClient.subscribe('/sub/chat/room/1', function (message) {
                 console.log('Received: ', message.body);
                 showMessage(message.body);
             });
@@ -46,9 +46,12 @@
 
     function sendMessage() {
         const messageContent = document.getElementById("message").value;
-        stompClient.send("/app/chat.send", {}, JSON.stringify({
+        stompClient.send("/app/chat/message", {}, JSON.stringify({
+            roomId: 1,
+            senderId: 999,
+            messageType: "TEXT",
             content: messageContent,
-            sender: "TestUser"
+            attachmentUrl: null
         }));
     }
 

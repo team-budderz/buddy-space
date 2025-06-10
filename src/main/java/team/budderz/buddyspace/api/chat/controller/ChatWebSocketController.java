@@ -19,11 +19,19 @@ public class ChatWebSocketController {
     // 클라이언트 → 서버: /pub/chat/message
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageSendRequest request) {
-        // 메시지 저장
-        ChatMessageResponse savedMessage = chatMessageService.saveChatMessage(request);
+        try {
+            // 메시지 저장
+            ChatMessageResponse savedMessage = chatMessageService.saveChatMessage(request);
 
-        // 서버 → 클라이언트 broadcast: /sub/chat/room/{roomId}
-        String destination = "/sub/chat/room/" + request.roomId();
-        messagingTemplate.convertAndSend(destination, savedMessage);
+            // 서버 → 클라이언트 broadcast: /sub/chat/room/{roomId}
+            String destination = "/sub/chat/room/" + request.roomId();
+            messagingTemplate.convertAndSend(destination, savedMessage);
+        } catch (Exception e) {
+            // 에러 메시지를 해당 사용자에게만 전송
+            messagingTemplate.convertAndSendToUser(
+                    request.senderId().toString(),
+                    "/queue/errors", "메시지 전송에 실패했습니다: " + e.getMessage()
+            );
+        }
     }
 }
