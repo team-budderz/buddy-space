@@ -36,12 +36,13 @@ public class SecurityConfig {
                         //.requestMatchers("**").permitAll()
                         .requestMatchers(
                                 "/test-websocket.html",
+                                "/ws/**",
                                 "/static/**",
                                 "/api/users/login",
                                 "/api/users/signup",
                                 "/oauth2/**",
                                 "/login/oauth2/**"
-                                ).permitAll()
+                        ).permitAll()
                         //.requestMatchers("**").hasRole("ADMIN") // 테스트용
                         .anyRequest().authenticated()
                         )

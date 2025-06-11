@@ -35,11 +35,24 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             // 토큰이 존재하고, 유효한지, 그리고 ACCESS 토큰인지 확인
             if (token != null && jwtUtil.validateToken(token) && jwtUtil.isAccessToken(token)) {
                 // 인증 성공 → 사용자 정보(UserAuth)를 WebSocket 세션에 저장
-                //attributes.put("userAuth", jwtUtil.extractUserAuth(token));
+                Long userId = jwtUtil.getUserIdFromToken(token);
+                attributes.put("userId", userId); // 이후 채팅 메시지 처리에서 사용
                 return true; // → WebSocket 연결 허용
             } else {
                 // 인증 실패 → WebSocket 연결 거부
-                return false;
+                if (token == null) {
+                    System.out.println("❌ WebSocket 연결 실패: 토큰 없음");
+                    return false;
+                }
+                if (!jwtUtil.validateToken(token)) {
+                    System.out.println("❌ WebSocket 연결 실패: 토큰 유효하지 않음");
+                    return false;
+                }
+                if (!jwtUtil.isAccessToken(token)) {
+                    System.out.println("❌ WebSocket 연결 실패: 액세스 토큰 아님");
+                    return false;
+                }
+
             }
         }
         // Servlet 기반 요청이 아니면 거부
