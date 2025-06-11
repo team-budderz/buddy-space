@@ -66,9 +66,6 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "BOOLEAN DEFAULT false", nullable = false)
     private boolean isDeleted;
 
-    @Column(nullable = true)
-    private LocalDateTime deletedAt;
-
     @Builder
     public User(String name, String email, String password, LocalDate birthDate, UserGender gender, String address, String phone, UserProvider provider, UserRole role) {
         this.name = name;
@@ -90,9 +87,5 @@ public class User extends BaseEntity {
 
     public void updateUserPassword(String password) {
         this.password = password;
-    }
-
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
     }
 }
