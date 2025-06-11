@@ -25,39 +25,62 @@
     let stompClient = null;
 
     function connect() {
-        const socket = new SockJS('http://localhost:8080/ws');  // WebSocketConfig에서 .addEndpoint("/ws") 확인
+        const token = localStorage.getItem("accessToken");
+
+        if (!token) {
+            alert("토큰이 없습니다. 먼저 로그인 후 다시 시도하세요.");
+            return;
+        }
+
+        const socket = new SockJS('http://localhost:8080/ws');
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/chat/room/1', function (message) {
-                console.log('Received: ', message.body);
-                showMessage(message.body);
-            });
+        stompClient.connect(
+            { Authorization: 'Bearer ' + token },
+            onConnected,
+            onError
+        );
+    }
+
+
+    function onConnected(frame) {
+        console.log('✅ STOMP CONNECTED', frame);
+        // 구독
+        stompClient.subscribe('/sub/chat/room/1', function (msg) {
+            console.log("받은 메시지:", msg.body);
+            showMessage(msg.body);
         });
     }
 
+    function onError(error) {
+        console.error('❌ STOMP error', error);
+    }
+
     function disconnect() {
-        if (stompClient !== null) {
-            stompClient.disconnect();
-        }
-        console.log("Disconnected");
+        if (stompClient) stompClient.disconnect();
+        console.log('Disconnected');
     }
 
     function sendMessage() {
-        const messageContent = document.getElementById("message").value;
-        stompClient.send("/app/chat.send", {}, JSON.stringify({
-            content: messageContent,
-            sender: "TestUser"
+        const content = document.getElementById("message").value.trim();
+        if (!content) return;
+
+        stompClient.send("/pub/chat/message", {}, JSON.stringify({
+            roomId: 1,
+            messageType: "TEXT",
+            content
         }));
+
+        document.getElementById("message").value = "";
     }
 
-    function showMessage(message) {
-        const messages = document.getElementById("messages");
+    function showMessage(text) {
+        const msg = JSON.parse(text);
         const li = document.createElement("li");
-        li.appendChild(document.createTextNode(message));
-        messages.appendChild(li);
+        li.textContent = `[${msg.messageType}] ${msg.content}`;
+        document.getElementById("messages").appendChild(li);
     }
 </script>
+
 </body>
 </html>
