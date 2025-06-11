@@ -20,7 +20,6 @@ import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageReposit
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
-import team.budderz.buddyspace.infra.database.mission.repository.MissionPostRepository;
 import team.budderz.buddyspace.infra.database.mission.repository.MissionRepository;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.schedule.repository.ScheduleRepository;
