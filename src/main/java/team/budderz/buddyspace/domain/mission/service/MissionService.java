@@ -45,6 +45,10 @@ public class MissionService {
                () -> new MissionException(MissionErrorCode.USER_NOT_FOUND)
        );
 
+       if(request.startedAt().isAfter(request.endedAt())) {
+           throw new MissionException(MissionErrorCode.INVALID_DATE_RANGE);
+       }
+
        Mission mission = Mission.builder()
                .title(request.title())
                .description(request.description())
@@ -71,10 +75,6 @@ public class MissionService {
             throw new MissionException(MissionErrorCode.MISSION_GROUP_MISMATCH);
         }
 
-        if(!mission.getAuthor().getId().equals(userId)) {
-            throw new MissionException(MissionErrorCode.USER_NOT_FOUND);
-        }
-
         mission.updateMission(
                 request.title(),
                 request.description()
@@ -93,10 +93,6 @@ public class MissionService {
 
         if(!mission.getGroup().getId().equals(groupId)) {
             throw new MissionException(MissionErrorCode.MISSION_GROUP_MISMATCH);
-        }
-
-        if(!mission.getAuthor().getId().equals(userId)) {
-            throw new MissionException(MissionErrorCode.MISSION_AUTHOR_MISMATCH);
         }
 
         missionRepository.deleteById(missionId);
