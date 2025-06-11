@@ -11,22 +11,13 @@ import team.budderz.buddyspace.api.user.response.SignupResponse;
 import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
-import team.budderz.buddyspace.global.exception.GlobalExceptionHandler;
+import team.budderz.buddyspace.global.security.JwtTokenProvider;
 import team.budderz.buddyspace.global.security.JwtUtil;
 import team.budderz.buddyspace.global.security.UserAuth;
 import team.budderz.buddyspace.global.util.RedisUtil;
-import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
-import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
-import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
-import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
-import team.budderz.buddyspace.infra.database.mission.repository.MissionRepository;
-import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
-import team.budderz.buddyspace.infra.database.schedule.repository.ScheduleRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
-import team.budderz.buddyspace.infra.database.vote.entity.VoteSelection;
-import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +32,7 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final MembershipRepository membershipRepository;
     private final RedisUtil redisUtil;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -72,12 +64,7 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_EMAIL);
         }
 
-        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getRole());
-        String refreshToken = jwtUtil.createRefreshToken(user.getId());
-
-        redisUtil.setData("RT:" + user.getId(), refreshToken, jwtUtil.getRefreshTokenExpireTime());
-
-        return new LoginResponse(accessToken, refreshToken);
+        return jwtTokenProvider.createToken(user);
     }
 
     public LoginResponse login(LoginRequest loginRequest) {
@@ -130,9 +117,9 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-       user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
+        user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
 
-       return UserUpdateResponse.from(user);
+        return UserUpdateResponse.from(user);
     }
 
     @Transactional
@@ -156,9 +143,8 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-        user.softDelete();
-
         membershipRepository.deleteAllByUser_Id(userAuth.getUserId());
+        userRepository.deleteById(user.getId());
     }
 
     //소셜로그인 테스트

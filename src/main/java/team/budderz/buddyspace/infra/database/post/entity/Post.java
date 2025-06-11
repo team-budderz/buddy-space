@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.infra.database.post.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,5 +53,9 @@ public class Post extends BaseEntity {
 
     public boolean doesNotBelongToGroup (Long groupId) {
         return !Objects.equals(this.getGroup().getId(), groupId);
+    }
+
+    public void updateReserveAt(LocalDateTime reserveAt) {
+        this.reserveAt = reserveAt != null ? reserveAt : this.reserveAt;
     }
 }

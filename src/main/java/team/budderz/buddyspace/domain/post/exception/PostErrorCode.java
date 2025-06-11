@@ -15,7 +15,9 @@ public enum PostErrorCode implements ErrorCode {
     , UNAUTHORIZED_POST_DELETE(HttpStatus.FORBIDDEN.value(), "P005", "게시글 삭제 권한이 없습니다.")
     , NOTICE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST.value(), "P006", "공지사항은 최대 5개까지만 등록할 수 있습니다.")
     , NOTICE_POST_ONLY_ALLOWED_BY_LEADER(HttpStatus.FORBIDDEN.value(), "P007", "공지글은 리더만 설정 가능합니다.")
+    , NOT_ALLOWED_TO_EDIT_RESERVE_TIME(HttpStatus.BAD_REQUEST.value(), "P008", "예약 글이 아닌 게시글은 예약 시간을 수정할 수 없습니다.");
     ;
+
 
 
     private final int status;

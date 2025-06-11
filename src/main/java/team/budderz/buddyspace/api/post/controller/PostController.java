@@ -60,9 +60,10 @@ public class PostController {
     // 게시글 전체 조회
     @GetMapping("/group/{groupId}/posts")
     public BaseResponse<List<FindsPostResponse>> findsPost (
-            @PathVariable Long groupId
+            @PathVariable Long groupId,
+            @RequestParam(defaultValue = "0") int page
     ) {
-        List<FindsPostResponse> response = postService.findsPost(groupId);
+        List<FindsPostResponse> response = postService.findsPost(groupId, page);
         return new BaseResponse<>(response);
     }
 
