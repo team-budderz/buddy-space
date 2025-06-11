@@ -143,8 +143,8 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-        userRepository.deleteById(user.getId());
         membershipRepository.deleteAllByUser_Id(userAuth.getUserId());
+        userRepository.deleteById(user.getId());
     }
 
     //소셜로그인 테스트
