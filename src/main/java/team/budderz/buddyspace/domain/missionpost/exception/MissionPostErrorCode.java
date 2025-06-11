@@ -8,7 +8,7 @@ import team.budderz.buddyspace.global.response.ErrorCode;
 @Getter
 @AllArgsConstructor
 public enum MissionPostErrorCode implements ErrorCode {
-    INVALID_MISSION_POST_ID(HttpStatus.BAD_REQUEST.value() ,"M001","유효하지 않은 미션 ID입니다."),
+    INVALID_MISSION_POST_ID(HttpStatus.BAD_REQUEST.value() ,"MP001","유효하지 않은 미션인증ID입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"MP002","존재하지 않는 사용자입니다."),
     GROUP_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"MP003","존재하지 않는 모임입니다."),
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND.value() ,"MP004","존재하지 않는 미션입니다."),
