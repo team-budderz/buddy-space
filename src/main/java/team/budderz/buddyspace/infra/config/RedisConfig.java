@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.infra.redis.user;
+package team.budderz.buddyspace.infra.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

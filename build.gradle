@@ -54,6 +54,14 @@ dependencies {
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+
+    // json
+    implementation 'org.json:json:20240303'
+
+    // AWS S3
+    implementation platform("software.amazon.awssdk:bom:2.31.62")
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:auth'
 }
 
 tasks.named('test') {
