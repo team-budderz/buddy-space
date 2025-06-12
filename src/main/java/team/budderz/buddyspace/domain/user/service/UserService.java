@@ -117,9 +117,9 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-       user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
+        user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
 
-       return UserUpdateResponse.from(user);
+        return UserUpdateResponse.from(user);
     }
 
     @Transactional

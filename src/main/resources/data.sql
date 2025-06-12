@@ -1,10 +1,3 @@
--- User 성별, 공급자, 역할 Enum 가정 (스키마에 따라 적절히 바꾸세요)
--- UserGender: 'M', 'F'
--- UserProvider: 'LOCAL', 'KAKAO'
--- UserRole: 'USER', 'ADMIN'
--- GroupType: 'ONLINE', 'OFFLINE', 'HYBRID'
--- InterestType: 'STUDY', 'EXERCISE', 'WALK', 'READING'
-
 -- 1. Neighborhood 데이터
 INSERT INTO neighborhoods (city_name, district_name, ward_name, lat, lng, is_verified)
 VALUES
@@ -15,24 +8,36 @@ VALUES
 INSERT INTO users (name, email, password, birth_date, gender, address, phone, image_url, provider, provider_id, role, neighborhood_id)
 VALUES
     ('Alice', 'alice@example.com', 'Password123@', '1995-05-10', 'F', 'Seoul, Gangnam-gu', '010-1234-5678', NULL, 'LOCAL', NULL, 'USER', 1),
-    ('Bob', 'bob@example.com', 'securepw', '1990-10-22', 'M', 'Busan, Haeundae-gu', '010-8765-4321', NULL, 'LOCAL', 'NULL', 'USER', NULL);
-
+    ('Bob', 'bob@example.com', 'securepw', '1990-10-22', 'M', 'Busan, Haeundae-gu', '010-8765-4321', NULL, 'LOCAL', NULL, 'USER', 2);
 
 -- 3. Group 데이터
 INSERT INTO groups (
-    name, description, access, type, interest, is_neighborhood_auth_required, leader_id, neighborhood_id)
-VALUES
+    name, description, access, type, interest, is_neighborhood_auth_required, leader_id, neighborhood_id
+) VALUES
       ('Hiking Club', 'Group for weekend hikes', 'PUBLIC', 'ONLINE', 'STUDY', true, 1, 1),
-      ('Book Lovers', 'Discussing books monthly', 'PRIVATE', 'OFFLINE', 'EXERCISE', false, 2, NULL);
+      ('Book Lovers', 'Discussing books monthly', 'PRIVATE', 'OFFLINE', 'EXERCISE', false, 2, 2);
 
--- 4. Post 데이터
+-- 4. ChatRoom 데이터
+INSERT INTO chat_room (
+    id, group_id, created_at, modified_at, created_by, chat_room_type, name, description
+) VALUES
+    (1, 1, now(), now(), 1, 'GROUP', '하이킹 그룹 채팅방', '산 이야기 나누는 방');
+
+-- 5. ChatMessage 데이터
+INSERT INTO chat_message (
+    chat_room_id, sender_id, content, message_type, sent_at
+) VALUES
+      (1, 1, '안녕하세요! 첫 번째 채팅입니다.', 'TEXT', now()),
+      (1, 2, '다음 모임 일정 잡아야죠!', 'TEXT', now());
+
+-- 6. Post 데이터
 INSERT INTO posts (
-    group_id, user_id, content, reserve_at, is_notice)
-VALUES
-    (1, 1, '내용 1번', null, false),
-    (1, 2, '내용 2번', null, false);
+    group_id, user_id, content, reserve_at, is_notice
+) VALUES
+      (1, 1, '내용 1번', null, false),
+      (1, 2, '내용 2번', null, false);
 
--- 5. Comments 데이터
+-- 7. Comments 데이터
 INSERT INTO comments (
     post_id, user_id, content, parent_id
 ) VALUES
