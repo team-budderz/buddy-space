@@ -19,13 +19,13 @@ public class Neighborhood extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String cityName;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String districtName;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String wardName;
 
     @Column(precision = 9, scale = 6)
