@@ -34,6 +34,7 @@ public class NeighborhoodService {
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
 
     @Transactional
     public NeighborhoodResponse saveNeighborhood(Long userId, NeighborhoodRequest request) {
@@ -46,9 +47,6 @@ public class NeighborhoodService {
         headers.set("Authorization", "KakaoAK " + kakaoApiKey);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        // Spring에서 외부 API 호출용 HTTP 클라이언트
-        RestTemplate restTemplate = new RestTemplate();
-
         // API 호출 (GET 요청 보내기)
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
@@ -57,6 +55,10 @@ public class NeighborhoodService {
                 .getJSONArray("documents")
                 .getJSONObject(0)
                 .getJSONObject("address");
+
+        if(address.isEmpty() && address==null) {
+            throw new NeighborhoodException(NeighborhoodErrorCode.ADDRESS_NOT_FOUND);
+        }
 
         String city = address.getString("region_1depth_name");
         String district = address.getString("region_2depth_name");
