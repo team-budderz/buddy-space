@@ -34,7 +34,7 @@ public class NeighborhoodService {
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final UserRepository userRepository;
-    private final RestTemplate restTemplate;
+    //private final RestTemplate restTemplate;
 
     @Transactional
     public NeighborhoodResponse saveNeighborhood(Long userId, NeighborhoodRequest request) {
@@ -46,6 +46,8 @@ public class NeighborhoodService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoApiKey);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        RestTemplate restTemplate = new RestTemplate();
 
         // API 호출 (GET 요청 보내기)
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
