@@ -37,4 +37,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             @Param("groupId") Long groupId
     );
 
+    Optional<ChatParticipant>
+    findByChatRoomIdAndUserId(Long roomId, Long userId);
+
 }

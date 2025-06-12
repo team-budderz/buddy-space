@@ -41,4 +41,12 @@ public class ChatParticipant extends BaseEntity {
     @Builder.Default // 생성 시점에 명확하게 true 지정
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
+
+    public void updateLastRead(Long messageId) {
+        // NULL 보호 + 뒤로 가는 값 무시
+        if (messageId != null &&
+                (lastReadMessageId == null || messageId > lastReadMessageId)) {
+            this.lastReadMessageId = messageId;
+        }
+    }
 }
