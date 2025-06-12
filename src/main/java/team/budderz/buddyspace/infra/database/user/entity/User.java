@@ -59,12 +59,12 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private UserRole role;
 
-    @OneToOne
-    @JoinColumn(name = "neighborhood_id", nullable = true)
-    private Neighborhood neighborhood;
-
     @Column(columnDefinition = "BOOLEAN DEFAULT false", nullable = false)
     private boolean isDeleted;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "neighborhood_id")
+    private Neighborhood neighborhood;
 
     @Builder
     public User(String name, String email, String password, LocalDate birthDate, UserGender gender, String address, String phone, UserProvider provider, UserRole role) {
@@ -87,5 +87,10 @@ public class User extends BaseEntity {
 
     public void updateUserPassword(String password) {
         this.password = password;
+    }
+
+    public void updateUserAddress(String address, Neighborhood neighborhood) {
+        this.address = address;
+        this.neighborhood = neighborhood;
     }
 }
