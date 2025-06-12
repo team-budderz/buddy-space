@@ -13,14 +13,22 @@ public class ChatReadService {
 
     private final ChatParticipantRepository chatParticipantRepository;
 
-    /** 마지막 읽음 메시지 ID 갱신 */
-    public void updateLastRead(Long roomId, Long userId, Long messageId) {
-        ChatParticipant chatParticipant = chatParticipantRepository
+    /* 실시간 단건 갱신 (채팅창 맨 아래 볼 때마다) */
+    public void markAsRead(Long roomId, Long userId, Long messageId) {
+        ChatParticipant cp = chatParticipantRepository
                 .findByChatRoomIdAndUserId(roomId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("참가자 정보 없음"));
 
-        chatParticipant.updateLastRead(messageId);
-        // JPA dirty-checking 으로 자동 flush
+        cp.updateLastRead(messageId);
+    }
+
+    /* 일괄 동기화 (재접속·무한스크롤 시) */
+    public void syncReadPointer(Long roomId, Long userId, Long lastId) {
+        ChatParticipant cp = chatParticipantRepository
+                .findByChatRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("참가자 정보 없음"));
+
+        cp.syncLastRead(lastId);
     }
 }
 

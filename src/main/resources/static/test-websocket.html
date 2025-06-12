@@ -115,6 +115,9 @@
                     addOrUpdateBadge(info.li, unread > 0 ? `${unread}` : '');
                 });
             });
+
+            afterConnect();
+
         }, console.error);
     }
 
@@ -191,7 +194,8 @@
                 (d.result?.messages || [])
                     .sort((a,b)=>new Date(a.createdAt||a.sentAt) - new Date(b.createdAt||b.sentAt))
                     .forEach(m => showMessage(m, myId, true));
-                if (latestSeen) sendRead(latestSeen);  // 가장 마지막 것 까지 읽음
+
+                onHistoryLoaded();
             });
     }
 
@@ -211,13 +215,35 @@
             const id     = lastLi?.dataset.id;
             if (id) {
                 const idNum = Number(id);
-                if (idNum > latestSeen) {
-                    latestSeen = idNum;
-                    sendRead(latestSeen);
-                }
+                onReachedBottom(idNum);
             }
         }
     });
+
+    /*  앱 재입장 - reconnect 직후 */
+    function afterConnect() {
+        if (latestSeen > 0) bulkSyncRead(latestSeen);
+    }
+
+    /* 무한스크롤(과거 내역 로딩) 완료 시 */
+    function onHistoryLoaded() {
+        bulkSyncRead(latestSeen);
+    }
+
+    /* 뷰포트가 맨 아래에 도달했을 때도 동일 */
+    function onReachedBottom(idNum) {
+        if (idNum > latestSeen) {
+            latestSeen = idNum;
+            bulkSyncRead(latestSeen);
+        }
+    }
+
+    /* --- 공통 호출 함수 ------------------------------------------ */
+    function bulkSyncRead(lastId){
+        const roomId = localStorage.getItem('roomId');
+        stompClient.send(`/pub/chat/rooms/${roomId}/read-sync`,
+            {}, JSON.stringify({ lastReadMessageId: lastId }));
+    }
 
 </script>
 </body>
