@@ -12,47 +12,68 @@ import team.budderz.buddyspace.domain.chat.service.ChatMessageService;
 
 import java.util.Map;
 
-// WebSocket: 실시간 채팅
 @Controller
 @RequiredArgsConstructor
 public class ChatWebSocketController {
 
     private final ChatMessageService chatMessageService;
-    private final SimpMessagingTemplate messagingTemplate; // broadcast 용
+    private final SimpMessagingTemplate messagingTemplate;
 
-    // 클라이언트 → 서버: /pub/chat/message
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageSendRequest request, MessageHeaders headers) {
+        Long senderId = extractSenderId(headers);
+
+        if (senderId == null) {
+            sendErrorToClient("인증된 사용자가 아닙니다.", null);
+            return;
+        }
+
+        // 서버에서 senderId를 주입
+        ChatMessageSendRequest completedRequest = buildRequestWithSender(request, senderId);
+
         try {
-            // WebSocket 세션에서 userId 꺼내기
-            Map<String, Object> sessionAttributes =
-                    SimpMessageHeaderAccessor.getSessionAttributes(headers);
-
-            Long senderId = (Long) sessionAttributes.get("userId");
-            if (senderId == null) throw new RuntimeException("인증된 사용자 아님");
-
-            // 이 senderId를 request 에 주입하거나 ChatMessageService 에 넘기기
-            // 클라이언트는 senderId 없이 메시지를 보내고, 서버는 토큰을 기반으로 userId를 추출해서 쓰는 구조가 이상적
-            ChatMessageSendRequest completedRequest = new ChatMessageSendRequest(
-                    request.roomId(),
-                    senderId, // 서버에서 넣어주는 값
-                    request.messageType(),
-                    request.content(),
-                    request.attachmentUrl()
-            );
-
             ChatMessageResponse savedMessage = chatMessageService.saveChatMessage(completedRequest);
 
-            // 서버 → 클라이언트 broadcast: /sub/chat/room/{roomId}
+            // Broadcast
             String destination = "/sub/chat/room/" + completedRequest.roomId();
-
             messagingTemplate.convertAndSend(destination, savedMessage);
+
         } catch (Exception e) {
-            messagingTemplate.convertAndSendToUser(
-                    "anonymous", // senderId가 없으니 안전하게 처리
-                    "/queue/errors",
-                    "메시지 전송에 실패했습니다: " + e.getMessage()
-            );
+            sendErrorToClient("메시지 전송에 실패했습니다: " + e.getMessage(), senderId);
         }
+    }
+
+    /** WebSocket 세션에서 senderId 추출 */
+    private Long extractSenderId(MessageHeaders headers) {
+        Map<String, Object> sessionAttributes = SimpMessageHeaderAccessor.getSessionAttributes(headers);
+        if (sessionAttributes == null) return null;
+        Object id = sessionAttributes.get("userId");
+        if (id instanceof Long) return (Long) id;
+        if (id instanceof Integer) return ((Integer) id).longValue();
+        if (id instanceof String) {
+            try { return Long.parseLong((String) id); } catch (NumberFormatException ignore) {}
+        }
+        return null;
+    }
+
+    /** senderId를 request 에 주입 */
+    private ChatMessageSendRequest buildRequestWithSender(ChatMessageSendRequest origin, Long senderId) {
+        return new ChatMessageSendRequest(
+                origin.roomId(),
+                senderId,
+                origin.messageType(),
+                origin.content(),
+                origin.attachmentUrl()
+        );
+    }
+
+    /** 에러 메시지 전송 */
+    private void sendErrorToClient(String errorMsg, Long senderId) {
+        // 유저별 에러 큐로 전송 - senderId 없으면 broadcast error topic 등 활용 가능
+        String errorDestination = (senderId != null)
+                ? "/queue/errors"      // Spring STOMP 표준 유저별 에러 큐
+                : "/topic/chat/errors"; // fallback broadcast (선택)
+
+        messagingTemplate.convertAndSend(errorDestination, errorMsg);
     }
 }
