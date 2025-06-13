@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
 import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
 import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
@@ -59,6 +60,20 @@ public class ChatRoomController {
         Long userId = userAuth.getUserId();
         GetChatMessagesResponse response = chatRoomService.getChatMessages(groupId, roomId, userId, page, size);
         return new BaseResponse<>(response);
+    }
+
+    // 멤버 목록 조회 -----------------------------------------------------------------------------------------------------
+    @GetMapping("/{roomId}/members")
+    public BaseResponse<List<ChatRoomMemberResponse>> getChatRoomMembers(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId
+    ) {
+        Long userId = userAuth.getUserId();
+        // 권한 검사: 내가 이 그룹/방의 멤버인지
+        // (서비스에서 validateMember 등 체크)
+        List<ChatRoomMemberResponse> members = chatRoomService.getChatRoomMembers(groupId, roomId, userId);
+        return new BaseResponse<>(members);
     }
 
 }

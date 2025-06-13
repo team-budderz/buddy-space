@@ -8,6 +8,8 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 /**
  * WebSocket 핸드셰이크 단계에서 JWT(ACCESS) 검증 + principal, userId를 sessionAttributes 에 심기
@@ -59,12 +61,21 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     /* ━━━━━━━━━ helper ━━━━━━━━━ */
 
     private String extractToken(ServerHttpRequest req, HttpServletRequest http) {
-        // 1. 쿼리 파라미터 access_token
-        String token = UriComponentsBuilder.fromUri(req.getURI())
-                .build()
-                .getQueryParams()
-                .getFirst("access_token");
-        if (token != null) return token;
+        // 1. 쿼리 파라미터 access_token (URL 디코딩 & 예외처리)
+        try {
+            String encodedToken = UriComponentsBuilder.fromUri(req.getURI())
+                    .build()
+                    .getQueryParams()
+                    .getFirst("access_token");
+            if (encodedToken != null) {
+                // 디코딩 (예: %20 → 공백)
+                // : UriComponentsBuilder 에서 쿼리 파라미터 값을 추출하면, 인코딩된 값이 그대로 올 수 있기 때문
+                return URLDecoder.decode(encodedToken, StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            System.out.println("access_token 쿼리 디코딩 실패: " + e.getMessage());
+            // 디코딩 실패 시 fallback 으로 Authorization 헤더로 진행
+        }
 
         // 2. Authorization: Bearer ...
         String header = http.getHeader("Authorization");

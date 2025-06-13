@@ -37,7 +37,7 @@ public class ChatParticipant extends BaseEntity {
 
     @Column(name = "last_read_message_id", nullable = false)
     @Builder.Default
-    private Long lastReadMessageId  = 0L;
+    private long lastReadMessageId  = 0L;
 
     @Builder.Default
     @Column(name = "is_active", nullable = false)
@@ -46,8 +46,7 @@ public class ChatParticipant extends BaseEntity {
     /** 단건 (실시간)  */
     public void updateLastRead(Long messageId) {
         // NULL 보호 + 뒤로 가는 값 무시
-        if (messageId != null &&
-                (lastReadMessageId == null || messageId > lastReadMessageId)) {
+        if (messageId != null && messageId > lastReadMessageId) {
             this.lastReadMessageId = messageId;
         }
     }
