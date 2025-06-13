@@ -1,149 +1,250 @@
-<!-- test-websocket.html -->
-
+<!-- test-websocket.html (add read‑receipt logic) -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <title>WebSocket STOMP SockJS 테스트</title>
+
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        body{font-family:"Helvetica Neue",Arial,sans-serif;background:#fafafa;margin:0;padding:24px;display:flex;flex-direction:column;align-items:center}
+        h1{margin-bottom:16px}
+        .chat-container{width:100%;max-width:620px;background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+        .chat-controls{margin-bottom:12px}
+        .chat-controls button{margin-right:6px}
+        .chat-list{list-style:none;margin:0;padding:0;max-height:420px;overflow-y:auto}
+        .chat-item{display:flex;flex-direction:column;margin:4px 0}
+        .mine{align-items:flex-end}
+        .bubble{max-width:72%;padding:8px 12px;border-radius:18px;font-size:14px;line-height:1.4;word-wrap:break-word}
+        .left .bubble{background:#f1f1f1;color:#333;border-top-left-radius:0}
+        .right .bubble{background:#d1eaff;color:#00376b;border-top-right-radius:0}
+        .meta{font-size:11px;color:#777;margin-top:2px}
+        .read-mark{
+            margin-left:4px;
+            font-size:12px;
+            color:#0d6efd;
+        }
+    </style>
 </head>
 <body>
 <h1>WebSocket STOMP 테스트</h1>
 
-<button onclick="connect()">Connect</button>
-<button onclick="disconnect()">Disconnect</button>
+<div class="chat-container">
+    <div class="chat-controls">
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
 
-<br><br>
+    <div class="chat-controls">
+        <input type="text" id="message" placeholder="메시지 입력" style="width:70%;" />
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
-<input type="text" id="message" placeholder="메시지 입력" />
-<button onclick="sendMessage()">Send</button>
-
-<ul id="messages"></ul>
+    <ul id="messages" class="chat-list"></ul>
+</div>
 
 <script>
+    /* ───────── 전역 변수 ───────── */
     let stompClient = null;
-    let currentSubscription = null;
+    let currentSub   = null;
+    let readSub      = null;
 
-    function connect() {
-        const rawToken = localStorage.getItem("accessToken");
-        const token = rawToken?.replace("Bearer ", "");
-        const groupId = localStorage.getItem("groupId");
-        const roomId = localStorage.getItem("roomId");
+    let myId         = null;
+    let latestSeen   = 0;                   // 가장 마지막으로 본 메시지 ID
+    const messageMap = new Map();           // msgId  → { li, readers:Set }
+    const participantCount =
+        Number(localStorage.getItem('participantCount') || 2); // 2=1:1, 3↑=그룹
 
-        if (!token || !roomId || !groupId) {
-            alert("토큰 또는 채팅방 정보가 없습니다.");
-            return;
-        }
-
-        // 중복 연결 방지
-        if (stompClient && stompClient.connected) {
-            console.warn("이미 연결됨");
-            return;
-        }
+    /* ───────── 연결 ───────── */
+    function connect(){
+        const rawToken = localStorage.getItem('accessToken');
+        const token    = rawToken?.replace('Bearer ','');
+        myId           = localStorage.getItem('userId');
+        const groupId  = localStorage.getItem('groupId');
+        const roomId   = localStorage.getItem('roomId');
+        if (!token || !groupId || !roomId) return alert('필수 정보가 없습니다.');
+        if (stompClient?.connected) return;
 
         const socket = new SockJS(`http://localhost:8080/ws?access_token=${token}`);
         stompClient = Stomp.over(socket);
 
-        stompClient.connect(
-            { Authorization: rawToken },
-            function (frame) {
-                console.log('✅ STOMP CONNECTED', frame);
+        stompClient.connect({ Authorization: rawToken }, () => {
+            document.getElementById('messages').innerHTML = '';
+            latestSeen = 0;
+            fetchChatHistory(token, groupId, roomId, myId);
 
-                // 메시지 영역 초기화
-                document.getElementById("messages").innerHTML = "";
+            currentSub?.unsubscribe();
+            readSub?.unsubscribe();
 
-                // 과거 메시지 불러오기
-                fetchChatHistory(token, groupId, roomId);
+            /* 메시지 구독(수신) */
+            currentSub = stompClient.subscribe(`/sub/chat/room/${roomId}`, m => {
+                const dto = JSON.parse(m.body);
+                showMessage(dto, myId, false);
+                // 상대방 메시지면 바로 읽음 보고
+                if (Number(dto.senderId) !== Number(myId)) sendRead(dto.messageId);
+            });
 
-                // 중복 구독 방지
-                if (currentSubscription) currentSubscription.unsubscribe();
+            /* 읽음 이벤트(브로드캐스트) 구독 */
+            readSub = stompClient.subscribe(`/sub/chat/rooms/${roomId}/read`, m => {
+                const { userId, lastReadMessageId } = JSON.parse(m.body);
+                const peerReadId = Number(lastReadMessageId);
 
-                currentSubscription = stompClient.subscribe(`/sub/chat/room/${roomId}`, function (msg) {
-                    showMessage(msg.body, false);
+                // 1) 내 메시지가 아니거나 DM 상대가 아닌 경우엔 UI 필요 없음
+                if (userId === Number(myId)) return;
+
+                // 2) 1:1 DM ────────────────────────────────
+                if (participantCount === 2) {
+                    // peerReadId 이하의 '내' 메시지 모두 ✓
+                    messageMap.forEach((info, id) => {
+                        if (info.senderId === Number(myId) && id <= peerReadId) {
+                            addOrUpdateBadge(info.li, '✓');
+                        }
+                    });
+                    return;
+                }
+
+                // 3) 그룹 채팅 ─────────────────────────────
+                //   참가자 N 명 중 누적으로 몇 명 읽었는지 갱신
+                messageMap.forEach((info, id) => {
+                    if (info.senderId !== Number(myId) || id > peerReadId) return;
+
+                    info.readers.add(userId);
+                    const unread = participantCount - 1 - info.readers.size; // -1 = 보내는 나
+                    addOrUpdateBadge(info.li, unread > 0 ? `${unread}` : '');
                 });
-            },
-            onError
-        );
-    }
+            });
 
-    function onError(error) {
-        console.error('STOMP error', error);
+            afterConnect();
+
+        }, console.error);
     }
 
     function disconnect() {
-        if (stompClient) stompClient.disconnect();
+        stompClient?.disconnect();
         stompClient = null;
-
-        console.log('Disconnected');
-
-        // 메시지 초기화
-        document.getElementById("messages").innerHTML = "";
-
-        // 입력창 초기화
-        document.getElementById("message").value = "";
+        document.getElementById('messages').innerHTML = '';
     }
 
+    /* ───────── 메시지 전송 ───────── */
     function sendMessage() {
-        const content = document.getElementById("message").value.trim();
+        const content = document.getElementById('message').value.trim();
         if (!content) return;
-
-        const roomId = localStorage.getItem("roomId");
-
-        stompClient.send("/pub/chat/message", {}, JSON.stringify({
-            roomId,
-            messageType: "TEXT",
-            content
+        const roomId  = localStorage.getItem('roomId');
+        stompClient.send('/pub/chat/message', {}, JSON.stringify({
+            roomId, messageType:'TEXT', content
         }));
-
-        document.getElementById("message").value = "";
+        document.getElementById('message').value = '';
     }
 
-    function showMessage(text, isHistory = false) {
-        const msg = typeof text === "string" ? JSON.parse(text) : text;
-        const li = document.createElement("li");
+    /* ───────── 메시지 렌더 ───────── */
+    function showMessage(msg, myId, isHistory) {
+        const ul = document.getElementById('messages');
+        const li = document.createElement('li');
+        const msgId = Number(msg.messageId);
 
-        const time = msg.createdAt || msg.sentAt;
-        const formattedTime = time ? `[${new Date(time).toLocaleTimeString()}] ` : "";
-        const sender = msg.senderName ? `${msg.senderName}: ` : "";
-        const content = msg.content;
+        li.classList.add('chat-item');
+        li.dataset.id = msgId;
 
-        li.textContent = `${formattedTime}${sender}${content}`;
+        const mine = Number(msg.senderId) === Number(myId);
+        li.classList.add(mine ? 'mine':'their', mine ? 'right':'left');
 
-        const ul = document.getElementById("messages");
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = msg.content;
 
-        if (isHistory) {
-            ul.insertBefore(li, ul.firstChild);  // 과거 메시지는 위에 붙이기
-        } else {
-            ul.appendChild(li);  // 실시간 메시지는 아래에 붙이기
-            ul.scrollTop = ul.scrollHeight;  // 스크롤 자동 이동
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const t = msg.createdAt || msg.sentAt;
+        meta.textContent = t ? new Date(t).toLocaleTimeString() : '';
+
+        li.append(bubble, meta);
+
+        ul.appendChild(li);
+        if (!isHistory) ul.scrollTop = ul.scrollHeight;
+
+        messageMap.set(msgId,{
+            li,
+            readers:new Set(),
+            senderId:Number(msg.senderId)
+        });
+
+        if (msgId > latestSeen) latestSeen = msgId;
+    }
+
+    /* ───── 읽음 뱃지 helper ───── */
+    function addOrUpdateBadge(li,text){
+        let badge=li.querySelector('.read-mark');
+        if (!text) { if (badge) badge.remove(); return; }   // 0명 남음 → 뱃지 제거
+        if (!badge) {
+            badge=document.createElement('span');
+            badge.className='read-mark';
+            li.appendChild(badge);
+        }
+        badge.textContent=text;
+    }
+
+    /* ───────── 히스토리 호출 ───────── */
+    function fetchChatHistory(token, groupId, roomId, myId) {
+        fetch(`http://localhost:8080/api/group/${groupId}/chat/rooms/${roomId}/messages`,
+            { headers: { Authorization: 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(d => {
+                (d.result?.messages || [])
+                    .sort((a,b)=>new Date(a.createdAt||a.sentAt) - new Date(b.createdAt||b.sentAt))
+                    .forEach(m => showMessage(m, myId, true));
+
+                onHistoryLoaded();
+            });
+    }
+
+    /* ───────── 읽음 보고 ───────── */
+    function sendRead(lastMsgId) {
+        if (!stompClient?.connected) return;
+        const roomId = localStorage.getItem('roomId');
+        stompClient.send(`/pub/chat/rooms/${roomId}/read`,
+            {}, JSON.stringify({ lastReadMessageId: lastMsgId }));
+    }
+
+    /* ───────── 스크롤 맨 아래 도달 시 읽음 ───────── */
+    const ulElem = document.getElementById('messages');
+    ulElem.addEventListener('scroll', () => {
+        if (ulElem.scrollTop + ulElem.clientHeight >= ulElem.scrollHeight - 5) {
+            const lastLi = ulElem.lastElementChild;
+            const id     = lastLi?.dataset.id;
+            if (id) {
+                const idNum = Number(id);
+                onReachedBottom(idNum);
+            }
+        }
+    });
+
+    /*  앱 재입장 - reconnect 직후 */
+    function afterConnect() {
+        if (latestSeen > 0) bulkSyncRead(latestSeen);
+    }
+
+    /* 무한스크롤(과거 내역 로딩) 완료 시 */
+    function onHistoryLoaded() {
+        bulkSyncRead(latestSeen);
+    }
+
+    /* 뷰포트가 맨 아래에 도달했을 때도 동일 */
+    function onReachedBottom(idNum) {
+        if (idNum > latestSeen) {
+            latestSeen = idNum;
+            bulkSyncRead(latestSeen);
         }
     }
 
-    function fetchChatHistory(token, groupId, roomId) {
-        fetch(`http://localhost:8080/api/group/${groupId}/chat/rooms/${roomId}/messages`, {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + token,
-                "Content-Type": "application/json"
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.result && Array.isArray(data.result.messages)) {
-                    const sortedMessages = data.result.messages.sort((a, b) =>
-                        new Date(b.createdAt || b.sentAt) - new Date(a.createdAt || a.sentAt)
-                    );
-
-                    sortedMessages.forEach(msg => {
-                        showMessage(msg, true);  // 과거 메시지 플래그 설정
-                    });
-                }
-            })
-            .catch(err => console.error("채팅 내역 불러오기 실패:", err));
+    /* --- 공통 호출 함수 ------------------------------------------ */
+    function bulkSyncRead(lastId){
+        const roomId = localStorage.getItem('roomId');
+        stompClient.send(`/pub/chat/rooms/${roomId}/read-sync`,
+            {}, JSON.stringify({ lastReadMessageId: lastId }));
     }
 
 </script>
-
 </body>
 </html>
