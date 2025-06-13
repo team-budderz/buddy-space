@@ -4,16 +4,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import team.budderz.buddyspace.api.neighborhood.request.NeighborhoodRequest;
 import team.budderz.buddyspace.api.neighborhood.response.NeighborhoodResponse;
 import team.budderz.buddyspace.domain.neighborhood.exception.NeighborhoodErrorCode;
 import team.budderz.buddyspace.domain.neighborhood.exception.NeighborhoodException;
+import team.budderz.buddyspace.infra.config.WebClientConfig;
 import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 import team.budderz.buddyspace.infra.database.neighborhood.repository.NeighborhoodRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -23,9 +20,6 @@ import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class NeighborhoodService {
 
-    @Value("${kakao.map.host}")
-    private String kakaoHost;
-
     @Value("${kakao.map.coord2address-uri}")
     private String kakaoUri;
 
@@ -34,31 +28,30 @@ public class NeighborhoodService {
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final UserRepository userRepository;
-    //private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     @Transactional
     public NeighborhoodResponse saveNeighborhood(Long userId, NeighborhoodRequest request) {
         User user = getUser(userId);
 
         // 카카오 API 호출 (위경도 → 주소)
-        String url = kakaoHost + kakaoUri + "?x=" + request.longitude() + "&y=" + request.latitude();
+        String url = kakaoUri + "?x=" + request.longitude() + "&y=" + request.latitude();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        // API 호출 (GET 요청 보내기)
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        // WebClient로 요청
+        String responseBody = webClient.get()
+                .uri(url)
+                .header("Authorization", "KakaoAK " + kakaoApiKey)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
 
         // JSON 응답 바디에서 address 부분 추출
-        JSONObject address = new JSONObject(response.getBody())
+        JSONObject address = new JSONObject(responseBody)
                 .getJSONArray("documents")
                 .getJSONObject(0)
                 .getJSONObject("address");
 
-        if(address.isEmpty() && address==null) {
+        if(address == null || address.isEmpty()) {
             throw new NeighborhoodException(NeighborhoodErrorCode.ADDRESS_NOT_FOUND);
         }
 
@@ -92,9 +85,7 @@ public class NeighborhoodService {
         User user = getUser(userId);
         Neighborhood neighborhood = getNeighborhood(neighborhoodId);
 
-        if(!user.getNeighborhood().getId().equals(neighborhood.getId())) {
-            throw new NeighborhoodException(NeighborhoodErrorCode.USER_NEIGHBORHOOD_MISS_MATCH);
-        }
+        validateUserNeighborhood(user, neighborhood);
 
         return NeighborhoodResponse.from(neighborhood);
     }
@@ -104,15 +95,13 @@ public class NeighborhoodService {
         User user = getUser(userId);
         Neighborhood neighborhood = getNeighborhood(neighborhoodId);
 
-        if(!user.getNeighborhood().getId().equals(neighborhood.getId())) {
-            throw new NeighborhoodException(NeighborhoodErrorCode.USER_NEIGHBORHOOD_MISS_MATCH);
-        }
+        validateUserNeighborhood(user, neighborhood);
 
         user.updateUserAddress("", null);
         userRepository.save(user);
     }
 
-    public User getUser(Long userId) {
+    private User getUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NeighborhoodException(NeighborhoodErrorCode.USER_NOT_FOUND)
         );
@@ -120,11 +109,21 @@ public class NeighborhoodService {
         return user;
     }
 
-    public Neighborhood getNeighborhood(Long neighborhoodId) {
+    private Neighborhood getNeighborhood(Long neighborhoodId) {
         Neighborhood neighborhood = neighborhoodRepository.findById(neighborhoodId).orElseThrow(
                 () -> new NeighborhoodException(NeighborhoodErrorCode.NEIGHBORHOOD_NOT_FOUND)
         );
 
         return neighborhood;
+    }
+
+    private void validateUserNeighborhood(User user, Neighborhood neighborhood) {
+        if(user.getNeighborhood() == null || user.getNeighborhood().getId() == null) {
+            throw new NeighborhoodException(NeighborhoodErrorCode.USER_NEIGHBORHOOD_NOT_FOUND);
+        }
+
+        if(!user.getNeighborhood().getId().equals(neighborhood.getId())) {
+            throw new NeighborhoodException(NeighborhoodErrorCode.USER_NEIGHBORHOOD_MISS_MATCH);
+        }
     }
 }
