@@ -37,7 +37,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           sudo docker build -t buddyspace/buddyspace-backend:latest ./
-          sudo docker push buddyspace/buddyspace-backend:latest
+          docker push buddyspace/buddyspace-backend:latest
 
       - name: SSH and deploy to server
         uses: appleboy/ssh-action@v0.1.10
