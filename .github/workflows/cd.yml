@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_SSH_KEY }}
           script: |
-            DEPLOY_DIR="/home/${{ secrets.AWS_EC2_USER }}/buddyspace_backend/buddy-space"
+            DEPLOY_DIR="/home/${{ secrets.AWS_EC2_USER }}/buddyspace_backend"
             
             if [ ! -d "$DEPLOY_DIR" ]; then
               git clone https://github.com/team-budderz/buddy-space.git "$DEPLOY_DIR"
