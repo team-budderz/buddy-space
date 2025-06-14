@@ -1,0 +1,81 @@
+services:
+  redis:
+    image: redis
+    container_name: buddyspace-redis
+    restart: unless-stopped
+    volumes:
+      - ./redis-data:/data
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      retries: 10
+
+  postgres:
+    image: postgres
+    container_name: buddyspace-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      retries: 10
+
+  mongodb:
+    image: mongo
+    container_name: buddyspace-mongodb
+    restart: unless-stopped
+    volumes:
+      - ./mongodb-data:/data/db
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 1)' --quiet"]
+      interval: 5s
+      retries: 10
+
+  buddyspace-backend:
+    container_name: buddyspace-backend
+    build: .
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  nginx:
+    image: nginx
+    container_name: buddyspace-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf # Nginx 설정 파일 마운트
+      - ./data/certbot/conf:/etc/letsencrypt # Certbot 인증서 저장 경로
+      - ./data/certbot/www:/var/www/certbot # Certbot 웹루트
+    ports:
+      - 80:80
+      - 433:433
+    depends_on:
+      - buddyspace-backend
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'" # Nginx 재시작 스크립트
+
+  # Certbot (Let's Encrypt SSL 인증서 발급/갱신)
+  certbot:
+    image: certbot/certbot
+    container_name: certbot-renewal
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
