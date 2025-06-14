@@ -57,6 +57,6 @@ jobs:
             
             sudo echo "${{ secrets.ENV }}" > .env
             
-            docker-compose -f docker-compose.yml pull || { echo "Failed to pull Docker images"; exit 1; }
-            docker-compose -f docker-compose.yml down || { echo "Failed to stop Docker containers"; exit 1; }
-            docker-compose -f docker-compose.yml up -d || { echo "Failed to start Docker containers"; exit 1; }
+            docker compose -f docker-compose.yml pull || { echo "Failed to pull Docker images"; exit 1; }
+            docker compose -f docker-compose.yml down || { echo "Failed to stop Docker containers"; exit 1; }
+            docker compose -f docker-compose.yml up -d || { echo "Failed to start Docker containers"; exit 1; }
