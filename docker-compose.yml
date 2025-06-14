@@ -43,7 +43,7 @@ services:
       retries: 10
 
   buddyspace-backend:
-    image: budderz/buddyspace-backend:latest
+    image: buddyspace/buddyspace-backend:latest
     container_name: buddyspace-backend
     build: .
     ports:
