@@ -36,8 +36,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t buddyspace/buddyspace-backend:latest ./
-          docker push buddyspace/buddyspace-backend:latest
+          sudo docker build -t buddyspace/buddyspace-backend:latest ./
+          sudo docker push buddyspace/buddyspace-backend:latest
 
       - name: SSH and deploy to server
         uses: appleboy/ssh-action@v0.1.10
@@ -49,15 +49,15 @@ jobs:
             DEPLOY_DIR="/home/${{ secrets.AWS_EC2_USER }}/buddyspace_backend"
             
             if [ ! -d "$DEPLOY_DIR" ]; then
-              git clone https://github.com/team-budderz/buddy-space.git "$DEPLOY_DIR"
+              sudo git clone https://github.com/team-budderz/buddy-space.git "$DEPLOY_DIR"
             fi
             
             cd "$DEPLOY_DIR" || { echo "Failed to change directory to $DEPLOY_DIR"; exit 1; }
-            git pull origin dev || { echo "Failed to git pull"; exit 1; }
+            sudo git pull origin dev || { echo "Failed to git pull"; exit 1; }
             
-            echo "${{ secrets.ENV }}" > .env
-            export $(cat "$DEPLOY_DIR"/.env | xargs)
+            sudo echo "${{ secrets.ENV }}" > .env
+            sudo export $(cat "$DEPLOY_DIR"/.env | xargs)
             
-            docker-compose -f docker-compose.yml pull || { echo "Failed to pull Docker images"; exit 1; }
-            docker-compose -f docker-compose.yml down || { echo "Failed to stop Docker containers"; exit 1; }
-            docker-compose -f docker-compose.yml up -d || { echo "Failed to start Docker containers"; exit 1; }
+            sudo docker-compose -f docker-compose.yml pull || { echo "Failed to pull Docker images"; exit 1; }
+            sudo docker-compose -f docker-compose.yml down || { echo "Failed to stop Docker containers"; exit 1; }
+            sudo docker-compose -f docker-compose.yml up -d || { echo "Failed to start Docker containers"; exit 1; }
