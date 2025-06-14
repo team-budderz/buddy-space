@@ -67,7 +67,7 @@ services:
       - ./data/certbot/www:/var/www/certbot # Certbot 웹루트
     ports:
       - 80:80
-      - 433:433
+      - 443:443
     depends_on:
       - buddyspace-backend
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'" # Nginx 재시작 스크립트
