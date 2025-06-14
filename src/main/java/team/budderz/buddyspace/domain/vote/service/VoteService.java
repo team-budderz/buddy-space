@@ -69,6 +69,7 @@ public class VoteService {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
 		}
 
+		voteSelectionRepository.deleteAllByVoteOptionIn(voteId);
 		voteOptionRepository.deleteAllByVoteId(vote.getId());
 		vote.update(request.title(), request.isAnonymous(), request.options());
 		return SaveVoteResponse.from(vote);
