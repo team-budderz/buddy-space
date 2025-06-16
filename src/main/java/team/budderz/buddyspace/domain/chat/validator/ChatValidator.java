@@ -6,6 +6,7 @@ import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
+import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
@@ -19,11 +20,10 @@ public class ChatValidator {
     private final ChatParticipantRepository chatParticipantRepository;
 
     /** 채팅방 존재 여부 검증 */
-    public void validateRoom(Long roomId) {
-        if (!chatRoomRepository.existsById(roomId)) {
-            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND);
+    public ChatRoom validateRoom(Long roomId) {
+         return chatRoomRepository.findById(roomId)
+                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
         }
-    }
 
     /** 메시지가 실제 존재하고 해당 roomId에 속하는지 검증 및 반환 */
     public ChatMessage validateMessageInRoom(Long messageId, Long roomId) {

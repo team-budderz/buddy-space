@@ -48,4 +48,13 @@ WHERE cp.chatRoom.id = :roomId
 Optional<ChatParticipant> findActiveByRoomAndUser(@Param("roomId") Long roomId,
                                                   @Param("userId") Long userId);
 
+// 참여자 목록 조회
+@Query("""
+    SELECT cp FROM ChatParticipant cp
+    WHERE cp.chatRoom.id = :roomId
+    AND cp.isActive = true
+""")
+    List<ChatParticipant> findByChatRoomId(@Param("roomId") Long roomId);
+
+
 }
