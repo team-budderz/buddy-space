@@ -30,55 +30,69 @@ public class ChatMessageService {
 
     // 메시지 저장 -------------------------------------------------------------------------------------------------------
     public ChatMessageResponse saveChatMessage(ChatMessageSendRequest request) {
-        // 채팅방 존재 여부 확인 및 조회
-        ChatRoom chatRoom = findChatRoomOrThrow(request.roomId());
-
-        // 유저 존재 여부 확인 및 조회
-        User sender = findUserOrThrow(request.senderId());
+        // 채팅방 존재 + 유저 확인 및 조회
+        ChatRoom chatRoom = getChatRoomOrThrow(request.roomId());
+        User sender = getUserOrThrow(request.senderId());
 
         // 채팅방 참여자인지 검증
-        validateParticipant(sender.getId(), chatRoom);
+        assertParticipantOrThrow(sender.getId(), chatRoom);
 
         // 메시지 저장
-        ChatMessage chatMessage = ChatMessage.builder()
+        ChatMessage chatMessage = buildChatMessage(request, chatRoom, sender);
+        chatMessageRepository.save(chatMessage);
+
+        return toChatMessageResponse(chatMessage);
+    }
+
+    /** 채팅방 조회 및 예외 */
+    private ChatRoom getChatRoomOrThrow(Long roomId) {
+        return chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
+    }
+
+    /** 유저 조회 및 예외 */
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * 채팅방 참여자 검증 (정책: 채팅방+그룹 기준, isActive=true)
+     */
+    private void assertParticipantOrThrow(Long userId, ChatRoom chatRoom) {
+        boolean exists = chatParticipantRepository
+                .findByUserAndChatRoom_IdAndChatRoom_Group_IdAndIsActiveTrue(
+                        userId,
+                        chatRoom.getId(),
+                        chatRoom.getGroup().getId()
+                )
+                .isPresent();
+        if (!exists) {
+            throw new ChatException(ChatErrorCode.USER_NOT_IN_CHAT_ROOM);
+        }
+    }
+
+    /** ChatMessage 엔티티 빌드 */
+    private ChatMessage buildChatMessage(ChatMessageSendRequest request, ChatRoom chatRoom, User sender) {
+        return ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .sender(sender)
                 .messageType(MessageType.valueOf(request.messageType()))
                 .content(request.content())
+                .attachmentUrl(request.attachmentUrl())
                 .sentAt(LocalDateTime.now())
                 .build();
+    }
 
-        chatMessageRepository.save(chatMessage);
-
-        // 저장된 메시지 → DTO 반환
+    /** DTO 변환 */
+    private ChatMessageResponse toChatMessageResponse(ChatMessage chatMessage) {
         return new ChatMessageResponse(
                 chatMessage.getId(),
-                sender.getId(),
+                chatMessage.getSender().getId(),
                 chatMessage.getMessageType().name(),
                 chatMessage.getContent(),
                 chatMessage.getAttachmentUrl(),
                 chatMessage.getSentAt()
         );
-    }
-
-    // 채팅방 존재 확인
-    private ChatRoom findChatRoomOrThrow(Long roomId) {
-        return chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
-    }
-
-    // 유저 존재 확인
-    private User findUserOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_FOUND));
-    }
-
-    // 채팅방 참여자 검증
-    private void validateParticipant(Long userId, ChatRoom chatRoom) {
-        chatParticipantRepository.findByUserAndChatRoom_IdAndChatRoom_Group_IdAndIsActiveTrue(
-                userId,
-                chatRoom.getId(),
-                chatRoom.getGroup().getId()
-        ).orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_IN_CHAT_ROOM));
     }
 }

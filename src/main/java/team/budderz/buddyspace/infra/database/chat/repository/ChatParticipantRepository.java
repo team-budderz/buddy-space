@@ -1,5 +1,6 @@
 package team.budderz.buddyspace.infra.database.chat.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipantId;
@@ -21,7 +22,8 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     List<ChatParticipant> findByUserAndGroupAndIsActive(@Param("userId") Long userId, @Param("groupId") Long groupId);
 
     // 채팅방 참여자 명단 조회
-    List<ChatParticipant> findByChatRoom(ChatRoom chatRoomId);
+    @EntityGraph(attributePaths = {"user"}) // 참가자 + 유저 한 번에 패치
+    List<ChatParticipant> findByChatRoom(ChatRoom chatRoom);
 
     // 유저가 특정 채팅방에 참여 중인지 확인
     @Query("""
@@ -36,5 +38,14 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             @Param("roomId") Long roomId,
             @Param("groupId") Long groupId
     );
+
+@Query("""
+SELECT cp FROM ChatParticipant cp
+WHERE cp.chatRoom.id = :roomId
+  AND cp.user.id     = :userId
+  AND cp.isActive    = true
+""")
+Optional<ChatParticipant> findActiveByRoomAndUser(@Param("roomId") Long roomId,
+                                                  @Param("userId") Long userId);
 
 }
