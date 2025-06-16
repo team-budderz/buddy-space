@@ -50,7 +50,8 @@ public class SecurityConfig {
                                 "/api/users/signup",
                                 "/oauth2/**",
                                 "/login/oauth2/**",
-                                "/api/healthy-check"
+                                "/api/healthy-check",
+                                "/api/token/refresh"
                         ).permitAll()
                         //.requestMatchers("**").hasRole("ADMIN") // 테스트용
                         .anyRequest().authenticated()
