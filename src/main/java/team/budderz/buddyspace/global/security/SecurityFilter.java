@@ -31,6 +31,12 @@ public class SecurityFilter extends OncePerRequestFilter {
         throws ServletException, IOException {
 
         String token = jwtUtil.extractToken(request);
+        String requestURI = request.getRequestURI();
+
+        if (requestURI.equals("/api/token/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if(token != null) {
             // 블랙리스트 확인
