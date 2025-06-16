@@ -241,6 +241,7 @@ public class MembershipService {
         Membership oldLeader = findMembershipByUserAndGroup(loginUserId, groupId);
         Membership newLeader = findMembershipByUserAndGroup(memberId, groupId);
 
+        group.updateLeader(newLeader.getUser());
         oldLeader.updateMemberRole(MemberRole.MEMBER);
         newLeader.updateMemberRole(MemberRole.LEADER);
 

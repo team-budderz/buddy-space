@@ -53,10 +53,6 @@ public class Group extends BaseEntity {
     @JoinColumn(name = "neighborhood_id")
     private Neighborhood neighborhood;
 
-    public void updateInviteCode(String inviteCode) {
-        this.inviteCode = inviteCode;
-    }
-
     /**
      * 모임 생성용 생성자
      */
@@ -66,6 +62,14 @@ public class Group extends BaseEntity {
         this.access = access;
         this.type = type;
         this.interest = interest;
+        this.leader = leader;
+    }
+
+    public void updateInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
+
+    public void updateLeader(User leader) {
         this.leader = leader;
     }
 
