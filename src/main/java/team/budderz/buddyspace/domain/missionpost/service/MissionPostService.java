@@ -79,6 +79,9 @@ public class MissionPostService {
     }
 
     public List<MissionPostResponse> findMissionPosts(Long groupId, Long missionId) {
+        Mission mission = missionRepository.findById(missionId).orElseThrow(
+                () -> new MissionPostException(MissionPostErrorCode.MISSION_NOT_FOUND)
+        );
 
         return missionPostRepository.findAllByMission_Group_IdAndMission_Id(groupId, missionId)
                 .stream()
