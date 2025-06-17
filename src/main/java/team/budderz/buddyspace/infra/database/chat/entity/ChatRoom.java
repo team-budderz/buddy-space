@@ -36,4 +36,9 @@ public class ChatRoom extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    public void updateInfo(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 }

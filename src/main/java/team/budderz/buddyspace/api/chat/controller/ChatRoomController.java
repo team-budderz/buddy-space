@@ -1,14 +1,12 @@
 package team.budderz.buddyspace.api.chat.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
-import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
-import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
-import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
-import team.budderz.buddyspace.domain.chat.service.ChatRoomCommandService;
+import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.*;
 import team.budderz.buddyspace.domain.chat.service.ChatRoomServiceFacade;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -36,6 +34,19 @@ public class ChatRoomController {
          CreateChatRoomResponse createChatRoomResponse = chatRoomService.createChatRoom(groupId, userId, request);
          return new BaseResponse<>(createChatRoomResponse);
      }
+
+    // 채팅방 수정 -----------------------------------------------------------------------------------------------------
+    @PatchMapping("/{roomId}")
+    public BaseResponse<UpdateChatRoomResponse> updateChatRoom(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId,
+            @Valid @RequestBody UpdateChatRoomRequest req
+    ) {
+        Long userId = userAuth.getUserId();
+        UpdateChatRoomResponse res = chatRoomService.updateChatRoom(groupId, roomId, userId, req);
+        return new BaseResponse<>(res);
+    }
 
      // 채팅방 목록 조회 -----------------------------------------------------------------------------------------------------
      @GetMapping("/my")

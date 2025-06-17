@@ -4,10 +4,8 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
-import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
-import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
-import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
+import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.*;
 
 import java.util.List;
 
@@ -27,6 +25,17 @@ public class ChatRoomServiceFacade {
     @Transactional
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
         return chatRoomCommandService.createChatRoom(groupId, userId, request);
+    }
+
+    /** 채팅방 수정 */
+    @Transactional
+    public UpdateChatRoomResponse updateChatRoom(
+            Long groupId,
+            Long roomId,
+            Long userId,
+            UpdateChatRoomRequest req
+    ) {
+        return chatRoomCommandService.updateChatRoom(groupId, roomId, userId, req);
     }
 
     /** 내 채팅방 목록 조회 */

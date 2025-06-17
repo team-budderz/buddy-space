@@ -8,7 +8,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
+import team.budderz.buddyspace.api.chat.response.UpdateChatRoomResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
 import team.budderz.buddyspace.domain.chat.validator.ChatValidator;
@@ -80,6 +82,39 @@ public class ChatRoomCommandService {
                 chatRoom.getId().toString(),
                 chatRoom.getName(),
                 "success"
+        );
+    }
+
+    /**
+     * 채팅방 이름/설명 수정 (생성자만 가능)
+     */
+    public UpdateChatRoomResponse updateChatRoom(
+            Long groupId,
+            Long roomId,
+            Long userId,
+            UpdateChatRoomRequest req
+    ) {
+        // 그룹 멤버 검증
+        groupValidator.validateMember(userId, groupId);
+
+        // 방 존재 여부 & 그룹 일치 검증
+        ChatRoom room = chatValidator.validateRoom(roomId);
+        if (!room.getGroup().getId().equals(groupId)) {
+            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        // 생성자 권한 검증
+        if (!room.getCreatedBy().getId().equals(userId)) {
+            throw new ChatException(ChatErrorCode.USER_NOT_IN_GROUP);
+        }
+
+        room.updateInfo(req.name(), req.description());
+
+        return new UpdateChatRoomResponse(
+                room.getId().toString(),
+                room.getName(),
+                room.getDescription(),
+                room.getModifiedAt()
         );
     }
 
