@@ -4,10 +4,8 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
-import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
-import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
-import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
+import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.*;
 
 import java.util.List;
 
@@ -29,6 +27,23 @@ public class ChatRoomServiceFacade {
         return chatRoomCommandService.createChatRoom(groupId, userId, request);
     }
 
+    /** 채팅방 수정 */
+    @Transactional
+    public UpdateChatRoomResponse updateChatRoom(
+            Long groupId,
+            Long roomId,
+            Long userId,
+            UpdateChatRoomRequest req
+    ) {
+        return chatRoomCommandService.updateChatRoom(groupId, roomId, userId, req);
+    }
+
+    /** 채팅방 삭제 */
+    @Transactional
+    public void deleteChatRoom(Long groupId, Long roomId, Long userId) {
+        chatRoomCommandService.deleteChatRoom(groupId, roomId, userId);
+    }
+
     /** 내 채팅방 목록 조회 */
     public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
         return chatRoomQueryService.getMyChatRooms(groupId, userId);
@@ -43,4 +58,6 @@ public class ChatRoomServiceFacade {
     public List<ChatRoomMemberResponse> getChatRoomMembers(Long groupId, Long roomId, Long userId) {
         return chatRoomQueryService.getChatRoomMembers(groupId, roomId, userId);
     }
+
+
 }

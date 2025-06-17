@@ -3,6 +3,7 @@ package team.budderz.buddyspace.domain.chat.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class ChatMemberEventService {
 
     private final ChatParticipantRepository chatParticipantRepository;

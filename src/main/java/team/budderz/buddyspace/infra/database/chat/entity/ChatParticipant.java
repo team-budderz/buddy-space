@@ -56,7 +56,11 @@ public class ChatParticipant extends BaseEntity {
     }
 
     public void leave() {
-        this.isActive = false;
-        this.leftAt = LocalDateTime.now();
+        if (this.isActive) {
+            this.isActive = false;
+            if (this.leftAt == null) { // 최초 퇴장 시간 보존
+                this.leftAt = LocalDateTime.now();
+            }
+        }
     }
 }
