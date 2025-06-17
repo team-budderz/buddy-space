@@ -38,6 +38,12 @@ public class ChatRoomServiceFacade {
         return chatRoomCommandService.updateChatRoom(groupId, roomId, userId, req);
     }
 
+    /** 채팅방 삭제 */
+    @Transactional
+    public void deleteChatRoom(Long groupId, Long roomId, Long userId) {
+        chatRoomCommandService.deleteChatRoom(groupId, roomId, userId);
+    }
+
     /** 내 채팅방 목록 조회 */
     public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
         return chatRoomQueryService.getMyChatRooms(groupId, userId);
@@ -52,4 +58,6 @@ public class ChatRoomServiceFacade {
     public List<ChatRoomMemberResponse> getChatRoomMembers(Long groupId, Long roomId, Long userId) {
         return chatRoomQueryService.getChatRoomMembers(groupId, roomId, userId);
     }
+
+
 }

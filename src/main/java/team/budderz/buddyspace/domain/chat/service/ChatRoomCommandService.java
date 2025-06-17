@@ -33,7 +33,6 @@ import java.util.*;
 // 생성, 수정 등 "쓰기" 성향
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional
 public class ChatRoomCommandService {
 
@@ -76,8 +75,6 @@ public class ChatRoomCommandService {
         // 참가자 저장
         saveParticipants(chatRoom, participantIds);
 
-        log.info("ChatRoom 생성 완료 - userId: {}, groupId: {}, roomId: {}", userId, groupId, chatRoom.getId());
-
         return new CreateChatRoomResponse(
                 chatRoom.getId().toString(),
                 chatRoom.getName(),
@@ -116,6 +113,26 @@ public class ChatRoomCommandService {
                 room.getDescription(),
                 room.getModifiedAt()
         );
+    }
+
+    /**
+     * 채팅방 삭제 (생성자만 가능)
+     */
+    public void deleteChatRoom(Long groupId, Long roomId, Long userId) {
+        groupValidator.validateMember(userId, groupId);
+
+        ChatRoom room = chatValidator.validateRoom(roomId);
+
+        if (!room.getGroup().getId().equals(groupId)) {
+            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        if (!room.getCreatedBy().getId().equals(userId)) {
+            throw new ChatException(ChatErrorCode.USER_NOT_IN_GROUP);
+        }
+
+        // 5) 삭제
+        chatRoomRepository.delete(room);
     }
 
     /** 유저 조회 및 예외 통일 */

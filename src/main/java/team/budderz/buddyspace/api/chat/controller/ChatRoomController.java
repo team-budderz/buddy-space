@@ -2,6 +2,7 @@ package team.budderz.buddyspace.api.chat.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
@@ -46,6 +47,18 @@ public class ChatRoomController {
         Long userId = userAuth.getUserId();
         UpdateChatRoomResponse res = chatRoomService.updateChatRoom(groupId, roomId, userId, req);
         return new BaseResponse<>(res);
+    }
+
+    // 채팅방 삭제  -----------------------------------------------------------------------------------------------------
+    @DeleteMapping("/{roomId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteChatRoom(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId
+    ) {
+        Long userId = userAuth.getUserId();
+        chatRoomService.deleteChatRoom(groupId, roomId, userId);
     }
 
      // 채팅방 목록 조회 -----------------------------------------------------------------------------------------------------

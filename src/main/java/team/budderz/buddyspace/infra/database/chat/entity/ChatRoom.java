@@ -9,6 +9,9 @@ import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -36,6 +39,30 @@ public class ChatRoom extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    /**
+     * 채팅방에 속한 메시지들.
+     * chatMessage.chatRoom 필드 기준으로 매핑, 삭제 시 연관 메시지 자동 제거
+     */
+    @OneToMany(
+            mappedBy = "chatRoom",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<ChatMessage> messages = new ArrayList<>();
+
+    /**
+     * 채팅방에 속한 참가자들.
+     * chatParticipant.chatRoom 필드 기준으로 매핑, 삭제 시 연관 참가자 자동 제거
+     */
+    @OneToMany(
+            mappedBy = "chatRoom",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<ChatParticipant> participants = new ArrayList<>();
 
     public void updateInfo(String name, String description) {
         this.name = name;
