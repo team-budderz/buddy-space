@@ -49,6 +49,7 @@ Optional<ChatParticipant> findActiveByRoomAndUser(@Param("roomId") Long roomId,
                                                   @Param("userId") Long userId);
 
 // 참여자 목록 조회
+@EntityGraph(attributePaths = {"user"})
 @Query("""
     SELECT cp FROM ChatParticipant cp
     WHERE cp.chatRoom.id = :roomId

@@ -4,10 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.CreateChatRoomResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
+import team.budderz.buddyspace.domain.chat.validator.ChatValidator;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
@@ -37,6 +41,7 @@ public class ChatRoomCommandService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final GroupValidator groupValidator;
+    private final ChatValidator chatValidator;
     private final ChatMemberEventService chatMemberEventService;
 
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
@@ -126,6 +131,7 @@ public class ChatRoomCommandService {
 
     /** 채팅방 참가자 등록 */
     private void saveParticipants(ChatRoom chatRoom, Set<Long> participantIds) {
+        // 각 참가자 엔티티 저장
         for (Long participantId : participantIds) {
             User participant = findUserOrThrow(participantId);
             ChatParticipant participantEntity = ChatParticipant.builder()
@@ -138,18 +144,42 @@ public class ChatRoomCommandService {
             chatParticipantRepository.save(participantEntity);
         }
 
-        //  채팅방 멤버 전체 갱신 브로드캐스트
-        chatMemberEventService.broadcastMembers(chatRoom.getId());
+        //  트랜잭션 커밋 이후 채팅방 멤버 전체 갱신 브로드캐스트
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                chatMemberEventService.broadcastMembers(chatRoom.getId());
+            }
+        });
     }
 
-    /** 퇴장(본인 나가기) */
-    @Transactional
-    public void leaveChatRoom(Long roomId, Long userId) {
-        ChatParticipant participant = chatParticipantRepository.findActiveByRoomAndUser(roomId, userId)
-                .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_IN_CHAT_ROOM));
-        participant.leave();
+     /**
+     * 퇴장(본인 나가기)
+     *
+     * @param groupId 모임 ID
+     * @param roomId  채팅방 ID
+     * @param userId  요청 사용자 ID
+     */
+     public void leaveChatRoom(Long groupId, Long roomId, Long userId) {
+         // 1) 모임 멤버 여부 검증
+         groupValidator.validateMember(userId, groupId);
 
-        // 실시간 멤버 브로드캐스트
-        chatMemberEventService.broadcastMembers(roomId);
-    }
+         // 2) 채팅방 존재 여부 검증
+         ChatRoom room = chatValidator.validateRoom(roomId);
+
+         // 3) 해당 방의 참가자 여부 검증 및 조회
+         ChatParticipant participant =
+                 chatValidator.validateParticipant(roomId, userId);
+
+         // 4) 참가 비활성 처리
+         participant.leave();
+
+         // 5) 트랜잭션 커밋 후 실시간 멤버 브로드캐스트
+         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+             @Override
+             public void afterCommit() {
+                 chatMemberEventService.broadcastMembers(roomId);
+             }
+         });
+     }
 }
