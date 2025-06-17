@@ -1,10 +1,7 @@
 package team.budderz.buddyspace.infra.database.chat.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
@@ -56,5 +53,10 @@ public class ChatParticipant extends BaseEntity {
         if (incoming != null && incoming > lastReadMessageId) {
             this.lastReadMessageId = incoming;
         }
+    }
+
+    public void leave() {
+        this.isActive = false;
+        this.leftAt = LocalDateTime.now();
     }
 }

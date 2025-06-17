@@ -37,6 +37,7 @@ public class ChatRoomCommandService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final GroupValidator groupValidator;
+    private final ChatMemberEventService chatMemberEventService;
 
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
         // 그룹, 유저, 멤버 검증
@@ -136,5 +137,19 @@ public class ChatRoomCommandService {
                     .build();
             chatParticipantRepository.save(participantEntity);
         }
+
+        //  채팅방 멤버 전체 갱신 브로드캐스트
+        chatMemberEventService.broadcastMembers(chatRoom.getId());
+    }
+
+    /** 퇴장(본인 나가기) */
+    @Transactional
+    public void leaveChatRoom(Long roomId, Long userId) {
+        ChatParticipant participant = chatParticipantRepository.findActiveByRoomAndUser(roomId, userId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_IN_CHAT_ROOM));
+        participant.leave();
+
+        // 실시간 멤버 브로드캐스트
+        chatMemberEventService.broadcastMembers(roomId);
     }
 }
