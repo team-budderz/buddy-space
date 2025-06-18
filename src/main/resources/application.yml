@@ -112,7 +112,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: https://api.budderz.co.kr/login/oauth2/code/google
+            redirect-uri: ${SOCIAL_LOGIN_REDIRECT_URI}
             client-name: Google
         provider:
           google:
@@ -120,3 +120,14 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
+
+logging:
+  level:
+    root: INFO
+    team.budderz.buddyspace: DEBUG
+    org.springframework: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  file:
+    path: /var/log/app
+    name: app.log
