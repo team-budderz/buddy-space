@@ -22,5 +22,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     List<ChatRoom> findDirectRoomByParticipants(@Param("participantIds") List<Long> participantIds,
                                                 @Param("size") long size);
 
+    // 특정 그룹에 속한 모든 레코드 한 번에 삭제
     void deleteAllByGroup_Id(Long groupId);
+
+    // 방별 활성 참가자 수 조회
+    @Query("select count(p) from ChatParticipant p where p.chatRoom.id = :roomId and p.isActive = true")
+    int countActiveParticipants(@Param("roomId") Long roomId);
 }

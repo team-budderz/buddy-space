@@ -60,6 +60,11 @@ public class ChatRoomServiceFacade {
         return chatRoomQueryService.getChatRoomMembers(groupId, roomId, userId);
     }
 
+    /** 단일 방 조회  */
+    public ChatRoomDetailResponse getChatRoomDetail(Long groupId, Long roomId, Long userId) {
+        return chatRoomQueryService.getChatRoomDetail(groupId, roomId, userId);
+    }
+
     /** 참여자 추가 */
     @Transactional
     public void addParticipant(
@@ -80,5 +85,10 @@ public class ChatRoomServiceFacade {
             Long targetUserId
     ) {
         chatRoomCommandService.removeParticipant(groupId, roomId, userId, targetUserId);
+    }
+
+    /** 읽음 상태 조회 */
+    public ReadStatusResponse getReadStatus(Long groupId, Long roomId, Long userId) {
+        return chatRoomQueryService.getReadStatus(groupId, roomId, userId);
     }
 }

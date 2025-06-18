@@ -73,6 +73,18 @@ public class ChatRoomController {
          return new BaseResponse<>(rooms);
      }
 
+    // 단일 채팅방 조회 -----------------------------------------------------------------------------------------------------
+    @GetMapping("/{roomId}")
+    public BaseResponse<ChatRoomDetailResponse> getChatRoomDetail(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId
+    ) {
+        Long userId = userAuth.getUserId();
+        ChatRoomDetailResponse room = chatRoomService.getChatRoomDetail(groupId, roomId, userId);
+        return new BaseResponse<>(room);
+    }
+
     // 채팅방 입장 후 과거 메시지 조회 -----------------------------------------------------------------------------------------------------
     @GetMapping("/{roomId}/messages")
     public BaseResponse<GetChatMessagesResponse> getChatMessages(
@@ -123,5 +135,18 @@ public class ChatRoomController {
             @PathVariable Long targetUserId
     ) {
         chatRoomService.removeParticipant(groupId, roomId, userAuth.getUserId(), targetUserId);
+    }
+
+    // 읽음 상태 조회 -----------------------------------------------------------------------------------------------------
+    @GetMapping("/{roomId}/read-status")
+    public BaseResponse<ReadStatusResponse> getReadStatus(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId
+    ) {
+        Long userId = userAuth.getUserId();
+        ReadStatusResponse status =
+                chatRoomService.getReadStatus(groupId, roomId, userId);
+        return new BaseResponse<>(status);
     }
 }
