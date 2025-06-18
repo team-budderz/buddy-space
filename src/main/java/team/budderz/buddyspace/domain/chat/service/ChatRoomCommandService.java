@@ -132,6 +132,9 @@ public class ChatRoomCommandService {
         }
 
         Long newUserId = req.userId();
+
+        groupValidator.validateMember(newUserId, groupId);
+
         if (chatParticipantRepository.findActiveByRoomAndUser(roomId, newUserId).isPresent()) {
             throw new ChatException(ChatErrorCode.USER_ALREADY_IN_CHAT_ROOM);
         }

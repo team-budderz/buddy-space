@@ -16,4 +16,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     // 페이징 처리된 채팅방 메시지 조회
     Page<ChatMessage> findByChatRoom_Id(Long chatRoomId, Pageable pageable);
+
+    // 특정 메시지 ID 보다 큰, 해당 방의 메시지 개수 (unreadCount 계산용)
+    long countByChatRoom_IdAndIdGreaterThan(Long roomId, Long lastReadMessageId);
+
 }

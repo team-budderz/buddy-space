@@ -57,5 +57,8 @@ Optional<ChatParticipant> findActiveByRoomAndUser(@Param("roomId") Long roomId,
 """)
     List<ChatParticipant> findByChatRoomId(@Param("roomId") Long roomId);
 
+// 기존 메서드 외에 방의 모든 활성 참가자 조회
+@Query("select p from ChatParticipant p where p.chatRoom.id = :roomId and p.isActive = true")
+List<ChatParticipant> findActiveByRoom(@Param("roomId") Long roomId);
 
 }

@@ -7,10 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.chat.response.ChatMessageResponse;
-import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
-import team.budderz.buddyspace.api.chat.response.ChatRoomSummaryResponse;
-import team.budderz.buddyspace.api.chat.response.GetChatMessagesResponse;
+import team.budderz.buddyspace.api.chat.response.*;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
 import team.budderz.buddyspace.domain.chat.validator.ChatValidator;
@@ -112,11 +109,11 @@ public class ChatRoomQueryService {
 
     // 채팅방 멤버 목록 조회 -------------------------------------------------------------------------------------------------
     public List<ChatRoomMemberResponse> getChatRoomMembers(Long groupId, Long roomId, Long userId) {
-        // 1. 방, 그룹, 멤버 유효성 검사
+        // 방, 그룹, 멤버 유효성 검사
         chatValidator.validateRoom(roomId);
         chatValidator.validateParticipant(roomId, userId);
 
-        // 2. 활성화된 멤버만 반환
+        // 활성화된 멤버만 반환
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
@@ -134,4 +131,61 @@ public class ChatRoomQueryService {
                 })
                 .toList();
     }
+
+    // 단일 방 조회 -------------------------------------------------------------------------------------------------
+    public ChatRoomDetailResponse getChatRoomDetail(Long groupId, Long roomId, Long userId) {
+        groupValidator.validateMember(userId, groupId);
+        ChatRoom room = chatValidator.validateRoom(roomId);
+
+        if (!room.getGroup().getId().equals(groupId)) {
+            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        // 자기 자신도 그 방의 멤버여야 한다면 추가 검증
+        chatValidator.validateParticipant(roomId, userId);
+
+        // 필요한 정보 취합
+        int count = chatRoomRepository.countActiveParticipants(roomId);
+        return new ChatRoomDetailResponse(
+                room.getId().toString(),
+                room.getName(),
+                room.getDescription(),
+                room.getChatRoomType(),
+                room.getCreatedBy().getId(),
+                room.getCreatedAt(),
+                count
+        );
+    }
+
+    // 읽음 상태 조회 (보완용)  -------------------------------------------------------------------------------------------------
+    public ReadStatusResponse getReadStatus(Long groupId, Long roomId, Long userId) {
+        // 그룹 멤버 + 방 검증
+        groupValidator.validateMember(userId, groupId);
+        ChatRoom room = chatValidator.validateRoom(roomId);
+        if (!room.getGroup().getId().equals(groupId)) {
+            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        // 내 읽음 상태
+        ChatParticipant me = chatParticipantRepository
+                .findActiveByRoomAndUser(roomId, userId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_IN_CHAT_ROOM));
+        Long myLastRead = me.getLastReadMessageId();
+
+        // 내 unread count
+        int unreadCount = (int) chatMessageRepository.countByChatRoom_IdAndIdGreaterThan(roomId, myLastRead);
+
+        // 모든 참가자 상태
+        List<ReadStatusResponse.ParticipantReadStatus> participants =
+                chatParticipantRepository.findActiveByRoom(roomId).stream()
+                        .map(p -> new ReadStatusResponse.ParticipantReadStatus(
+                                p.getUser().getId(),
+                                p.getLastReadMessageId()
+                        ))
+                        .toList();
+
+        return new ReadStatusResponse(roomId, myLastRead, unreadCount, participants);
+    }
+
+
 }
