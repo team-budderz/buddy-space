@@ -113,7 +113,9 @@ public class GroupPermissionService {
                 GroupPermission.of(group, MemberRole.LEADER, PermissionType.DELETE_MISSION),
                 GroupPermission.of(group, MemberRole.LEADER, PermissionType.DELETE_VOTE),
                 GroupPermission.of(group, MemberRole.LEADER, PermissionType.CREATE_DIRECT_CHAT_ROOM),
-                GroupPermission.of(group, MemberRole.LEADER, PermissionType.CREATE_INVITE_LINK)
+                GroupPermission.of(group, MemberRole.LEADER, PermissionType.CREATE_INVITE_LINK),
+                GroupPermission.of(group, MemberRole.LEADER, PermissionType.INVITE_CHAT_PARTICIPANT),
+                GroupPermission.of(group, MemberRole.LEADER, PermissionType.KICK_CHAT_PARTICIPANT)
         );
 
         groupPermissionRepository.saveAll(defaultPermissions);

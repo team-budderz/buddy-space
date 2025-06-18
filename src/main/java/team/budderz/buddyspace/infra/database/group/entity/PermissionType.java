@@ -23,7 +23,10 @@ public enum PermissionType {
 
     CREATE_DIRECT_CHAT_ROOM(CREATE, DIRECT_CHAT_ROOM),
 
-    CREATE_INVITE_LINK(CREATE, INVITE_LINK);
+    CREATE_INVITE_LINK(CREATE, INVITE_LINK),
+
+    INVITE_CHAT_PARTICIPANT(CREATE, CHAT_PARTICIPANT),
+    KICK_CHAT_PARTICIPANT(DELETE, CHAT_PARTICIPANT);
 
     private final PermissionAction action;
     private final ContentType content;
