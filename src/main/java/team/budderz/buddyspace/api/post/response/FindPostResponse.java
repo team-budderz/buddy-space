@@ -18,13 +18,17 @@ public record FindPostResponse(
         List<FindsCommentResponse> comments
 ) {
     public static FindPostResponse from(Post post, List<Comment> comments) {
+        List<Comment> topLevelComments = comments.stream()
+                .filter(c -> c.getParent() == null)
+                .collect(Collectors.toList());
+
         return new FindPostResponse(
                 post.getUser().getImageUrl(),
                 post.getUser().getName(),
                 post.getCreatedAt(),
                 post.getContent(),
                 (long) post.getComments().size(),
-                comments.stream()
+                topLevelComments.stream()
                         .map(FindsCommentResponse::from)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList())

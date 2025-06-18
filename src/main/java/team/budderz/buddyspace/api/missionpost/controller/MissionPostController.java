@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/groups/{groupId}/missions/{missionId}/missionPosts")
+@RequestMapping("/api/groups/{groupId}/missions/{missionId}/posts")
 public class MissionPostController {
 
     private final MissionPostService missionPostService;
@@ -31,26 +31,26 @@ public class MissionPostController {
         return new BaseResponse<>(null);
     }
 
-    @PatchMapping("/{missionPostId}")
+    @PatchMapping("/{postId}")
     public BaseResponse<Void> updateMissionPost(
             @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long missionId,
-            @PathVariable Long missionPostId,
+            @PathVariable Long postId,
             @Valid @RequestBody MissionPostRequest request
     ) {
-        missionPostService.updateMissionPost(userAuth.getUserId(), groupId, missionId, missionPostId, request);
+        missionPostService.updateMissionPost(userAuth.getUserId(), groupId, missionId, postId, request);
         return new BaseResponse<>(null);
     }
 
-    @DeleteMapping("/{missionPostId}")
+    @DeleteMapping("/{postId}")
     public BaseResponse<Void> deleteMissionPost(
             @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long missionId,
-            @PathVariable Long missionPostId
+            @PathVariable Long postId
     ) {
-        missionPostService.deleteMissionPost(userAuth.getUserId(), groupId, missionId, missionPostId);
+        missionPostService.deleteMissionPost(userAuth.getUserId(), groupId, missionId, postId);
         return new BaseResponse<>(null);
     }
 
@@ -62,12 +62,12 @@ public class MissionPostController {
         return new BaseResponse<>(missionPostService.findMissionPosts(groupId, missionId));
     }
 
-    @GetMapping("/{missionPostId}")
+    @GetMapping("/{postId}")
     public BaseResponse<MissionPostDetailResponse> findMissionPostDetail(
             @PathVariable Long groupId,
             @PathVariable Long missionId,
-            @PathVariable Long missionPostId
+            @PathVariable Long postId
     ) {
-        return new BaseResponse<>(missionPostService.findMissionPostDetail(groupId, missionId, missionPostId));
+        return new BaseResponse<>(missionPostService.findMissionPostDetail(groupId, missionId, postId));
     }
 }
