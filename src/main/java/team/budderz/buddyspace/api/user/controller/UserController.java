@@ -78,7 +78,7 @@ public class UserController {
     @PostMapping("/verify-password")
     public BaseResponse<Void> verifyPassword(
             @AuthenticationPrincipal UserAuth userAuth,
-            @RequestBody PasswordRequest request,
+            @Valid @RequestBody PasswordRequest request,
             HttpServletResponse response
     ) {
         userService.verifyPassword(userAuth.getUserId(), request, response);
