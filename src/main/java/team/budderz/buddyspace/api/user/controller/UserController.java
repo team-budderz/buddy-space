@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.api.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -44,17 +45,21 @@ public class UserController {
     @PatchMapping
     public BaseResponse<UserUpdateResponse> updateUser(
             @AuthenticationPrincipal UserAuth userAuth,
+            @CookieValue(value = "verified_password", required = false) String passwordToken,
+            HttpServletResponse response,
             @Valid @RequestBody UserUpdateRequest updateRequest
     ) {
-        return new BaseResponse<>(userService.updateUser(userAuth, updateRequest));
+        return new BaseResponse<>(userService.updateUser(userAuth.getUserId(), passwordToken, response, updateRequest));
     }
 
     @PatchMapping("/password")
     public BaseResponse<Void> updateUserPassword(
             @AuthenticationPrincipal UserAuth userAuth,
+            @CookieValue(value = "verified_password", required = false) String passwordToken,
+            HttpServletResponse response,
             @Valid @RequestBody UserPasswordUpdateRequest updateRequest
     ) {
-        userService.updateUserPassword(userAuth, updateRequest);
+        userService.updateUserPassword(userAuth.getUserId(), passwordToken, response, updateRequest);
 
         return new BaseResponse<>(null);
     }
@@ -62,10 +67,21 @@ public class UserController {
     @DeleteMapping
     public BaseResponse<Void> deleteUser(
             @AuthenticationPrincipal UserAuth userAuth,
-            @Valid @RequestBody UserDeleteRequest deleteRequest
+            @CookieValue(value = "verified_password", required = false) String passwordToken,
+            HttpServletResponse response
     ) {
-        userService.deleteUser(userAuth, deleteRequest);
+        userService.deleteUser(userAuth.getUserId(), passwordToken, response);
 
+        return new BaseResponse<>(null);
+    }
+
+    @PostMapping("/verify-password")
+    public BaseResponse<Void> verifyPassword(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @Valid @RequestBody PasswordRequest request,
+            HttpServletResponse response
+    ) {
+        userService.verifyPassword(userAuth.getUserId(), request, response);
         return new BaseResponse<>(null);
     }
 
@@ -74,5 +90,4 @@ public class UserController {
     public BaseResponse<SignupResponse> getMyInfo(@AuthenticationPrincipal UserAuth userAuth) {
         return new BaseResponse<>(userService.getMyPage(userAuth.getUserId()));
     }
-
 }
