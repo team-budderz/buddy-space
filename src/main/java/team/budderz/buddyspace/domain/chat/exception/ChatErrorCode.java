@@ -19,7 +19,10 @@ public enum ChatErrorCode implements ErrorCode {
     INVALID_PARTICIPANT_COUNT(400, "C005", "참여자 수가 올바르지 않습니다."),
     GROUP_NOT_FOUND(404, "C008", "존재하지 않는 그룹입니다."),
     MESSAGE_NOT_FOUND(404, "C006", "존재하지 않는 메시지입니다."),
-    MESSAGE_NOT_IN_ROOM(404, "C009", "메시지가 해당 채팅방에 속하지 않습니다.");
+    MESSAGE_NOT_IN_ROOM(404, "C009", "메시지가 해당 채팅방에 속하지 않습니다."),
+    NO_PERMISSION           (403, "C010", "권한이 없습니다."),
+    USER_ALREADY_IN_CHAT_ROOM(409, "C011", "이미 채팅방에 참여중인 사용자입니다."),
+    CANNOT_KICK_SELF(400, "C012", "본인은 강퇴할 수 없습니다.");
 
     private final int status;
     private final String code;

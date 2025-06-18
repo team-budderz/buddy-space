@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import team.budderz.buddyspace.api.chat.request.AddParticipantRequest;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.*;
@@ -100,4 +101,27 @@ public class ChatRoomController {
         return new BaseResponse<>(members);
     }
 
+    // 참여자 초대  -----------------------------------------------------------------------------------------------------
+    @PostMapping("/{roomId}/participants")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addParticipant(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId,
+            @RequestBody AddParticipantRequest req
+    ) {
+        chatRoomService.addParticipant(groupId, roomId, userAuth.getUserId(), req);
+    }
+
+    // 참여자 강퇴  -----------------------------------------------------------------------------------------------------
+    @DeleteMapping("/{roomId}/participants/{targetUserId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeParticipant(
+            @AuthenticationPrincipal UserAuth userAuth,
+            @PathVariable Long groupId,
+            @PathVariable Long roomId,
+            @PathVariable Long targetUserId
+    ) {
+        chatRoomService.removeParticipant(groupId, roomId, userAuth.getUserId(), targetUserId);
+    }
 }

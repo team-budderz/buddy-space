@@ -3,6 +3,7 @@ package team.budderz.buddyspace.domain.chat.service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import team.budderz.buddyspace.api.chat.request.AddParticipantRequest;
 import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.*;
@@ -59,5 +60,25 @@ public class ChatRoomServiceFacade {
         return chatRoomQueryService.getChatRoomMembers(groupId, roomId, userId);
     }
 
+    /** 참여자 추가 */
+    @Transactional
+    public void addParticipant(
+            Long groupId,
+            Long roomId,
+            Long userId,
+            AddParticipantRequest req
+    ) {
+        chatRoomCommandService.addParticipant(groupId, roomId, userId, req);
+    }
 
+    /** 참여자 제거 */
+    @Transactional
+    public void removeParticipant(
+            Long groupId,
+            Long roomId,
+            Long userId,
+            Long targetUserId
+    ) {
+        chatRoomCommandService.removeParticipant(groupId, roomId, userId, targetUserId);
+    }
 }
