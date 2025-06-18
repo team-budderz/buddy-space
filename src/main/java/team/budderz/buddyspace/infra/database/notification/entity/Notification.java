@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.budderz.buddyspace.global.entity.BaseEntity;
+import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 @Entity
@@ -31,4 +32,7 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Group group;
 }
