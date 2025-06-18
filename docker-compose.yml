@@ -37,10 +37,6 @@ services:
       - ./mongodb-data:/data/db
     ports:
       - 27017:27017
-    healthcheck:
-      test: ["CMD-SHELL", "mongosh --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 1)' --quiet"]
-      interval: 5s
-      retries: 10
 
   buddyspace-backend:
     image: buddyspace/buddyspace-backend:latest
@@ -50,13 +46,15 @@ services:
       - 8080:8080
     env_file:
       - .env
+    volumes:
+      - ./data/logs/my-spring-app:/var/log/app
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       mongodb:
-        condition: service_healthy
+        condition: service_started
 
   nginx:
     image: nginx
