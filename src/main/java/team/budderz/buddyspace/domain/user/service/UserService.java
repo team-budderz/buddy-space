@@ -1,5 +1,7 @@
 package team.budderz.buddyspace.domain.user.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,11 +17,14 @@ import team.budderz.buddyspace.global.security.JwtTokenProvider;
 import team.budderz.buddyspace.global.security.JwtUtil;
 import team.budderz.buddyspace.global.security.UserAuth;
 import team.budderz.buddyspace.global.util.RedisUtil;
+import team.budderz.buddyspace.infra.database.membership.entity.Membership;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -108,43 +113,75 @@ public class UserService {
     }
 
     @Transactional
-    public UserUpdateResponse updateUser(UserAuth userAuth, UserUpdateRequest updateRequest) {
-        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+    public UserUpdateResponse updateUser(Long userId, String passwordToken, HttpServletResponse response, UserUpdateRequest updateRequest) {
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
-
-        if(!passwordEncoder.matches(updateRequest.password(), user.getPassword())) {
-            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
-        }
-
+        validatePasswordToken(userId, passwordToken, response);
         user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
 
         return UserUpdateResponse.from(user);
     }
 
     @Transactional
-    public void updateUserPassword(UserAuth userAuth, UserPasswordUpdateRequest updateRequest) {
-        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+    public void updateUserPassword(Long userId, String passwordToken, HttpServletResponse response, UserPasswordUpdateRequest updateRequest) {
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
 
+        validatePasswordToken(userId, passwordToken, response);
         String encodedPassword = passwordEncoder.encode(updateRequest.password());
 
         user.updateUserPassword(encodedPassword);
     }
 
     @Transactional
-    public void deleteUser(UserAuth userAuth, UserDeleteRequest deleteRequest) {
-        User user = userRepository.findById(userAuth.getUserId()).orElseThrow(
+    public void deleteUser(Long userId, String passwordToken, HttpServletResponse response) {
+        validatePasswordToken(userId, passwordToken, response);
+
+        membershipRepository.deleteAllByUser_Id(userId);
+        userRepository.deleteById(userId);
+    }
+
+    public void verifyPassword(Long userId, PasswordRequest request, HttpServletResponse response) {
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
 
-        if(!passwordEncoder.matches(deleteRequest.password(), user.getPassword())) {
+        validatePassword(request.password(), user.getPassword());
+
+        // 인증 토큰 발급 & Redis 저장
+        String verificationToken = UUID.randomUUID().toString();
+        redisUtil.setData("pw:"+user.getId(), verificationToken, 300_000);
+
+        // 쿠키에 저장
+        Cookie cookie = new Cookie("verified_password", verificationToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(300);
+        response.addCookie(cookie);
+    }
+
+    private void validatePasswordToken(Long userId, String passwordToken, HttpServletResponse response) {
+        String redisToken = redisUtil.getData("pw:" + userId);
+        if (redisToken == null || !redisToken.equals(passwordToken)) {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-        membershipRepository.deleteAllByUser_Id(userAuth.getUserId());
-        userRepository.deleteById(user.getId());
+        // Redis 토큰 소모
+        redisUtil.deleteData("pw:" + userId);
+
+        // 쿠키 제거
+        Cookie cookie = new Cookie("verified_password", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    private void validatePassword(String rawPassword, String encodedPassword) {
+        if(!passwordEncoder.matches(rawPassword, encodedPassword)) {
+            throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
+        }
     }
 
     //소셜로그인 테스트
@@ -154,5 +191,4 @@ public class UserService {
         );
         return SignupResponse.from(user);
     }
-
 }
