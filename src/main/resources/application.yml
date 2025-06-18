@@ -130,4 +130,4 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   file:
     path: /var/log/app
-    name: app.log
+    name: spring-app.log
