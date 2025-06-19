@@ -9,6 +9,8 @@ import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "notifications")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -35,4 +37,12 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Group group;
+
+    public boolean doesNotBelongToUser(Long userId) {
+        return !Objects.equals(this.user.getId(), userId);
+    }
+
+    public void markAsRead() {
+        isRead = true;
+    }
 }
