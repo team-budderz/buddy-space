@@ -1,10 +1,8 @@
 package team.budderz.buddyspace.api.auth.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.domain.auth.service.AuthService;
 import team.budderz.buddyspace.domain.user.exception.UserException;
@@ -21,14 +19,9 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public BaseResponse<TokenResponse> reissueToken(
-            @RequestHeader("Authorization") String refreshTokenHeader
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response
     ) {
-        // 접두어 제거
-        String refreshToken = refreshTokenHeader.startsWith("Bearer ")
-                ? refreshTokenHeader.substring(7)
-                : refreshTokenHeader;
-
-        return new BaseResponse<>(authService.reissueToken(refreshToken));
-
+        return new BaseResponse<>(authService.reissueToken(refreshToken, response));
     }
 }

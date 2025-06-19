@@ -3,10 +3,13 @@ package team.budderz.buddyspace.infra.database.group.entity;
 import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import team.budderz.buddyspace.api.group.request.SaveGroupRequest;
+import team.budderz.buddyspace.api.group.request.UpdateGroupRequest;
 import team.budderz.buddyspace.global.entity.BaseEntity;
-import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
+import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 @Getter
@@ -24,8 +27,9 @@ public class Group extends BaseEntity {
 
     private String description;
 
-    @Column(columnDefinition = "TEXT")
-    private String coverImageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cover_attachment_id")
+    private Attachment coverAttachment;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -42,6 +46,8 @@ public class Group extends BaseEntity {
     @Column(name = "invite_link", unique = true)
     private String inviteCode;
 
+    private String address;
+
     @Column(name = "is_neighborhood_auth_required")
     private boolean isNeighborhoodAuthRequired;
 
@@ -49,19 +55,15 @@ public class Group extends BaseEntity {
     @JoinColumn(name = "leader_id", nullable = false)
     private User leader;
 
-    @ManyToOne
-    @JoinColumn(name = "neighborhood_id")
-    private Neighborhood neighborhood;
-
     /**
      * 모임 생성용 생성자
      */
-    public Group(String name, String coverImageUrl, GroupAccess access, GroupType type, GroupInterest interest, User leader) {
-        this.name = name;
-        this.coverImageUrl = coverImageUrl;
-        this.access = access;
-        this.type = type;
-        this.interest = interest;
+    @Builder
+    public Group(SaveGroupRequest request, User leader) {
+        this.name = request.name();
+        this.access = request.access();
+        this.type = request.type();
+        this.interest = request.interest();
         this.leader = leader;
     }
 
@@ -73,18 +75,19 @@ public class Group extends BaseEntity {
         this.leader = leader;
     }
 
-    public void updateGroupInfo(String name,
-                                String description,
-                                String coverImageUrl,
-                                GroupAccess access,
-                                GroupType type,
-                                GroupInterest interest) {
+    public void updateAddress(String address) {
+        this.address = address;
+    }
 
-        if (!StringUtils.isBlank(name)) this.name = name;
-        if (!StringUtils.isBlank(description)) this.description = description;
-        if (!StringUtils.isBlank(coverImageUrl)) this.coverImageUrl = coverImageUrl;
-        if (access != null) this.access = access;
-        if (type != null) this.type = type;
-        if (interest != null) this.interest = interest;
+    public void updateCoverAttachment(Attachment coverAttachment) {
+        this.coverAttachment = coverAttachment;
+    }
+
+    public void updateGroupInfo(UpdateGroupRequest request) {
+        if (!StringUtils.isBlank(request.name())) this.name = request.name();
+        if (!StringUtils.isBlank(request.description())) this.description = request.description();
+        if (request.access() != null) this.access = request.access();
+        if (request.type() != null) this.type = request.type();
+        if (request.interest() != null) this.interest = request.interest();
     }
 }

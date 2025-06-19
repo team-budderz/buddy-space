@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.global.oauth2.service;
 
 import lombok.RequiredArgsConstructor;
+import org.antlr.v4.runtime.Token;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -11,8 +12,11 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.domain.user.service.UserService;
+import team.budderz.buddyspace.global.security.JwtUtil;
+import team.budderz.buddyspace.global.util.RedisUtil;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.entity.UserGender;
 import team.budderz.buddyspace.infra.database.user.entity.UserProvider;
@@ -30,7 +34,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
+    private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     public static final String LOGIN_RESPONSE_ATTR = "LOGIN_RESPONSE";
     private static final String DEFAULT_ADDRESS = "주소 미입력";
@@ -66,11 +71,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     return userRepository.save(newUser);
                 });
 
-        LoginResponse loginResponse = userService.login(user);
+        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        // RequestContext에 저장
+        redisUtil.setData("RT:" + user.getId(), refreshToken, jwtUtil.getRefreshTokenExpireTime());
+
+        TokenResponse tokenResponse = new TokenResponse(accessToken);
+
         RequestContextHolder.getRequestAttributes()
-                .setAttribute(LOGIN_RESPONSE_ATTR, loginResponse, RequestAttributes.SCOPE_REQUEST);
+                .setAttribute(LOGIN_RESPONSE_ATTR, tokenResponse, RequestAttributes.SCOPE_REQUEST);
+
+        RequestContextHolder.getRequestAttributes()
+                .setAttribute("REFRESH_TOKEN", refreshToken, RequestAttributes.SCOPE_REQUEST);
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),

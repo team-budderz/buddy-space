@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.api.user.request.*;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
@@ -30,8 +31,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public BaseResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-        return new BaseResponse<>(userService.login(loginRequest));
+    public BaseResponse<TokenResponse> login(
+            @RequestBody LoginRequest loginRequest,
+            HttpServletResponse response
+    ) {
+        return new BaseResponse<>(userService.login(loginRequest, response));
     }
 
     @PostMapping("/logout")

@@ -26,7 +26,7 @@ public class SecurityConfig {
     private final SecurityFilter securityFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    //private final CorsConfigurationSource corsConfigurationSource; // 배포 후 설정
+    private final CorsConfigurationSource corsConfigurationSource; // 배포 후 설정
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -37,10 +37,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // 운영할 땐 disable xx
-                //.cors(cors -> cors.configurationSource(corsConfigurationSource)) // 배포 후 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers("**").permitAll()
                         .requestMatchers(
                                 "/favicon.ico",
                                 "/test-websocket.html",
@@ -53,7 +52,6 @@ public class SecurityConfig {
                                 "/api/healthy-check",
                                 "/api/token/refresh"
                         ).permitAll()
-                        //.requestMatchers("**").hasRole("ADMIN") // 테스트용
                         .anyRequest().authenticated()
                         )
                 // HTML 페이지가 내려오는 이유는 SecurityFilter 가 토큰을 넣어줘도 인증 실패시 로그인 페이지로 이동하게 되어 있기 때문
