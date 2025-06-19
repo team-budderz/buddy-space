@@ -18,4 +18,17 @@ public record GroupListResponse(
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         Long coverAttachmentId
-) {}
+) {
+    public GroupListResponse withCoverImageUrl(String url) {
+        return new GroupListResponse(
+                this.groupId,
+                this.groupName,
+                this.groupDescription,
+                url,
+                this.groupType,
+                this.groupInterest,
+                this.memberCount,
+                null
+        );
+    }
+}

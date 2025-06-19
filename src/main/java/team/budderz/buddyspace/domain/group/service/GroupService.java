@@ -293,16 +293,7 @@ public class GroupService {
                         url = defaultImageProvider.getDefaultGroupCoverImageUrl(group.groupType());
                     }
 
-                    return new GroupListResponse(
-                            group.groupId(),
-                            group.groupName(),
-                            group.groupDescription(),
-                            url,
-                            group.groupType(),
-                            group.groupInterest(),
-                            group.memberCount(),
-                            null
-                    );
+                    return group.withCoverImageUrl(url);
                 })
                 .toList();
 
