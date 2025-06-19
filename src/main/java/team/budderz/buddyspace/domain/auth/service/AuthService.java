@@ -1,6 +1,10 @@
 package team.budderz.buddyspace.domain.auth.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.domain.auth.exception.AuthErrorCode;
@@ -12,6 +16,8 @@ import team.budderz.buddyspace.global.util.RedisUtil;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -20,8 +26,7 @@ public class AuthService {
     private final RedisUtil redisUtil;
     private final UserRepository userRepository;
 
-    public TokenResponse reissueToken(String refreshToken) {
-
+    public TokenResponse reissueToken(String refreshToken, HttpServletResponse response) {
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new AuthException(AuthErrorCode.INVALID_TOKEN);
         }
@@ -41,7 +46,16 @@ public class AuthService {
 
         redisUtil.setData("RT:" + userId, newRefreshToken, jwtUtil.getRefreshTokenExpireTime());
 
-        return new TokenResponse(newAccessToken, newRefreshToken);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return new TokenResponse(newAccessToken);
     }
 
 }
