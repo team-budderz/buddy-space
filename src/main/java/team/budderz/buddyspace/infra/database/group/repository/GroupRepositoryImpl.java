@@ -198,16 +198,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 .fetch();
 
         List<GroupListResponse> content = tuples.stream()
-                .map(t -> new GroupListResponse(
-                        t.get(group.id),
-                        t.get(group.name),
-                        t.get(group.description),
-                        null,
-                        t.get(group.type),
-                        t.get(group.interest),
-                        t.get(membership.id.countDistinct()),
-                        t.get(group.coverAttachment.id)
-                ))
+                .map(t -> toGroupListResponse(t, group, membership))
                 .toList();
 
         Long total = queryFactory
@@ -264,16 +255,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 .fetch();
 
         List<GroupListResponse> content = tuples.stream()
-                .map(t -> new GroupListResponse(
-                        t.get(group.id),
-                        t.get(group.name),
-                        t.get(group.description),
-                        null,
-                        t.get(group.type),
-                        t.get(group.interest),
-                        t.get(membership.id.countDistinct()),
-                        t.get(group.coverAttachment.id)
-                ))
+                .map(t -> toGroupListResponse(t, group, membership))
                 .toList();
 
         Long total = queryFactory
@@ -304,5 +286,18 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
         }
 
         return builder;
+    }
+
+    private GroupListResponse toGroupListResponse(Tuple tuple, QGroup group, QMembership membership) {
+        return new GroupListResponse(
+                tuple.get(group.id),
+                tuple.get(group.name),
+                tuple.get(group.description),
+                null,
+                tuple.get(group.type),
+                tuple.get(group.interest),
+                tuple.get(membership.id.countDistinct()),
+                tuple.get(group.coverAttachment.id)
+        );
     }
 }
