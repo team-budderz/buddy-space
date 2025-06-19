@@ -13,6 +13,6 @@ public class PostNotificationTemplate implements NotificationTemplate{
 
     @Override
     public String generateContent(NotificationArgs args) {
-        return String.format("새 게시글이 올라왔습니다.", args.senderName());
+        return String.format("%s 님이 새 게시글을 올렸습니다.", args.senderName());
     }
 }
