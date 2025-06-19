@@ -5,8 +5,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.api.user.request.*;
 import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
@@ -22,6 +25,7 @@ import team.budderz.buddyspace.infra.database.membership.repository.MembershipRe
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -64,15 +68,7 @@ public class UserService {
         return SignupResponse.from(user);
     }
 
-    public LoginResponse login(User user) {
-        if (user.isDeleted()) {
-            throw new UserException(UserErrorCode.INVALID_USER_EMAIL);
-        }
-
-        return jwtTokenProvider.createToken(user);
-    }
-
-    public LoginResponse login(LoginRequest loginRequest) {
+    public TokenResponse login(LoginRequest loginRequest, HttpServletResponse response) {
         User user = userRepository.findByEmail(loginRequest.email()).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_EMAIL)
         );
@@ -81,7 +77,26 @@ public class UserService {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
-        return login(user);
+        if (user.isDeleted()) {
+            throw new UserException(UserErrorCode.INVALID_USER_EMAIL);
+        }
+
+        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+
+        // Redis 저장
+        redisUtil.setData("RT:" + user.getId(), refreshToken, jwtUtil.getRefreshTokenExpireTime());
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return new TokenResponse(accessToken);
     }
 
     public void logout(String token) {
@@ -155,11 +170,14 @@ public class UserService {
         redisUtil.setData("pw:"+user.getId(), verificationToken, 300_000);
 
         // 쿠키에 저장
-        Cookie cookie = new Cookie("verified_password", verificationToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(300);
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("verified_password", verificationToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofMinutes(5))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     private void validatePasswordToken(Long userId, String passwordToken, HttpServletResponse response) {
