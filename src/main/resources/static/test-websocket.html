@@ -50,6 +50,7 @@
     let stompClient = null;
     let currentSub   = null;
     let readSub      = null;
+    let readSyncSub  = null;
     let memberSub = null;
 
     let myId         = null;
@@ -59,6 +60,43 @@
     let participantCount = 2;
     let memberIds = [];
 
+    // ────────── 읽음 Ack 핸들러 ──────────────────────────────
+    function onSingleRead(m) {
+        const { userId, lastReadMessageId } = JSON.parse(m.body);
+        const peerId    = Number(userId);
+        const peerReadId = Number(lastReadMessageId);
+
+        if (participantCount === 2) {
+            // 1:1 DM
+            if (peerId !== Number(myId)) {
+                messageMap.forEach((info, msgId) => {
+                    if (info.senderId === Number(myId) && msgId <= peerReadId) {
+                        addOrUpdateBadge(info.li, '✓');
+                    }
+                });
+            }
+        } else {
+            // 그룹 채팅
+            messageMap.forEach((info, msgId) => {
+                // (1) msgId ≤ 해당 사용자의 read 위치 → 읽은 것으로 처리
+                if (msgId <= peerReadId) {
+                    info.readers.add(peerId);
+                }
+                // (2) 뱃지 갱신: 전체 참여자 - 읽은 사람 수
+                const unread = participantCount - info.readers.size;
+                addOrUpdateBadge(info.li, unread > 0 ? `${unread}` : '');
+            });
+        }
+    }
+    // ────────── 실시간 메시지 수신 핸들러 ──────────────────────────────
+    function onMessage(m) {
+        const dto = JSON.parse(m.body);
+        showMessage(dto, myId, false);
+        // 내가 보낸 메시지가 아니면 읽음 보고
+        if (Number(dto.senderId) !== Number(myId)) {
+            sendRead(dto.messageId);
+        }
+    }
 
     /* ───────── 연결 ───────── */
     function connect(){
@@ -76,79 +114,84 @@
         stompClient.connect({ Authorization: rawToken }, () => {
             document.getElementById('messages').innerHTML = '';
             latestSeen = 0;
+            messageMap.clear();
 
-            //  멤버 정보 fetch (입장 직후 최초 1회)
+            // 1) 멤버 정보 fetch → 구독
             fetchMembers(roomId, token).then(members => {
                 memberIds = members.map(m => m.userId);
                 participantCount = memberIds.length;
+                subscribeMemberUpdates(roomId);
 
-            // 이후 바로 WebSocket 멤버 구독 시작
-            subscribeMemberUpdates(roomId);
-
-            // 메시지 히스토리 및 구독도 멤버 fetch 이후에
-            fetchChatHistory(token, groupId, roomId, myId);
-
-            // 메시지/읽음 구독 (중복 구독 방지)
-            currentSub?.unsubscribe();
-            readSub?.unsubscribe();
-
-            /* 메시지 구독(수신) */
-            currentSub = stompClient.subscribe(`/sub/chat/room/${roomId}`, m => {
-                const dto = JSON.parse(m.body);
-                showMessage(dto, myId, false);
-                // 상대방 메시지면 바로 읽음 보고
-                if (Number(dto.senderId) !== Number(myId)) sendRead(dto.messageId);
-            });
-
-            /* 읽음 이벤트(브로드캐스트) 구독 */
-            readSub = stompClient.subscribe(`/sub/chat/rooms/${roomId}/read`, m => {
-                const { userId, lastReadMessageId } = JSON.parse(m.body);
-                const peerReadId = Number(lastReadMessageId);
-
-                // 1) 내 메시지가 아니거나 DM 상대가 아닌 경우엔 UI 필요 없음
-                if (userId === Number(myId)) return;
-
-                // 2) 1:1 DM ────────────────────────────────
-                if (participantCount === 2) {
-                    // peerReadId 이하의 '내' 메시지 모두 ✓
-                    messageMap.forEach((info, id) => {
-                        if (info.senderId === Number(myId) && id <= peerReadId) {
-                            addOrUpdateBadge(info.li, '✓');
-                        }
+                // 2) 과거 메시지 불러오기 → 끝나면 onHistoryLoaded 에서 sync, 그 뒤에 실시간 구독
+                fetchChatHistory(token, groupId, roomId, myId)
+                    .then(() => {
+                        // 3) 메시지/읽음 실시간 구독
+                        subscribeRealtime(roomId);
                     });
-                    return;
-                }
-
-                // 3) 그룹 채팅 ─────────────────────────────
-                // 참가자 N 명 중 누적으로 몇 명 읽었는지 갱신
-                messageMap.forEach((info, id) => {
-                    if (info.senderId !== Number(myId) || id > peerReadId) return;
-
-                    info.readers.add(userId);
-                    const unread = participantCount - 1 - info.readers.size; // -1 = 보내는 나
-                    addOrUpdateBadge(info.li, unread > 0 ? `${unread}` : '');
-                });
-            });
-
-            afterConnect();
             });
         }, console.error);
     }
 
-    function disconnect() {
-        stompClient?.disconnect();
-        stompClient = null;
-        document.getElementById('messages').innerHTML = '';
+    function subscribeRealtime(roomId) {
+        // 메시지
         currentSub?.unsubscribe();
+        currentSub = stompClient.subscribe(
+            `/sub/chat/rooms/${roomId}`,
+            onMessage
+        );
+
+        // 단건 읽음 Ack
         readSub?.unsubscribe();
-        memberSub?.unsubscribe();
+        readSub = stompClient.subscribe(
+            `/sub/chat/rooms/${roomId}/read`,
+            onSingleRead
+        );
+
+        // 전체 읽음 동기화
+        readSyncSub?.unsubscribe();
+        readSyncSub = stompClient.subscribe(
+            `/sub/chat/rooms/${roomId}/read-sync`,
+            onFullSync
+        );
     }
 
+
+    // ────────── 전체 읽음 동기화 핸들러 ──────────────────────────────
+
+    function onFullSync(m) {
+        const allReads = JSON.parse(m.body);
+
+        // 1) 초기화
+        messageMap.forEach(info => info.readers.clear());
+
+        // 2) 모든 참가자별로
+        allReads.forEach(r => {
+            const uid    = Number(r.userId);
+            const lastId = Number(r.lastReadMessageId);
+
+            // 각 msgId ≤ lastId 인 메시지는 uid 가 읽은 것으로 표시
+            messageMap.forEach((info, msgId) => {
+                if (msgId <= lastId) {
+                    info.readers.add(uid);
+                }
+            });
+        });
+
+        // 3) 뱃지 다시 그리기 (모든 메시지)
+        messageMap.forEach(info => {
+            const unread = participantCount - info.readers.size;
+            addOrUpdateBadge(info.li, unread > 0 ? `${unread}` : '');
+        });
+    }
+
+    // ────────────────────────────────────────────────────────────
+
     function fetchMembers(roomId, token) {
-        return fetch(`http://localhost:8080/api/chat/rooms/${roomId}/members`, {
+        const groupId = localStorage.getItem('groupId');
+        return fetch(`http://localhost:8080/api/group/${groupId}/chat/rooms/${roomId}/members`, {
             headers: { Authorization: 'Bearer ' + token }
         })
-            .then(res => res.ok ? res.json() : [])
+            .then(res => res.ok ? res.json().then(body => body.result) : [])
             .catch(() => []);
     }
 
@@ -165,12 +208,13 @@
     function refreshBadges() {
         // 그룹 멤버 정보(최신 participantCount)로 전체 읽음 뱃지 재계산
         messageMap.forEach((info, id) => {
-            if (info.senderId !== Number(myId)) return;
+            // 1:1 DM
             if (participantCount === 2) {
-                // 1:1 대화, 읽은 경우 ✓ 아니면 ''
                 addOrUpdateBadge(info.li, info.readers.size ? '✓' : '');
-            } else {
-                const unread = participantCount - 1 - info.readers.size;
+            }
+            // 그룹 채팅
+            else {
+                const unread = participantCount - info.readers.size;
                 addOrUpdateBadge(info.li, unread > 0 ? `${unread}` : '');
             }
         });
@@ -220,6 +264,10 @@
         });
 
         if (msgId > latestSeen) latestSeen = msgId;
+
+        if (!isHistory && Number(msg.senderId) !== Number(myId)) {
+            sendRead(msg.messageId);
+        }
     }
 
     /* ───── 읽음 뱃지 helper ───── */
@@ -236,24 +284,28 @@
 
     /* ───────── 히스토리 호출 ───────── */
     function fetchChatHistory(token, groupId, roomId, myId) {
-        fetch(`http://localhost:8080/api/group/${groupId}/chat/rooms/${roomId}/messages`,
-            { headers: { Authorization: 'Bearer ' + token } })
+        return fetch(`http://localhost:8080/api/group/${groupId}/chat/rooms/${roomId}/messages`, {
+            headers: { Authorization: 'Bearer ' + token }
+        })
             .then(r => r.json())
             .then(d => {
                 (d.result?.messages || [])
-                    .sort((a,b)=>new Date(a.createdAt||a.sentAt) - new Date(b.createdAt||b.sentAt))
+                    .sort((a,b) => new Date(a.sentAt) - new Date(b.sentAt))
                     .forEach(m => showMessage(m, myId, true));
 
+                // 히스토리 로딩이 끝난 뒤에만 동기화 호출
                 onHistoryLoaded();
             });
     }
 
     /* ───────── 읽음 보고 ───────── */
     function sendRead(lastMsgId) {
-        if (!stompClient?.connected) return;
         const roomId = localStorage.getItem('roomId');
-        stompClient.send(`/pub/chat/rooms/${roomId}/read`,
-            {}, JSON.stringify({ lastReadMessageId: lastMsgId }));
+        stompClient.send(
+            `/pub/chat/rooms/${roomId}/read`,
+            {},
+            JSON.stringify({ lastReadMessageId: lastMsgId })
+        );
     }
 
     /* ───────── 스크롤 맨 아래 도달 시 읽음 ───────── */
@@ -269,14 +321,15 @@
         }
     });
 
-    /*  앱 재입장 - reconnect 직후 */
-    function afterConnect() {
-        if (latestSeen > 0) bulkSyncRead(latestSeen);
-    }
-
     /* 무한스크롤(과거 내역 로딩) 완료 시 */
     function onHistoryLoaded() {
-        bulkSyncRead(latestSeen);
+        // 히스토리가 화면에 다 그려졌으면 이 시점의 latestSeen 을 서버에 요청
+        const roomId = localStorage.getItem('roomId');
+        stompClient.send(
+            `/pub/chat/rooms/${roomId}/read-sync`,
+            {},
+            JSON.stringify({ lastReadMessageId: latestSeen })
+        );
     }
 
     /* 뷰포트가 맨 아래에 도달했을 때도 동일 */

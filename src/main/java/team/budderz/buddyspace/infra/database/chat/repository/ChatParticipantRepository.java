@@ -2,6 +2,7 @@ package team.budderz.buddyspace.infra.database.chat.repository;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipantId;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
@@ -18,7 +19,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     WHERE cp.user.id = :userId
     AND cp.chatRoom.group.id = :groupId
     AND cp.isActive = true
-""")
+    """)
     List<ChatParticipant> findByUserAndGroupAndIsActive(@Param("userId") Long userId, @Param("groupId") Long groupId);
 
     // 채팅방 참여자 명단 조회
@@ -32,33 +33,48 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     AND cp.chatRoom.id = :roomId
     AND cp.chatRoom.group.id = :groupId
     AND cp.isActive = true
-""")
+    """)
     Optional<ChatParticipant> findByUserAndChatRoom_IdAndChatRoom_Group_IdAndIsActiveTrue(
             @Param("userId") Long userId,
             @Param("roomId") Long roomId,
             @Param("groupId") Long groupId
     );
 
-@Query("""
-SELECT cp FROM ChatParticipant cp
-WHERE cp.chatRoom.id = :roomId
-  AND cp.user.id     = :userId
-  AND cp.isActive    = true
-""")
-Optional<ChatParticipant> findActiveByRoomAndUser(@Param("roomId") Long roomId,
-                                                  @Param("userId") Long userId);
-
-// 참여자 목록 조회
-@EntityGraph(attributePaths = {"user"})
-@Query("""
+    @Query("""
     SELECT cp FROM ChatParticipant cp
     WHERE cp.chatRoom.id = :roomId
-    AND cp.isActive = true
-""")
-    List<ChatParticipant> findByChatRoomId(@Param("roomId") Long roomId);
+      AND cp.user.id     = :userId
+      AND cp.isActive    = true
+    """)
+    Optional<ChatParticipant> findActiveByRoomAndUser(@Param("roomId") Long roomId,
+                                                      @Param("userId") Long userId);
 
-// 기존 메서드 외에 방의 모든 활성 참가자 조회
-@Query("select p from ChatParticipant p where p.chatRoom.id = :roomId and p.isActive = true")
-List<ChatParticipant> findActiveByRoom(@Param("roomId") Long roomId);
+    // 참여자 목록 조회
+    @EntityGraph(attributePaths = {"user"})
+    @Query("""
+        SELECT cp FROM ChatParticipant cp
+        WHERE cp.chatRoom.id = :roomId
+        AND cp.isActive = true
+    """)
+        List<ChatParticipant> findByChatRoomId(@Param("roomId") Long roomId);
+
+    // 기존 메서드 외에 방의 모든 활성 참가자 조회
+    @Query("select p from ChatParticipant p where p.chatRoom.id = :roomId and p.isActive = true")
+    List<ChatParticipant> findActiveByRoom(@Param("roomId") Long roomId);
+
+    // DB에 읽음 위치 저장
+    @Modifying
+    @Query("""
+    update ChatParticipant p
+    set p.lastReadMessageId = :lastRead
+    where p.chatRoom.id = :roomId
+      and p.user.id     = :userId
+      and p.isActive    = true
+    """)
+    int updateLastRead(
+            @Param("roomId") Long roomId,
+            @Param("userId") Long userId,
+            @Param("lastRead") Long lastReadMessageId
+    );
 
 }

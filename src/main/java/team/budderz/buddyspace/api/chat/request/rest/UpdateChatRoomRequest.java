@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.api.chat.request;
+package team.budderz.buddyspace.api.chat.request.rest;
 
 import jakarta.validation.constraints.NotBlank;
 

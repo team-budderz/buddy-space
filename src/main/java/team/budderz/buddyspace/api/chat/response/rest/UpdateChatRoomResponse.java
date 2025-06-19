@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.api.chat.response;
+package team.budderz.buddyspace.api.chat.response.rest;
 
 import java.time.LocalDateTime;
 

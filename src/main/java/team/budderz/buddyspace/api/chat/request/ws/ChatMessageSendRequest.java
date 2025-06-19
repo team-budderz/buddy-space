@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.api.chat.request;
+package team.budderz.buddyspace.api.chat.request.ws;
 
 public record ChatMessageSendRequest(
         Long roomId,           // 채팅방 ID
