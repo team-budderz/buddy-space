@@ -21,6 +21,14 @@ aws:
     region: ap-northeast-2
     bucket: buddyspace
 
+app:
+  default:
+    profile-image: profile/default.png
+    group-cover:
+      online: group-cover/default_online.png
+      offline: group-cover/default_offline.png
+      hybrid: group-cover/default_hybrid.png
+
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}

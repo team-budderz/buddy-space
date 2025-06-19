@@ -2,8 +2,10 @@ package team.budderz.buddyspace.api.group.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import team.budderz.buddyspace.api.group.request.SaveGroupRequest;
 import team.budderz.buddyspace.api.group.request.UpdateGroupRequest;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
@@ -24,37 +26,27 @@ public class GroupController {
 
     private final GroupService groupService;
 
-    @PostMapping
-    public BaseResponse<GroupResponse> saveGroup(@RequestBody @Valid SaveGroupRequest request,
-                                                 @AuthenticationPrincipal UserAuth userAuth) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<GroupResponse> saveGroup(
+            @RequestPart("request") @Valid SaveGroupRequest request,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage,
+            @AuthenticationPrincipal UserAuth userAuth
+    ) {
         Long loginUserId = userAuth.getUserId();
-        GroupResponse response = groupService.saveGroup(
-                loginUserId,
-                request.name(),
-                request.coverImageUrl(),
-                request.access(),
-                request.type(),
-                request.interest()
-        );
+        GroupResponse response = groupService.saveGroup(loginUserId, request, coverImage);
 
         return new BaseResponse<>(response);
     }
 
-    @PutMapping("/{groupId}")
-    public BaseResponse<GroupResponse> updateGroup(@RequestBody @Valid UpdateGroupRequest request,
-                                                   @PathVariable Long groupId,
-                                                   @AuthenticationPrincipal UserAuth userAuth) {
+    @PutMapping(value = "/{groupId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<GroupResponse> updateGroup(
+            @PathVariable Long groupId,
+            @RequestPart("request") @Valid UpdateGroupRequest request,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage,
+            @AuthenticationPrincipal UserAuth userAuth
+    ) {
         Long loginUserId = userAuth.getUserId();
-        GroupResponse response = groupService.updateGroup(
-                loginUserId,
-                groupId,
-                request.name(),
-                request.description(),
-                request.coverImageUrl(),
-                request.access(),
-                request.type(),
-                request.interest()
-        );
+        GroupResponse response = groupService.updateGroup(loginUserId, groupId, request, coverImage);
 
         return new BaseResponse<>(response);
     }
