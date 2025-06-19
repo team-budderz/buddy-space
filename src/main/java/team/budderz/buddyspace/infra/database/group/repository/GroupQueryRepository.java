@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
 import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
-import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 
 public interface GroupQueryRepository {
 
@@ -13,7 +12,7 @@ public interface GroupQueryRepository {
 
     Page<GroupListResponse> findOnlineGroups(GroupSortType sortType, GroupInterest interest, Pageable pageable);
 
-    Page<GroupListResponse> findOfflineGroups(Neighborhood neighborhood, GroupSortType sortType, GroupInterest interest, Pageable pageable);
+    Page<GroupListResponse> findOfflineGroups(String address, GroupSortType sortType, GroupInterest interest, Pageable pageable);
 
     Page<GroupListResponse> searchGroupsByName(String keyword, GroupInterest interest, Pageable pageable);
 }

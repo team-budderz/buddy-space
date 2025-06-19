@@ -2,8 +2,6 @@ package team.budderz.buddyspace.infra.database.group.repository;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.Nullable;
@@ -16,7 +14,6 @@ import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.infra.database.group.entity.*;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 import team.budderz.buddyspace.infra.database.membership.entity.QMembership;
-import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,7 +29,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
     /**
      * 내 모임 목록 조회
      *
-     * @param userId 로그인 사용자 ID
+     * @param userId   로그인 사용자 ID
      * @param pageable 페이징 정보
      * @return 조회된 모임 목록 정보
      */
@@ -47,7 +44,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                         group.id,
                         group.name,
                         group.description,
-                        group.coverImageUrl,
+                        group.coverAttachment.id,
                         group.type,
                         group.interest,
                         membership.joinedAt
@@ -103,10 +100,11 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                     groupId,
                     t.get(group.name),
                     t.get(group.description),
-                    t.get(group.coverImageUrl),
+                    null,
                     t.get(group.type),
                     t.get(group.interest),
-                    memberCounts.getOrDefault(groupId, 0L)
+                    memberCounts.getOrDefault(groupId, 0L),
+                    t.get(group.coverAttachment.id)
             ));
         }
 
@@ -139,21 +137,21 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
     /**
      * 오프라인 모임 목록 조회 - 동네, 관심사, 정렬 포함
      *
-     * @param neighborhood 사용자 동네 정보
+     * @param address  사용자 동네 정보
      * @param sortType 정렬 (인기순/최신순)
      * @param interest 관심사
      * @param pageable 페이징 정보
      * @return 조회된 모임 목록
      */
     @Override
-    public Page<GroupListResponse> findOfflineGroups(Neighborhood neighborhood, GroupSortType sortType, GroupInterest interest, Pageable pageable) {
-        return findGroupsByCondition(Set.of(GroupType.OFFLINE, GroupType.HYBRID), neighborhood, sortType, interest, pageable);
+    public Page<GroupListResponse> findOfflineGroups(String address, GroupSortType sortType, GroupInterest interest, Pageable pageable) {
+        return findGroupsByCondition(Set.of(GroupType.OFFLINE, GroupType.HYBRID), address, sortType, interest, pageable);
     }
 
     /**
      * 모임 이름 검색 - 관심사, 정렬 포함
      *
-     * @param keyword 검색 키워드 (부분 일치)
+     * @param keyword  검색 키워드 (부분 일치)
      * @param interest 관심사
      * @param pageable 페이징 정보
      * @return 조회된 모임 목록
@@ -178,16 +176,16 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
             conditions.and(group.interest.eq(interest)); // 관심사 필터링
         }
 
-        List<GroupListResponse> content = queryFactory
-                .select(Projections.constructor(GroupListResponse.class,
+        List<Tuple> tuples = queryFactory
+                .select(
                         group.id,
                         group.name,
                         group.description,
-                        group.coverImageUrl,
                         group.type,
                         group.interest,
-                        membership.id.countDistinct().as("memberCount")
-                ))
+                        membership.id.countDistinct().as("memberCount"),
+                        group.coverAttachment.id
+                )
                 .from(group)
                 .leftJoin(membership).on(
                         membership.group.eq(group),
@@ -198,6 +196,19 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        List<GroupListResponse> content = tuples.stream()
+                .map(t -> new GroupListResponse(
+                        t.get(group.id),
+                        t.get(group.name),
+                        t.get(group.description),
+                        null,
+                        t.get(group.type),
+                        t.get(group.interest),
+                        t.get(membership.id.countDistinct()),
+                        t.get(group.coverAttachment.id)
+                ))
+                .toList();
 
         Long total = queryFactory
                 .select(group.count())
@@ -212,32 +223,32 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
      * 조건 기반 모임 목록 조회
      *
      * @param groupTypes 모임 유형 (온/오프라인)
-     * @param neighborhood 사용자 동네 정보
-     * @param sortType 정렬 (인기순/최신순)
-     * @param interest 관심사
-     * @param pageable 페이징 정보
+     * @param address    사용자 동네 정보
+     * @param sortType   정렬 (인기순/최신순)
+     * @param interest   관심사
+     * @param pageable   페이징 정보
      * @return 조회된 모임 목록
      */
     private Page<GroupListResponse> findGroupsByCondition(Set<GroupType> groupTypes,
-                                                          @Nullable Neighborhood neighborhood,
+                                                          @Nullable String address,
                                                           GroupSortType sortType,
                                                           GroupInterest interest,
                                                           Pageable pageable) {
         QGroup group = QGroup.group;
         QMembership membership = QMembership.membership;
 
-        BooleanBuilder conditions = buildConditions(groupTypes, interest, neighborhood);
+        BooleanBuilder conditions = buildConditions(groupTypes, interest, address);
 
-        JPAQuery<GroupListResponse> query = queryFactory
-                .select(Projections.constructor(GroupListResponse.class,
+        List<Tuple> tuples = queryFactory
+                .select(
                         group.id,
                         group.name,
                         group.description,
-                        group.coverImageUrl,
                         group.type,
                         group.interest,
-                        membership.id.countDistinct().as("memberCount")
-                ))
+                        membership.id.countDistinct().as("memberCount"),
+                        group.coverAttachment.id
+                )
                 .from(group)
                 .leftJoin(membership).on(
                         membership.group.eq(group),
@@ -246,15 +257,24 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 .where(conditions)
                 .groupBy(group.id)
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
+                .limit(pageable.getPageSize())
+                .orderBy(sortType == GroupSortType.POPULAR ?
+                        membership.id.count().desc() :
+                        group.createdAt.desc())
+                .fetch();
 
-        if (sortType == GroupSortType.POPULAR) {
-            query.orderBy(membership.id.count().desc());
-        } else {
-            query.orderBy(group.createdAt.desc());
-        }
-
-        List<GroupListResponse> content = query.fetch();
+        List<GroupListResponse> content = tuples.stream()
+                .map(t -> new GroupListResponse(
+                        t.get(group.id),
+                        t.get(group.name),
+                        t.get(group.description),
+                        null,
+                        t.get(group.type),
+                        t.get(group.interest),
+                        t.get(membership.id.countDistinct()),
+                        t.get(group.coverAttachment.id)
+                ))
+                .toList();
 
         Long total = queryFactory
                 .select(group.count())
@@ -265,7 +285,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-    private BooleanBuilder buildConditions(Set<GroupType> types, GroupInterest interest, Neighborhood neighborhood) {
+    private BooleanBuilder buildConditions(Set<GroupType> types, GroupInterest interest, String address) {
         QGroup group = QGroup.group;
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -279,8 +299,8 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
             builder.and(group.interest.eq(interest));
         }
 
-        if (neighborhood != null) {
-            builder.and(group.neighborhood.eq(neighborhood));
+        if (StringUtils.isNotBlank(address)) {
+            builder.and(group.address.eq(address));
         }
 
         return builder;

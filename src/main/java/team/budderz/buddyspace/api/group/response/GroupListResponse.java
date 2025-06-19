@@ -1,5 +1,6 @@
 package team.budderz.buddyspace.api.group.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
 import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 
@@ -13,5 +14,8 @@ public record GroupListResponse(
         String groupCoverImageUrl,
         GroupType groupType,
         GroupInterest groupInterest,
-        Long memberCount
+        Long memberCount,
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        Long coverAttachmentId
 ) {}

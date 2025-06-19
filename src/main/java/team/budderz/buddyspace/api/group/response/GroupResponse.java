@@ -1,5 +1,6 @@
 package team.budderz.buddyspace.api.group.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.GroupAccess;
 import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
@@ -15,17 +16,25 @@ public record GroupResponse(
         String groupCoverImageUrl,
         GroupAccess groupAccess,
         GroupType groupType,
-        GroupInterest groupInterest
+        GroupInterest groupInterest,
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        String groupAddress,
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        Boolean isNeighborhoodAuthRequired
 ) {
-    public static GroupResponse from(Group group) {
+    public static GroupResponse from(Group group, String coverImageUrl) {
         return new GroupResponse(
                 group.getId(),
                 group.getName(),
                 group.getDescription(),
-                group.getCoverImageUrl(),
+                coverImageUrl,
                 group.getAccess(),
                 group.getType(),
-                group.getInterest()
+                group.getInterest(),
+                group.getAddress(),
+                group.isNeighborhoodAuthRequired()
         );
     }
 }
