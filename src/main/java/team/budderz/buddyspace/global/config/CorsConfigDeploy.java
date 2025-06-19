@@ -10,13 +10,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@Profile("prod")
-public class CorsConfigProd {
+@Profile("deploy")
+public class CorsConfigDeploy {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // <- 프론트 엔드 주소 넣기
+        config.setAllowedOriginPatterns(List.of("https://api.budderz.co.kr"));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);

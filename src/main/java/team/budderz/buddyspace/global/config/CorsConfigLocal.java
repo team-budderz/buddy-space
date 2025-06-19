@@ -10,13 +10,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@Profile("dev")
-public class CorsConfigDev {
+@Profile("local")
+public class CorsConfigLocal {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // <- 프론트엔드 주소 넣기
+        config.setAllowedOriginPatterns(List.of("http://localhost:8080"));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
