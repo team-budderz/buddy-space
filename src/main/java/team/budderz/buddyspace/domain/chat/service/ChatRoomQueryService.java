@@ -7,7 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.chat.response.*;
+import team.budderz.buddyspace.api.chat.response.rest.*;
+import team.budderz.buddyspace.api.chat.response.ws.ChatMessageResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
 import team.budderz.buddyspace.domain.chat.validator.ChatValidator;
@@ -158,7 +159,7 @@ public class ChatRoomQueryService {
     }
 
     // 읽음 상태 조회 (보완용)  -------------------------------------------------------------------------------------------------
-    public ReadStatusResponse getReadStatus(Long groupId, Long roomId, Long userId) {
+    public ReadStatusRestResponse getReadStatus(Long groupId, Long roomId, Long userId) {
         // 그룹 멤버 + 방 검증
         groupValidator.validateMember(userId, groupId);
         ChatRoom room = chatValidator.validateRoom(roomId);
@@ -176,15 +177,15 @@ public class ChatRoomQueryService {
         int unreadCount = (int) chatMessageRepository.countByChatRoom_IdAndIdGreaterThan(roomId, myLastRead);
 
         // 모든 참가자 상태
-        List<ReadStatusResponse.ParticipantReadStatus> participants =
+        List<ReadStatusRestResponse.ParticipantReadStatus> participants =
                 chatParticipantRepository.findActiveByRoom(roomId).stream()
-                        .map(p -> new ReadStatusResponse.ParticipantReadStatus(
+                        .map(p -> new ReadStatusRestResponse.ParticipantReadStatus(
                                 p.getUser().getId(),
                                 p.getLastReadMessageId()
                         ))
                         .toList();
 
-        return new ReadStatusResponse(roomId, myLastRead, unreadCount, participants);
+        return new ReadStatusRestResponse(roomId, myLastRead, unreadCount, participants);
     }
 
 

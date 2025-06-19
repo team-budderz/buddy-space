@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.api.chat.response;
+package team.budderz.buddyspace.api.chat.response.rest;
 
 /**
  * 채팅방 생성 응답 DTO

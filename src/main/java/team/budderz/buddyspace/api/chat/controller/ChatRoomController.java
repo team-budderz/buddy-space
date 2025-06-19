@@ -5,17 +5,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import team.budderz.buddyspace.api.chat.request.AddParticipantRequest;
-import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.response.*;
+import team.budderz.buddyspace.api.chat.request.rest.AddParticipantRequest;
+import team.budderz.buddyspace.api.chat.request.rest.CreateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.request.rest.UpdateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.rest.*;
 import team.budderz.buddyspace.domain.chat.service.ChatRoomServiceFacade;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
 
 import java.util.List;
 
-// REST API: 방 생성, 방 조회 등
+/* 채팅방 CRUD */
 @RestController
 @RequestMapping("/api/group/{groupId}/chat/rooms")
 @RequiredArgsConstructor
@@ -139,13 +139,13 @@ public class ChatRoomController {
 
     // 읽음 상태 조회 -----------------------------------------------------------------------------------------------------
     @GetMapping("/{roomId}/read-status")
-    public BaseResponse<ReadStatusResponse> getReadStatus(
+    public BaseResponse<ReadStatusRestResponse> getReadStatus(
             @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId
     ) {
         Long userId = userAuth.getUserId();
-        ReadStatusResponse status =
+        ReadStatusRestResponse status =
                 chatRoomService.getReadStatus(groupId, roomId, userId);
         return new BaseResponse<>(status);
     }

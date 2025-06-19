@@ -3,10 +3,10 @@ package team.budderz.buddyspace.domain.chat.service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import team.budderz.buddyspace.api.chat.request.AddParticipantRequest;
-import team.budderz.buddyspace.api.chat.request.CreateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.request.UpdateChatRoomRequest;
-import team.budderz.buddyspace.api.chat.response.*;
+import team.budderz.buddyspace.api.chat.request.rest.AddParticipantRequest;
+import team.budderz.buddyspace.api.chat.request.rest.CreateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.request.rest.UpdateChatRoomRequest;
+import team.budderz.buddyspace.api.chat.response.rest.*;
 
 import java.util.List;
 
@@ -88,7 +88,7 @@ public class ChatRoomServiceFacade {
     }
 
     /** 읽음 상태 조회 */
-    public ReadStatusResponse getReadStatus(Long groupId, Long roomId, Long userId) {
+    public ReadStatusRestResponse getReadStatus(Long groupId, Long roomId, Long userId) {
         return chatRoomQueryService.getReadStatus(groupId, roomId, userId);
     }
 }

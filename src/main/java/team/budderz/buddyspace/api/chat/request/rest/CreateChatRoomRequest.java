@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.api.chat.request;
+package team.budderz.buddyspace.api.chat.request.rest;
 
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
 

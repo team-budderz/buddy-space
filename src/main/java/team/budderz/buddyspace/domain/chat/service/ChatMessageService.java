@@ -3,8 +3,9 @@ package team.budderz.buddyspace.domain.chat.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.chat.request.ChatMessageSendRequest;
-import team.budderz.buddyspace.api.chat.response.ChatMessageResponse;
+import team.budderz.buddyspace.api.chat.request.ws.ChatMessageSendRequest;
+import team.budderz.buddyspace.api.chat.response.ws.ChatMessageResponse;
+import team.budderz.buddyspace.api.chat.response.ws.ReadReceiptResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
@@ -17,6 +18,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +30,7 @@ public class ChatMessageService {
     private final ChatParticipantRepository chatParticipantRepository;
     private final UserRepository userRepository;
 
-    // 메시지 저장 -------------------------------------------------------------------------------------------------------
+    /** 메시지 저장  */
     public ChatMessageResponse saveChatMessage(ChatMessageSendRequest request) {
         // 채팅방 존재 + 유저 확인 및 조회
         ChatRoom chatRoom = getChatRoomOrThrow(request.roomId());
@@ -95,4 +97,5 @@ public class ChatMessageService {
                 chatMessage.getSentAt()
         );
     }
+
 }

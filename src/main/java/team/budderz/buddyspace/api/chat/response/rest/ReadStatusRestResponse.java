@@ -1,8 +1,9 @@
-package team.budderz.buddyspace.api.chat.response;
+package team.budderz.buddyspace.api.chat.response.rest;
 
 import java.util.List;
 
-public record ReadStatusResponse(
+/* HTTP API 를 위한 DTO */
+public record ReadStatusRestResponse(
         Long roomId,
         Long lastReadMessageId,
         int unreadCount,
