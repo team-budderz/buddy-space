@@ -13,6 +13,6 @@ public class NoticeNotificationTemplate implements NotificationTemplate{
 
     @Override
     public String generateContent(NotificationArgs args) {
-        return String.format("새 공지가 등록되었습니다.", args.senderName());
+        return String.format("[%s] 그룹에 새 공지가 등록되었습니다.", args.groupName());
     }
 }
