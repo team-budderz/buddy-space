@@ -296,7 +296,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 null,
                 tuple.get(group.type),
                 tuple.get(group.interest),
-                tuple.get(membership.id.countDistinct()),
+                tuple.get(membership.id.countDistinct().as("memberCount")),
                 tuple.get(group.coverAttachment.id)
         );
     }
