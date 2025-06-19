@@ -8,4 +8,6 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long>{
     Page<Notification> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);
+
+    Long countByUserIdAndIsReadFalse(Long userId);
 }
