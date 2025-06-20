@@ -39,7 +39,7 @@ public class NotificationController {
 
     // 알림 개수 조회
     @GetMapping("/notice-count")
-    public BaseResponse<Long> countUnreadNotifivation(
+    public BaseResponse<Long> countUnreadNotification(
             @AuthenticationPrincipal UserAuth userAuth
     ) {
         Long count = notificationService.countUnreadNotifications(userAuth.getUserId());
