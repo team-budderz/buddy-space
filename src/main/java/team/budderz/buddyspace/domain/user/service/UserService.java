@@ -4,6 +4,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -188,28 +190,34 @@ public class UserService {
         // 리더이면서 멤버가 존재하는 모임이 있는지 검증 (있으면 예외 발생)
         groupValidator.validateUserCanBeDeleted(userId);
 
-        // 사용자가 생성한 모든 모임 조회
-        List<Group> groups = groupRepository.findAllByLeader_Id(userId);
+        try {
+            // 사용자가 생성한 모든 모임 조회
+            List<Group> groups = groupRepository.findAllByLeader_Id(userId);
 
-        // 해당 모임들의 권한 설정 제거
-        for (Group group : groups) {
-            groupPermissionRepository.deleteAllByGroup_Id(group.getId());
+            // 해당 모임들의 권한 설정 제거
+            for (Group group : groups) {
+                groupPermissionRepository.deleteAllByGroup_Id(group.getId());
+            }
+
+            // 사용자가 속한 모든 모임에서 탈퇴 또는 가입 요청 취소 처리
+            membershipRepository.deleteAllByUser_Id(userId);
+
+            // 사용자가 생성한 모든 모임 삭제
+            groupRepository.deleteAllByLeader_Id(userId);
+
+            // 사용자 프로필 이미지 삭제 (기본 이미지가 아닌 경우)
+            Attachment profileAttachment = user.getProfileAttachment();
+            if (profileAttachment != null && !defaultImageProvider.isDefaultProfileKey(profileAttachment.getKey())) {
+                attachmentService.delete(profileAttachment.getId());
+            }
+
+            // 사용자 계정 삭제
+            userRepository.deleteById(userId);
+
+        } catch (Exception e) {
+            log.error("사용자 삭제 중 오류 발생: userId={}", userId, e);
+            throw new UserException(UserErrorCode.USER_DELETE_FAILED);
         }
-
-        // 사용자가 속한 모든 모임에서 탈퇴 또는 가입 요청 취소 처리
-        membershipRepository.deleteAllByUser_Id(userId);
-
-        // 사용자가 생성한 모든 모임 삭제
-        groupRepository.deleteAllByLeader_Id(userId);
-
-        // 사용자 프로필 이미지 삭제 (기본 이미지가 아닌 경우)
-        Attachment profileAttachment = user.getProfileAttachment();
-        if (profileAttachment != null && !defaultImageProvider.isDefaultProfileKey(profileAttachment.getKey())) {
-            attachmentService.delete(profileAttachment.getId());
-        }
-
-        // 사용자 계정 삭제
-        userRepository.deleteById(userId);
     }
 
     public void verifyPassword(Long userId, PasswordRequest request, HttpServletResponse response) {
