@@ -13,6 +13,7 @@ import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
 import team.budderz.buddyspace.domain.chat.validator.ChatValidator;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
@@ -35,6 +36,7 @@ public class ChatRoomQueryService {
     private final ChatRoomRepository chatRoomRepository;
     private final GroupValidator groupValidator;
     private final ChatValidator chatValidator;
+    private final UserProfileImageProvider profileImageProvider;
 
     // 채팅방 목록 조회 -------------------------------------------------------------------------------------------------
     public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
@@ -127,7 +129,7 @@ public class ChatRoomQueryService {
                     return new ChatRoomMemberResponse(
                             user.getId(),
                             user.getName(),
-                            user.getImageUrl()
+                            profileImageProvider.getProfileImageUrl(user)
                     );
                 })
                 .toList();

@@ -20,11 +20,6 @@ public record SaveGroupRequest(
         String name,
 
         /**
-         * 모임 커버 이미지 주소 (선택)
-         */
-        String coverImageUrl,
-
-        /**
          * 모임 공개 여부 (필수, GroupAccess Enum)
          * - PUBLIC, PRIVATE
          */

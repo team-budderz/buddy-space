@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.infra.client.service;
+package team.budderz.buddyspace.infra.client.s3;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,21 +36,13 @@ public class DefaultImageProvider {
         return s3Service.generateViewUrl(key);
     }
 
-    public String getDefaultProfileKey() {
-        return defaultProfileKey;
-    }
-
-    public String getDefaultGroupCoverKey(GroupType groupType) {
-        return switch (groupType) {
-            case ONLINE -> defaultGroupOnlineKey;
-            case OFFLINE -> defaultGroupOfflineKey;
-            case HYBRID -> defaultGroupHybridKey;
-        };
-    }
-
     public boolean isDefaultGroupCoverKey(String key) {
         return key.equals(defaultGroupOnlineKey) ||
                 key.equals(defaultGroupOfflineKey) ||
                 key.equals(defaultGroupHybridKey);
+    }
+
+    public boolean isDefaultProfileKey(String key) {
+        return key.equals(defaultProfileKey);
     }
 }

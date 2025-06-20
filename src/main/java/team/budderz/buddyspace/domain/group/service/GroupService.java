@@ -21,8 +21,8 @@ import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.global.response.PageResponse;
-import team.budderz.buddyspace.infra.client.constant.S3Directory;
-import team.budderz.buddyspace.infra.client.service.DefaultImageProvider;
+import team.budderz.buddyspace.infra.client.s3.S3Directory;
+import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
@@ -241,7 +241,7 @@ public class GroupService {
         Attachment coverAttachment = group.getCoverAttachment();
         // 모임 커버 이미지가 기본 이미지가 아니면 삭제
         if (coverAttachment != null && !defaultImageProvider.isDefaultGroupCoverKey(coverAttachment.getKey())) {
-            attachmentService.delete(group.getCoverAttachment().getId());
+            attachmentService.delete(coverAttachment.getId());
         }
 
         deleteAllGroupRelatedData(groupId);
@@ -268,7 +268,7 @@ public class GroupService {
         if (coverImage == null || coverImage.isEmpty()) {
             return null; // 기본 이미지인 경우 null
         }
-        AttachmentResponse uploaded = attachmentService.upload(coverImage, userId, S3Directory.GROUP_COVER);
+        AttachmentResponse uploaded = attachmentService.upload(coverImage, userId, S3Directory.GROUP_COVER.getPath());
         return attachmentService.findAttachmentOrThrow(uploaded.id());
     }
 

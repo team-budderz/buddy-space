@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.infra.client.exception;
+package team.budderz.buddyspace.infra.client.s3;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

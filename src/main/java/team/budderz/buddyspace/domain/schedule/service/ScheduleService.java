@@ -1,28 +1,28 @@
 package team.budderz.buddyspace.domain.schedule.service;
 
-import static team.budderz.buddyspace.domain.schedule.exception.ScheduleErrorCode.*;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.schedule.request.SaveScheduleRequest;
 import team.budderz.buddyspace.api.schedule.response.SaveScheduleResponse;
 import team.budderz.buddyspace.api.schedule.response.ScheduleDetailResponse;
 import team.budderz.buddyspace.api.schedule.response.ScheduleResponse;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.schedule.exception.ScheduleException;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
 import team.budderz.buddyspace.infra.database.schedule.entity.Schedule;
 import team.budderz.buddyspace.infra.database.schedule.repository.ScheduleRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+
+import static team.budderz.buddyspace.domain.schedule.exception.ScheduleErrorCode.*;
 
 @Service
 @Transactional
@@ -31,6 +31,7 @@ public class ScheduleService {
 	private final ScheduleRepository scheduleRepository;
 	private final UserRepository userRepository;
 	private final GroupValidator validator;
+	private final UserProfileImageProvider profileImageProvider;
 
 	public SaveScheduleResponse saveSchedule(Long userId, Long groupId, SaveScheduleRequest request) {
 		validator.validatePermission(userId, groupId, PermissionType.CREATE_SCHEDULE);
@@ -100,6 +101,8 @@ public class ScheduleService {
 			throw new ScheduleException(SCHEDULE_GROUP_MISMATCH);
 		}
 
-		return ScheduleDetailResponse.from(schedule);
+		String profileImageUrl = profileImageProvider.getProfileImageUrl(schedule.getAuthor());
+
+		return ScheduleDetailResponse.from(schedule, profileImageUrl);
 	}
 }

@@ -17,11 +17,6 @@ public record UpdateGroupRequest(
         String name,
 
         /**
-         * 모임 커버 이미지 주소
-         */
-        String coverImageUrl,
-
-        /**
          * 모임 소개글
          */
         @Size(max = 200, message = "모임 소개는 200자를 초과할 수 없습니다.")

@@ -4,15 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.api.user.request.*;
-import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
+import team.budderz.buddyspace.api.user.response.UserDetailResponse;
 import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
 import team.budderz.buddyspace.domain.user.service.UserService;
 import team.budderz.buddyspace.global.response.BaseResponse;
@@ -46,14 +45,17 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    @PatchMapping
+    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<UserUpdateResponse> updateUser(
             @AuthenticationPrincipal UserAuth userAuth,
             @CookieValue(value = "verified_password", required = false) String passwordToken,
             HttpServletResponse response,
-            @Valid @RequestBody UserUpdateRequest updateRequest
+            @RequestPart("request") @Valid UserUpdateRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
-        return new BaseResponse<>(userService.updateUser(userAuth.getUserId(), passwordToken, response, updateRequest));
+        return new BaseResponse<>(userService.updateUser(
+                userAuth.getUserId(), passwordToken, response, request, profileImage
+        ));
     }
 
     @PatchMapping("/password")
@@ -89,9 +91,8 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    //소셜로그인 테스트
     @GetMapping("/me")
-    public BaseResponse<SignupResponse> getMyInfo(@AuthenticationPrincipal UserAuth userAuth) {
+    public BaseResponse<UserDetailResponse> getMyInfo(@AuthenticationPrincipal UserAuth userAuth) {
         return new BaseResponse<>(userService.getMyPage(userAuth.getUserId()));
     }
 }

@@ -13,9 +13,9 @@ import team.budderz.buddyspace.domain.attachment.exception.AttachmentErrorCode;
 import team.budderz.buddyspace.domain.attachment.exception.AttachmentException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
-import team.budderz.buddyspace.infra.client.constant.S3Directory;
-import team.budderz.buddyspace.infra.client.service.S3Service;
-import team.budderz.buddyspace.infra.client.util.ThumbnailGenerator;
+import team.budderz.buddyspace.infra.client.s3.S3Directory;
+import team.budderz.buddyspace.infra.client.s3.S3Service;
+import team.budderz.buddyspace.infra.client.s3.ThumbnailGenerator;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.attachment.repository.AttachmentRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -49,7 +49,7 @@ public class AttachmentService {
     @Transactional
     public AttachmentResponse upload(MultipartFile file, Long uploaderId) {
         // 파일 유형 기반으로 S3 디렉토리 결정
-        String directory = determineDirectory(file);
+        String directory = determinePostDirectory(file).getPath();
         return upload(file, uploaderId, directory);
     }
 
@@ -191,16 +191,16 @@ public class AttachmentService {
      * @param file 업로드할 파일
      * @return S3 디렉토리 경로
      */
-    private String determineDirectory(MultipartFile file) {
+    private S3Directory determinePostDirectory(MultipartFile file) {
         String mimeType = getMimeType(file);
 
         if (mimeType != null && mimeType.startsWith("image/")) {
-            return S3Directory.ATTACHMENT_IMAGE;
+            return S3Directory.POST_IMAGE;
         }
         if (mimeType != null && mimeType.startsWith("video/")) {
-            return S3Directory.ATTACHMENT_VIDEO;
+            return S3Directory.POST_VIDEO;
         }
-        return S3Directory.ATTACHMENT_FILE;
+        return S3Directory.POST_FILE;
     }
 
     private String getMimeType(MultipartFile file) {
@@ -239,7 +239,7 @@ public class AttachmentService {
             byte[] imageBytes = os.toByteArray();
 
             String baseName = FileNameUtil.getBaseName(videoKey);
-            String thumbnailKey = S3Directory.THUMBNAIL + "/" + baseName + "_thumbnail.jpg";
+            String thumbnailKey = S3Directory.POST_THUMBNAIL + "/" + baseName + "_thumbnail.jpg";
 
             s3Service.upload(imageBytes, thumbnailKey, "image/jpeg");
             return thumbnailKey;

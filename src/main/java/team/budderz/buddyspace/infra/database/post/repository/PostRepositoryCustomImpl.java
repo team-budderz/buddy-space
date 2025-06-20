@@ -1,6 +1,6 @@
 package team.budderz.buddyspace.infra.database.post.repository;
 
-import com.querydsl.core.types.Projections;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class PostRepositoryCustomImpl implements PostRepositoryCustom{
+public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
@@ -22,14 +22,14 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     public List<FindsPostResponse> findsPost(Long groupId, int offset, int pageSize) {
         QPost post = QPost.post;
 
-        List<FindsPostResponse> results = jpaQueryFactory
-                .select(Projections.constructor(FindsPostResponse.class,
-                        post.user.imageUrl,
+        List<Tuple> tuples = jpaQueryFactory
+                .select(
+                        post.user.profileAttachment.id,
                         post.user.name,
                         post.createdAt,
                         post.content,
                         post.comments.size().longValue()
-                        ))
+                )
                 .from(post)
                 .where(
                         post.group.id.eq(groupId),
@@ -40,7 +40,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .limit(pageSize)
                 .fetch();
 
-        return results;
+        return tuples.stream()
+                .map(tuple -> toFindsPostResponse(tuple, post))
+                .toList();
     }
 
     // 게시글 공지 조회(내용 일부) (예약된 게시글 제외)
@@ -48,7 +50,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     public List<FindsNoticePostResponse> findsShortNoticePost(Long groupId) {
         QPost post = QPost.post;
 
-        List<String> contents  = jpaQueryFactory
+        List<String> contents = jpaQueryFactory
                 .select(post.content)
                 .from(post)
                 .where(
@@ -59,7 +61,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .orderBy(post.createdAt.desc())
                 .fetch();
 
-        return contents .stream()
+        return contents.stream()
                 .map(content -> {
                     String shortcontent = content.length() > 20 ? content.substring(0, 20) + "···" : content;
                     return new FindsNoticePostResponse(shortcontent);
@@ -72,14 +74,14 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     public List<FindsPostResponse> findsNoticePost(Long groupId) {
         QPost post = QPost.post;
 
-        List<FindsPostResponse> results = jpaQueryFactory
-                .select(Projections.constructor(FindsPostResponse.class,
-                        post.user.imageUrl,
+        List<Tuple> tuples = jpaQueryFactory
+                .select(
+                        post.user.profileAttachment.id,
                         post.user.name,
                         post.createdAt,
                         post.content,
                         post.comments.size().longValue()
-                ))
+                )
                 .from(post)
                 .where(
                         post.group.id.eq(groupId),
@@ -89,6 +91,20 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .orderBy(post.createdAt.desc())
                 .fetch();
 
-        return results;
+        return tuples.stream()
+                .map(tuple -> toFindsPostResponse(tuple, post))
+                .toList();
+    }
+
+    private FindsPostResponse toFindsPostResponse(Tuple tuple, QPost post) {
+        Long commentCount = Long.valueOf(tuple.get(post.comments.size()));
+        return new FindsPostResponse(
+                tuple.get(post.user.profileAttachment.id),
+                null,
+                tuple.get(post.user.name),
+                tuple.get(post.createdAt),
+                tuple.get(post.content),
+                commentCount != null ? commentCount : 0L
+        );
     }
 }

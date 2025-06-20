@@ -8,6 +8,7 @@ import team.budderz.buddyspace.api.comment.response.CommentResponse;
 import team.budderz.buddyspace.api.comment.response.FindsRecommentResponse;
 import team.budderz.buddyspace.api.comment.response.RecommentResponse;
 import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
@@ -30,6 +31,7 @@ public class CommentService {
     private final GroupRepository groupRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final UserProfileImageProvider profileImageProvider;
 
     // 댓글 저장
     @Transactional
@@ -130,7 +132,7 @@ public class CommentService {
 
     // 댓글 삭제
     @Transactional
-    public void deleteComment (
+    public void deleteComment(
             Long groupId,
             Long postId,
             Long commentId,
@@ -185,7 +187,10 @@ public class CommentService {
         List<Comment> comments = commentRepository.findByParentOrderByCreatedAtAsc(comment);
 
         return comments.stream()
-                .map(FindsRecommentResponse::from)
+                .map(recomment -> FindsRecommentResponse.from(
+                        recomment,
+                        profileImageProvider.getProfileImageUrl(recomment.getUser())
+                ))
                 .collect(Collectors.toList());
     }
 

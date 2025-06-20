@@ -10,9 +10,9 @@ public record FindsRecommentResponse(
         String content,
         LocalDateTime createdAt
 ) {
-    public static FindsRecommentResponse from(Comment comment) {
+    public static FindsRecommentResponse from(Comment comment, String userImgUrl) {
         return new FindsRecommentResponse(
-                comment.getUser().getImageUrl(),
+                userImgUrl,
                 comment.getUser().getName(),
                 comment.getContent(),
                 comment.getCreatedAt()
