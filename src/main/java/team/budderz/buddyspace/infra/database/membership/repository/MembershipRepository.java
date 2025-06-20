@@ -1,11 +1,10 @@
 package team.budderz.buddyspace.infra.database.membership.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
 import team.budderz.buddyspace.infra.database.membership.entity.Membership;
+import team.budderz.buddyspace.infra.database.user.entity.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +16,13 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     boolean existsByGroup_IdAndMemberRoleNot(Long groupId, MemberRole role);
 
+    boolean existsByGroup_Leader_IdAndMemberRoleNot(Long leaderId, MemberRole role);
+
     Optional<Membership> findByUser_IdAndGroup_Id(Long userId, Long groupId);
 
     void deleteByUser_IdAndGroup_Id(Long userId, Long groupId);
 
     List<Membership> findByGroup_IdAndJoinStatus(Long groupId, JoinStatus joinStatus);
 
-    // 그룹 참여 여부
-    boolean existsByUser_IdAndGroup_Id(Long userId, Long groupId);
+    Long user(User user);
 }

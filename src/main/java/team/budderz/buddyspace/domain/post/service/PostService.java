@@ -3,11 +3,13 @@ package team.budderz.buddyspace.domain.post.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.budderz.buddyspace.api.comment.response.FindsCommentResponse;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
 import team.budderz.buddyspace.api.post.response.*;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
@@ -21,7 +23,6 @@ import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final GroupValidator validator;
+    private final UserProfileImageProvider profileImageProvider;
 
     // 게시글 저장
     @Transactional
@@ -99,11 +101,11 @@ public class PostService {
         }
 
         // 예약 글이면서, 예약 시간이 현재 이후 일때만 reserveAt 수정 허용
-        boolean isResverable =  post.getReserveAt() != null &&
-                                post.getReserveAt().isAfter(LocalDateTime.now());
+        boolean isResverable = post.getReserveAt() != null &&
+                post.getReserveAt().isAfter(LocalDateTime.now());
 
         if (request.reserveAt() != null) {
-            if(!isResverable) {
+            if (!isResverable) {
                 throw new BaseException(PostErrorCode.NOT_ALLOWED_TO_EDIT_RESERVE_TIME);
             }
 
@@ -117,12 +119,12 @@ public class PostService {
 
     // 게시글 삭제
     @Transactional
-    public void deletePost (
+    public void deletePost(
             Long groupId,
             Long postId,
             Long userId
     ) {
-        Group group = validator.findGroupOrThrow(groupId);
+        validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
@@ -141,7 +143,8 @@ public class PostService {
         int pageSize = 10;
         int offset = page * pageSize;
 
-        return postRepository.findsPost(groupId, offset, pageSize);
+        List<FindsPostResponse> result = postRepository.findsPost(groupId, offset, pageSize);
+        return generateProfileImageUrls(result);
     }
 
     // 게시글 공지 조회(내용 일부)
@@ -157,23 +160,58 @@ public class PostService {
     public List<FindsPostResponse> findsNoticePost(
             Long groupId
     ) {
-        return postRepository.findsNoticePost(groupId);
+        List<FindsPostResponse> result = postRepository.findsNoticePost(groupId);
+        return generateProfileImageUrls(result);
     }
 
     // 게시글 상세 조회
     @Transactional(readOnly = true)
-    public FindPostResponse findPost(
-            Long groupId,
-            Long postId
-    ) {
-        Group group = validator.findGroupOrThrow(groupId);
+    public FindPostResponse findPost(Long groupId, Long postId) {
+        validator.findGroupOrThrow(groupId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(PostErrorCode.POST_ID_NOT_FOUND));
 
-        List<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+        List<Comment> allComments = commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+        List<Comment> topLevelComments = allComments.stream()
+                .filter(c -> c.getParent() == null)
+                .toList();
 
-        return FindPostResponse.from(post, comments);
+        String postUserImgUrl = profileImageProvider.getProfileImageUrl(
+                post.getUser().getProfileAttachment().getId()
+        );
 
+        List<FindsCommentResponse> commentResponses = topLevelComments.stream()
+                .map(comment -> {
+                    String commentUserImgUrl = profileImageProvider.getProfileImageUrl(
+                            comment.getUser().getProfileAttachment().getId()
+                    );
+                    return FindsCommentResponse.of(
+                            commentUserImgUrl,
+                            comment.getUser().getName(),
+                            comment.getContent(),
+                            comment.getCreatedAt(),
+                            (long) comment.getChildren().size()
+                    );
+                })
+                .toList();
+
+        return FindPostResponse.of(
+                postUserImgUrl,
+                post.getUser().getName(),
+                post.getCreatedAt(),
+                post.getContent(),
+                (long) post.getComments().size(),
+                commentResponses
+        );
+    }
+
+    private List<FindsPostResponse> generateProfileImageUrls(List<FindsPostResponse> result) {
+        return result.stream()
+                .map(post -> {
+                    String url = profileImageProvider.getProfileImageUrl(post.profileAttachmentId());
+                    return post.withProfileImageUrl(url);
+                })
+                .toList();
     }
 }

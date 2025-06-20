@@ -9,6 +9,7 @@ import team.budderz.buddyspace.api.missionpost.response.MissionPostResponse;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.missionpost.exception.MissionPostErrorCode;
 import team.budderz.buddyspace.domain.missionpost.exception.MissionPostException;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.infra.database.mission.entity.Mission;
 import team.budderz.buddyspace.infra.database.mission.repository.MissionRepository;
 import team.budderz.buddyspace.infra.database.missionpost.entity.MissionPost;
@@ -26,6 +27,7 @@ public class MissionPostService {
     private final MissionRepository missionRepository;
     private final UserRepository userRepository;
     private final GroupValidator validator;
+    private final UserProfileImageProvider profileImageProvider;
 
     @Transactional
     public void saveMissionPost(Long userId, Long groupId, Long missionId, MissionPostRequest request) {
@@ -102,6 +104,8 @@ public class MissionPostService {
             throw new MissionPostException(MissionPostErrorCode.MISSION_MISMATCH);
         }
 
-        return MissionPostDetailResponse.from(missionPost);
+        String profileImageUrl = profileImageProvider.getProfileImageUrl(missionPost.getAuthor());
+
+        return MissionPostDetailResponse.from(missionPost, profileImageUrl);
     }
 }

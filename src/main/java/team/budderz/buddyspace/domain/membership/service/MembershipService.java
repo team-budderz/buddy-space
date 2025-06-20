@@ -9,6 +9,7 @@ import team.budderz.buddyspace.domain.membership.exception.MembershipErrorCode;
 import team.budderz.buddyspace.domain.membership.exception.MembershipException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinPath;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
@@ -28,6 +29,7 @@ public class MembershipService {
     private final UserRepository userRepository;
     private final MembershipRepository membershipRepository;
     private final GroupValidator validator;
+    private final UserProfileImageProvider profileImageProvider;
 
     /**
      * 모임 가입 요청
@@ -57,7 +59,7 @@ public class MembershipService {
         Membership membership = Membership.fromRequest(user, group);
         membershipRepository.save(membership);
 
-        return MembershipResponse.of(group, List.of(membership));
+        return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
 
     /**
@@ -81,7 +83,7 @@ public class MembershipService {
 
         membership.approve();
 
-        return MembershipResponse.of(group, List.of(membership));
+        return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
 
     /**
@@ -136,7 +138,7 @@ public class MembershipService {
             return membershipRepository.save(newMembership);
         });
 
-        return MembershipResponse.of(group, List.of(membership));
+        return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
 
     /**
@@ -171,7 +173,7 @@ public class MembershipService {
         Membership membership = findMembershipByUserAndGroup(memberId, groupId);
         membership.block();
 
-        return MembershipResponse.of(group, List.of(membership));
+        return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
 
     /**
@@ -221,7 +223,7 @@ public class MembershipService {
 
         membership.updateMemberRole(role);
 
-        return MembershipResponse.of(group, List.of(membership));
+        return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
 
     /**
@@ -245,7 +247,7 @@ public class MembershipService {
         oldLeader.updateMemberRole(MemberRole.MEMBER);
         newLeader.updateMemberRole(MemberRole.LEADER);
 
-        return MembershipResponse.of(group, List.of(oldLeader, newLeader));
+        return MembershipResponse.of(group, List.of(oldLeader, newLeader), profileImageProvider);
     }
 
     /**
@@ -262,7 +264,7 @@ public class MembershipService {
 
         List<Membership> members = membershipRepository.findByGroup_IdAndJoinStatus(groupId, JoinStatus.APPROVED);
 
-        return MembershipResponse.of(group, members);
+        return MembershipResponse.of(group, members, profileImageProvider);
     }
 
     /**
@@ -279,7 +281,7 @@ public class MembershipService {
 
         List<Membership> members = membershipRepository.findByGroup_IdAndJoinStatus(groupId, JoinStatus.REQUESTED);
 
-        return MembershipResponse.of(group, members);
+        return MembershipResponse.of(group, members, profileImageProvider);
     }
 
     /**
@@ -296,7 +298,7 @@ public class MembershipService {
 
         List<Membership> members = membershipRepository.findByGroup_IdAndJoinStatus(groupId, JoinStatus.BLOCKED);
 
-        return MembershipResponse.of(group, members);
+        return MembershipResponse.of(group, members, profileImageProvider);
     }
 
     private User findUserById(Long userId) {

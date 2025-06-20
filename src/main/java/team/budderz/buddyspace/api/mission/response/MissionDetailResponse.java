@@ -14,7 +14,7 @@ public record MissionDetailResponse(
         String authorImageUrl,
         LocalDate createdAt
 ) {
-    public static MissionDetailResponse from(Mission mission) {
+    public static MissionDetailResponse from(Mission mission, String authorImageUrl) {
         return new MissionDetailResponse(
                 mission.getTitle(),
                 mission.getDescription(),
@@ -22,7 +22,7 @@ public record MissionDetailResponse(
                 String.valueOf(mission.getEndedAt()),
                 mission.getFrequency(),
                 mission.getAuthor().getName(),
-                mission.getAuthor().getImageUrl(),
+                authorImageUrl,
                 mission.getCreatedAt().toLocalDate()
         );
     }

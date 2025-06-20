@@ -115,6 +115,14 @@ public class GroupValidator {
         }
     }
 
+    public void validateUserCanBeDeleted(Long userId) {
+        boolean hasOtherMembers
+                = membershipRepository.existsByGroup_Leader_IdAndMemberRoleNot(userId, MemberRole.LEADER);
+        if (hasOtherMembers) {
+            throw new GroupException(GroupErrorCode.MEMBERS_EXIST_IN_GROUP);
+        }
+    }
+
     public boolean isExistsGroupByCode(String code) {
         return groupRepository.existsByInviteCode(code);
     }

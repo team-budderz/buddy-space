@@ -1,22 +1,15 @@
 package team.budderz.buddyspace.domain.vote.service;
 
-import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.request.SubmitVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
 import team.budderz.buddyspace.api.vote.response.VoteDetailResponse;
 import team.budderz.buddyspace.api.vote.response.VoteResponse;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.domain.vote.exception.VoteException;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
@@ -30,6 +23,13 @@ import team.budderz.buddyspace.infra.database.vote.repository.VoteOptionReposito
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteSelectionRepository;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
+
 @Service
 @RequiredArgsConstructor
 public class VoteService {
@@ -39,6 +39,7 @@ public class VoteService {
 	private final VoteRepository voteRepository;
 	private final VoteSelectionRepository voteSelectionRepository;
 	private final GroupValidator validator;
+	private final UserProfileImageProvider profileImageProvider;
 
 	@Transactional
 	public SaveVoteResponse saveVote(Long userId, Long groupId, SaveVoteRequest request) {
@@ -46,6 +47,7 @@ public class VoteService {
 		Group group = validator.findGroupOrThrow(groupId);
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new VoteException(USER_NOT_FOUND));
+		String profileImageUrl = profileImageProvider.getProfileImageUrl(user);
 
 		Vote vote = Vote.builder()
 			.title(request.title())
@@ -56,7 +58,7 @@ public class VoteService {
 			.build();
 
 		voteRepository.save(vote);
-		return SaveVoteResponse.from(vote);
+		return SaveVoteResponse.from(vote, profileImageUrl);
 	}
 
 	@Transactional
@@ -72,7 +74,9 @@ public class VoteService {
 		voteSelectionRepository.deleteAllByVoteOptionIn(voteId);
 		voteOptionRepository.deleteAllByVoteId(vote.getId());
 		vote.update(request.title(), request.isAnonymous(), request.options());
-		return SaveVoteResponse.from(vote);
+
+		String profileImageUrl = profileImageProvider.getProfileImageUrl(vote.getAuthor());
+		return SaveVoteResponse.from(vote, profileImageUrl);
 	}
 
 	@Transactional
@@ -111,8 +115,10 @@ public class VoteService {
 			throw new VoteException(VOTE_GROUP_MISMATCH);
 		}
 
+		String profileImageUrl = profileImageProvider.getProfileImageUrl(vote.getAuthor());
+
 		List<VoteDetailResponse.OptionDetailResponse> optionDetailResponses = getOptionDetailResponses(vote);
-		return VoteDetailResponse.from(vote, optionDetailResponses);
+		return VoteDetailResponse.from(vote, optionDetailResponses, profileImageUrl);
 	}
 
 	private List<VoteDetailResponse.OptionDetailResponse> getOptionDetailResponses(Vote vote) {

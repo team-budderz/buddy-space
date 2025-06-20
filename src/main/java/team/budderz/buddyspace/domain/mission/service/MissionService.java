@@ -13,6 +13,7 @@ import team.budderz.buddyspace.api.mission.response.UpdateMissionResponse;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.mission.exception.MissionErrorCode;
 import team.budderz.buddyspace.domain.mission.exception.MissionException;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
 import team.budderz.buddyspace.infra.database.mission.entity.Mission;
@@ -30,6 +31,7 @@ public class MissionService {
     private final MissionRepository missionRepository;
     private final UserRepository userRepository;
     private final GroupValidator validator;
+    private final UserProfileImageProvider profileImageProvider;
 
     @Transactional
     public SaveMissionResponse saveMission(Long userId, Long groupId, SaveMissionRequest request) {
@@ -118,6 +120,8 @@ public class MissionService {
             throw new MissionException(MissionErrorCode.MISSION_GROUP_MISMATCH);
         }
 
-        return MissionDetailResponse.from(mission);
+        String profileImageUrl = profileImageProvider.getProfileImageUrl(mission.getAuthor());
+
+        return MissionDetailResponse.from(mission, profileImageUrl);
     }
 }

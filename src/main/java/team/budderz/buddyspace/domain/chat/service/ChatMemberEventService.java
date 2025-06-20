@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.chat.response.rest.ChatRoomMemberResponse;
+import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 
@@ -27,7 +27,7 @@ public class ChatMemberEventService {
                 .map(cp -> new ChatRoomMemberResponse(
                         cp.getUser().getId(),
                         cp.getUser().getName(),
-                        cp.getUser().getImageUrl()
+                        profileImageProvider.getProfileImageUrl(cp.getUser())
                 ))
                 .toList();
 

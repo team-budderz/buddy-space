@@ -11,12 +11,12 @@ public record MissionPostDetailResponse(
         String authorImageUrl,
         LocalDate createdAt
 ) {
-    public static MissionPostDetailResponse from(MissionPost missionPost) {
+    public static MissionPostDetailResponse from(MissionPost missionPost, String authorImageUrl) {
         return new MissionPostDetailResponse(
                 missionPost.getContents(),
                 missionPost.getMission().getTitle(),
                 missionPost.getAuthor().getName(),
-                missionPost.getAuthor().getImageUrl(),
+                authorImageUrl,
                 missionPost.getCreatedAt().toLocalDate()
         );
     }
