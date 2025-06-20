@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
 import team.budderz.buddyspace.infra.database.membership.entity.Membership;
-import team.budderz.buddyspace.infra.database.user.entity.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +22,4 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     void deleteByUser_IdAndGroup_Id(Long userId, Long groupId);
 
     List<Membership> findByGroup_IdAndJoinStatus(Long groupId, JoinStatus joinStatus);
-
-    Long user(User user);
 }
