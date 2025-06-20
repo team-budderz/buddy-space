@@ -30,6 +30,8 @@ import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRe
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
+import team.budderz.buddyspace.infra.database.user.entity.UserProvider;
+import team.budderz.buddyspace.infra.database.user.entity.UserRole;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
 import java.time.Duration;
@@ -72,8 +74,8 @@ public class UserService {
                 .gender(signupRequest.gender())
                 .address(signupRequest.address())
                 .phone(signupRequest.phone())
-                .provider(signupRequest.provider())
-                .role(signupRequest.role())
+                .provider(UserProvider.LOCAL)
+                .role(UserRole.USER)
                 .build();
 
         userRepository.save(user);
