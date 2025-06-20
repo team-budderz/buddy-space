@@ -8,11 +8,11 @@ import team.budderz.buddyspace.infra.database.notification.entity.NotificationTy
 public class JoinApprovedNotificationTemplate implements NotificationTemplate{
     @Override
     public NotificationType getType() {
-        return NotificationType.COMMENT;
+        return NotificationType.GROUP_JOIN_APPROVED;
     }
 
     @Override
     public String generateContent(NotificationArgs args) {
-        return String.format("관리자가 가입 요청을 수락했습니다.", args.senderName());
+        return "관리자가 가입 요청을 수락했습니다.";
     }
 }

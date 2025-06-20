@@ -8,7 +8,7 @@ import team.budderz.buddyspace.infra.database.notification.entity.NotificationTy
 public class JoinRequestNotificationTemplate implements NotificationTemplate{
     @Override
     public NotificationType getType() {
-        return NotificationType.COMMENT;
+        return NotificationType.GROUP_JOIN_REQUEST;
     }
 
     @Override
