@@ -177,15 +177,11 @@ public class PostService {
                 .filter(c -> c.getParent() == null)
                 .toList();
 
-        String postUserImgUrl = profileImageProvider.getProfileImageUrl(
-                post.getUser().getProfileAttachment().getId()
-        );
+        String postUserImgUrl = profileImageProvider.getProfileImageUrl(post.getUser());
 
         List<FindsCommentResponse> commentResponses = topLevelComments.stream()
                 .map(comment -> {
-                    String commentUserImgUrl = profileImageProvider.getProfileImageUrl(
-                            comment.getUser().getProfileAttachment().getId()
-                    );
+                    String commentUserImgUrl = profileImageProvider.getProfileImageUrl(comment.getUser());
                     return FindsCommentResponse.of(
                             commentUserImgUrl,
                             comment.getUser().getName(),

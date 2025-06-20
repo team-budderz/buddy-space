@@ -20,9 +20,7 @@ public record MembershipResponse(
         List<MemberResponse> result = members.stream()
                 .map(membership -> {
                     User user = membership.getUser();
-                    Long attachmentId = null;
-                    if (user.getProfileAttachment() != null) attachmentId = user.getProfileAttachment().getId();
-                    String url = profileImageProvider.getProfileImageUrl(attachmentId);
+                    String url = profileImageProvider.getProfileImageUrl(user);
 
                     return MemberResponse.of(
                             user.getId(),
