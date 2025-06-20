@@ -76,7 +76,7 @@ public class ChatRoomServiceFacade {
         chatRoomCommandService.addParticipant(groupId, roomId, userId, req);
     }
 
-    /** 참여자 제거 */
+    /** 참여자 제거(강퇴) */
     @Transactional
     public void removeParticipant(
             Long groupId,
@@ -85,6 +85,16 @@ public class ChatRoomServiceFacade {
             Long targetUserId
     ) {
         chatRoomCommandService.removeParticipant(groupId, roomId, userId, targetUserId);
+    }
+
+    /** 본인 채팅방 나가기 */
+    @Transactional
+    public void leaveChatRoom(
+            Long groupId,
+            Long roomId,
+            Long userId
+    ) {
+        chatRoomCommandService.leaveChatRoom(groupId, roomId, userId);
     }
 
     /** 읽음 상태 조회 */

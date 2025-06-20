@@ -35,6 +35,7 @@
     <div class="chat-controls">
         <button onclick="connect()">Connect</button>
         <button onclick="disconnect()">Disconnect</button>
+        <button onclick="leaveRoom()">Leave Room</button>
     </div>
 
     <div class="chat-controls">
@@ -180,6 +181,36 @@
         );
     }
 
+    // 채팅방 나가기
+    function leaveRoom() {
+        const groupId = localStorage.getItem('groupId');
+        const roomId  = localStorage.getItem('roomId');
+        const token   = localStorage.getItem('accessToken');
+
+        fetch(
+            `http://localhost:8080/api/group/${groupId}/chat/rooms/${roomId}/participants/me`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': token
+                }
+            }
+        )
+            .then(res => {
+                if (res.status === 204) {
+                    // WS 연결 끊기
+                    disconnect();
+                    // 화면에서 방 나간 뒤 처리 (예: 다른 화면으로 이동)
+                    alert('채팅방을 나갔습니다.');
+                } else {
+                    return res.json().then(body => Promise.reject(body));
+                }
+            })
+            .catch(err => {
+                alert('나가기 실패: ' + (err.message || JSON.stringify(err)));
+            });
+    }
+
 
     // ────────── 전체 읽음 동기화 핸들러 ──────────────────────────────
 
@@ -254,6 +285,7 @@
         currentSub?.unsubscribe();
         readSub?.unsubscribe();
         readSyncSub?.unsubscribe();
+        memberSub ?.unsubscribe();
     }
 
     /* ───────── 메시지 전송 ───────── */

@@ -191,6 +191,36 @@ public class ChatRoomCommandService {
         broadcastMembersAfterCommit(roomId);
     }
 
+    /**
+     * 채팅방 나가기
+     */
+    public void leaveChatRoom(Long groupId, Long roomId, Long userId) {
+        groupValidator.validateMember(userId, groupId);
+
+        // 채팅방 존재 여부 검증
+        ChatRoom room = chatValidator.validateRoom(roomId);
+        if (!room.getGroup().getId().equals(groupId)) {
+            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        // 참여자 검증 및 조회
+        ChatParticipant participant =
+                chatValidator.validateParticipant(roomId, userId);
+
+        // isActive = false, leftAt 세팅
+        participant.leave();
+
+        // 커밋 후 브로드캐스트
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        chatMemberEventService.broadcastMembers(roomId);
+                    }
+                }
+        );
+    }
+
     // -------------------- Private Helpers --------------------
 
     /** 유저 조회 및 예외 통일 */
@@ -299,33 +329,4 @@ public class ChatRoomCommandService {
         });
     }
 
-     /**
-     * 퇴장(본인 나가기)
-     *
-     * @param groupId 모임 ID
-     * @param roomId  채팅방 ID
-     * @param userId  요청 사용자 ID
-     */
-     public void leaveChatRoom(Long groupId, Long roomId, Long userId) {
-         // 1) 모임 멤버 여부 검증
-         groupValidator.validateMember(userId, groupId);
-
-         // 2) 채팅방 존재 여부 검증
-         ChatRoom room = chatValidator.validateRoom(roomId);
-
-         // 3) 해당 방의 참가자 여부 검증 및 조회
-         ChatParticipant participant =
-                 chatValidator.validateParticipant(roomId, userId);
-
-         // 4) 참가 비활성 처리
-         participant.leave();
-
-         // 5) 트랜잭션 커밋 후 실시간 멤버 브로드캐스트
-         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-             @Override
-             public void afterCommit() {
-                 chatMemberEventService.broadcastMembers(roomId);
-             }
-         });
-     }
 }
