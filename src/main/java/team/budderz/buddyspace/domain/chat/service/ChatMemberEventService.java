@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.chat.response.ChatRoomMemberResponse;
+import team.budderz.buddyspace.api.chat.response.rest.ChatRoomMemberResponse;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 
@@ -17,6 +18,7 @@ public class ChatMemberEventService {
 
     private final ChatParticipantRepository chatParticipantRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserProfileImageProvider profileImageProvider;
 
     /** 방의 멤버 변동(입장/퇴장/초대/강퇴) 발생 시 호출 */
     public void broadcastMembers(Long roomId) {
