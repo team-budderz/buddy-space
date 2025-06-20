@@ -6,4 +6,5 @@ import team.budderz.buddyspace.infra.database.notification.entity.NotificationTy
 public interface NotificationTemplate {
     NotificationType getType();
     String generateContent(NotificationArgs args);
+    String generateUrl(NotificationArgs args);
 }

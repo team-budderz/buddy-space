@@ -15,4 +15,9 @@ public class CommentNotificationTemplate implements NotificationTemplate{
     public String generateContent(NotificationArgs args) {
         return String.format("%s 님이 내 게시글에 댓글을 남겼습니다.", args.senderName());
     }
+
+    @Override
+    public String generateUrl(NotificationArgs args) {
+        return "/api/group/" + args.groupId() + "/posts/" + args.postId() + "/comments/" + args.commentId();
+    }
 }
