@@ -9,18 +9,24 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import team.budderz.buddyspace.api.auth.response.TokenResponse;
 import team.budderz.buddyspace.api.user.request.*;
-import team.budderz.buddyspace.api.user.response.LoginResponse;
 import team.budderz.buddyspace.api.user.response.SignupResponse;
+import team.budderz.buddyspace.api.user.response.UserDetailResponse;
 import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
+import team.budderz.buddyspace.domain.attachment.service.AttachmentService;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
-import team.budderz.buddyspace.global.security.JwtTokenProvider;
+import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.security.JwtUtil;
-import team.budderz.buddyspace.global.security.UserAuth;
 import team.budderz.buddyspace.global.util.RedisUtil;
-import team.budderz.buddyspace.infra.database.membership.entity.Membership;
+import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
+import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
+import team.budderz.buddyspace.infra.database.group.entity.Group;
+import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
+import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
@@ -41,11 +47,16 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final MembershipRepository membershipRepository;
     private final RedisUtil redisUtil;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final DefaultImageProvider defaultImageProvider;
+    private final UserProfileImageProvider profileImageProvider;
+    private final AttachmentService attachmentService;
+    private final GroupValidator groupValidator;
+    private final GroupRepository groupRepository;
+    private final GroupPermissionRepository groupPermissionRepository;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
-        if(userRepository.findByEmail(signupRequest.email()).isPresent()) {
+        if (userRepository.findByEmail(signupRequest.email()).isPresent()) {
             throw new UserException(UserErrorCode.INVALID_USER_EMAIL);
         }
 
@@ -73,7 +84,7 @@ public class UserService {
                 () -> new UserException(UserErrorCode.INVALID_USER_EMAIL)
         );
 
-        if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
 
@@ -101,16 +112,16 @@ public class UserService {
 
     public void logout(String token) {
         // 토큰 없을 경우
-        if(token == null) {
+        if (token == null) {
             throw new UserException(UserErrorCode.INVALID_USER_REQUEST);
         }
 
-        if(token.startsWith("Bearer")) {
+        if (token.startsWith("Bearer")) {
             token = token.substring(7);
         }
 
         // 무결성 검증
-        if(!jwtUtil.validateToken(token)) {
+        if (!jwtUtil.validateToken(token)) {
             throw new UserException(UserErrorCode.INVALID_USER_REQUEST);
         }
 
@@ -128,14 +139,31 @@ public class UserService {
     }
 
     @Transactional
-    public UserUpdateResponse updateUser(Long userId, String passwordToken, HttpServletResponse response, UserUpdateRequest updateRequest) {
+    public UserUpdateResponse updateUser(
+            Long userId, String passwordToken, HttpServletResponse response,
+            UserUpdateRequest updateRequest, MultipartFile profileImage
+    ) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
-        validatePasswordToken(userId, passwordToken, response);
-        user.updateUser(updateRequest.address(), updateRequest.phone(), updateRequest.imageUrl());
 
-        return UserUpdateResponse.from(user);
+        validatePasswordToken(userId, passwordToken, response);
+        user.updateUser(updateRequest.address(), updateRequest.phone());
+
+        // 기존 프로필 이미지가 기본 이미지가 아니면 삭제
+        Attachment oldAttachment = user.getProfileAttachment();
+        if (oldAttachment != null && !defaultImageProvider.isDefaultProfileKey(oldAttachment.getKey())) {
+            attachmentService.delete(oldAttachment.getId());
+        }
+
+        // 새 프로필 이미지 업로드 및 생성
+        Attachment profileAttachment = profileImageProvider.getProfileAttachment(profileImage, userId);
+        user.updateProfileAttachment(profileAttachment);
+
+        // 프로필 이미지 url
+        String profileImageUrl = profileImageProvider.getProfileImageUrl(user);
+
+        return UserUpdateResponse.from(user, profileImageUrl);
     }
 
     @Transactional
@@ -152,9 +180,35 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId, String passwordToken, HttpServletResponse response) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
         validatePasswordToken(userId, passwordToken, response);
 
+        // 리더이면서 멤버가 존재하는 모임이 있는지 검증 (있으면 예외 발생)
+        groupValidator.validateUserCanBeDeleted(userId);
+
+        // 사용자가 생성한 모든 모임 조회
+        List<Group> groups = groupRepository.findAllByLeader_Id(userId);
+
+        // 해당 모임들의 권한 설정 제거
+        for (Group group : groups) {
+            groupPermissionRepository.deleteAllByGroup_Id(group.getId());
+        }
+
+        // 사용자가 속한 모든 모임에서 탈퇴 또는 가입 요청 취소 처리
         membershipRepository.deleteAllByUser_Id(userId);
+
+        // 사용자가 생성한 모든 모임 삭제
+        groupRepository.deleteAllByLeader_Id(userId);
+
+        // 사용자 프로필 이미지 삭제 (기본 이미지가 아닌 경우)
+        Attachment profileAttachment = user.getProfileAttachment();
+        if (profileAttachment != null && !defaultImageProvider.isDefaultProfileKey(profileAttachment.getKey())) {
+            attachmentService.delete(profileAttachment.getId());
+        }
+
+        // 사용자 계정 삭제
         userRepository.deleteById(userId);
     }
 
@@ -167,7 +221,7 @@ public class UserService {
 
         // 인증 토큰 발급 & Redis 저장
         String verificationToken = UUID.randomUUID().toString();
-        redisUtil.setData("pw:"+user.getId(), verificationToken, 300_000);
+        redisUtil.setData("pw:" + user.getId(), verificationToken, 300_000);
 
         // 쿠키에 저장
         ResponseCookie cookie = ResponseCookie.from("verified_password", verificationToken)
@@ -197,16 +251,18 @@ public class UserService {
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {
-        if(!passwordEncoder.matches(rawPassword, encodedPassword)) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new UserException(UserErrorCode.INVALID_USER_PASSWORD);
         }
     }
 
-    //소셜로그인 테스트
-    public SignupResponse getMyPage(Long userId) {
+    public UserDetailResponse getMyPage(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
-        return SignupResponse.from(user);
+
+        String profileImageUrl = profileImageProvider.getProfileImageUrl(user);
+
+        return UserDetailResponse.from(user, profileImageUrl);
     }
 }

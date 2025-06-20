@@ -8,9 +8,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import team.budderz.buddyspace.global.entity.BaseEntity;
+import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
+
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -45,10 +46,6 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String phone;
 
-    @Setter
-    @Column(columnDefinition = "TEXT")
-    private String imageUrl;
-
     @Enumerated(EnumType.STRING)
     private UserProvider provider; //이넘 LOCAL,GOOGLE
 
@@ -61,6 +58,10 @@ public class User extends BaseEntity {
 
     @Column(columnDefinition = "BOOLEAN DEFAULT false", nullable = false)
     private boolean isDeleted;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_attachment_id")
+    private Attachment profileAttachment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "neighborhood_id")
@@ -79,10 +80,9 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public void updateUser(String address, String phone, String imageUrl) {
+    public void updateUser(String address, String phone) {
         this.address = address;
         this.phone = phone;
-        this.imageUrl = imageUrl;
     }
 
     public void updateUserPassword(String password) {
@@ -92,5 +92,9 @@ public class User extends BaseEntity {
     public void updateUserAddress(String address, Neighborhood neighborhood) {
         this.address = address;
         this.neighborhood = neighborhood;
+    }
+
+    public void updateProfileAttachment(Attachment profileAttachment) {
+        this.profileAttachment = profileAttachment;
     }
 }
