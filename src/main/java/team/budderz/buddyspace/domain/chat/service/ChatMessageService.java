@@ -8,6 +8,8 @@ import team.budderz.buddyspace.api.chat.response.ws.ChatMessageResponse;
 import team.budderz.buddyspace.api.chat.response.ws.ReadReceiptResponse;
 import team.budderz.buddyspace.domain.chat.exception.ChatErrorCode;
 import team.budderz.buddyspace.domain.chat.exception.ChatException;
+import team.budderz.buddyspace.domain.chat.validator.ChatValidator;
+import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.entity.MessageType;
@@ -29,6 +31,7 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final UserRepository userRepository;
+    private final ChatValidator chatValidator;
 
     /** 메시지 저장  */
     public ChatMessageResponse saveChatMessage(ChatMessageSendRequest request) {
@@ -50,6 +53,24 @@ public class ChatMessageService {
     private ChatRoom getChatRoomOrThrow(Long roomId) {
         return chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
+    }
+
+    /** 채팅방 메시지 삭제*/
+    public void deleteMessageByRoom(Long roomId, Long messageId, Long userId) {
+        chatValidator.validateParticipant(roomId, userId);
+
+        // 메시지 조회·검증
+        ChatMessage msg = chatValidator.validateMessageInRoom(messageId, roomId);
+
+        // 본인 + 5분 검증
+        if (!msg.getSender().getId().equals(userId)) {
+            throw new ChatException(ChatErrorCode.NO_PERMISSION);
+        }
+        if (msg.getSentAt().isBefore(LocalDateTime.now().minusMinutes(5))) {
+            throw new ChatException(ChatErrorCode.MESSAGE_DELETE_TIME_EXPIRED);
+        }
+
+        chatMessageRepository.delete(msg);
     }
 
     /** 유저 조회 및 예외 */
