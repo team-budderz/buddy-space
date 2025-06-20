@@ -18,6 +18,6 @@ public class JoinRequestNotificationTemplate implements NotificationTemplate{
 
     @Override
     public String generateUrl(NotificationArgs args) {
-        return "/api/group/" + args.groupId();
+        return "/api/groups/" + args.groupId() + "/members/" + args.memberId() + "/approve";
     }
 }
