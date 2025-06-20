@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.infra.client.service;
+package team.budderz.buddyspace.infra.client.s3;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import team.budderz.buddyspace.global.exception.BaseException;
-import team.budderz.buddyspace.infra.client.exception.S3ErrorCode;
 
 import java.io.IOException;
 import java.time.Duration;

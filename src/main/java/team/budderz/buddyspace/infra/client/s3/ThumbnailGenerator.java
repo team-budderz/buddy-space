@@ -1,4 +1,4 @@
-package team.budderz.buddyspace.infra.client.util;
+package team.budderz.buddyspace.infra.client.s3;
 
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
