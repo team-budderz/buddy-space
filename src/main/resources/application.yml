@@ -6,6 +6,8 @@ spring:
   jackson:
     time-zone: Asia/Seoul
 
+---
+
 kakao:
   map:
     host: https://dapi.kakao.com
@@ -79,7 +81,8 @@ spring:
 logging:
   level:
     org.springframework.security: DEBUG
-
+  file:
+    path: ./logs
 
 #  data:
 #    mongodb:
@@ -136,6 +139,3 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  file:
-    path: /var/log/app
-    name: spring-app.log
