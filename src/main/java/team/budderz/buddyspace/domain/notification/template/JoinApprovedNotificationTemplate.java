@@ -15,4 +15,9 @@ public class JoinApprovedNotificationTemplate implements NotificationTemplate{
     public String generateContent(NotificationArgs args) {
         return "관리자가 가입 요청을 수락했습니다.";
     }
+
+    @Override
+    public String generateUrl(NotificationArgs args) {
+        return "/api/group/" + args.groupId();
+    }
 }

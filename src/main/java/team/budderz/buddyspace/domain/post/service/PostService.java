@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.comment.response.FindsCommentResponse;
+import team.budderz.buddyspace.api.notification.response.NotificationArgs;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
 import team.budderz.buddyspace.api.post.response.*;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
+import team.budderz.buddyspace.domain.notification.service.NotificationService;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.exception.BaseException;
@@ -15,6 +17,10 @@ import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
+import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
+import team.budderz.buddyspace.infra.database.membership.entity.Membership;
+import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
+import team.budderz.buddyspace.infra.database.notification.entity.NotificationType;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -33,6 +39,8 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final GroupValidator validator;
     private final UserProfileImageProvider profileImageProvider;
+    private final MembershipRepository membershipRepository;
+    private final NotificationService notificationService;
 
     // 게시글 저장
     @Transactional
@@ -49,9 +57,7 @@ public class PostService {
         validator.validatePermission(userId, groupId, PermissionType.CREATE_POST);
 
         if (request.isNotice()) {
-            if (!Objects.equals(userId, group.getLeader().getId())) {
-                throw new BaseException(PostErrorCode.NOTICE_POST_ONLY_ALLOWED_BY_LEADER);
-            }
+            validator.validateLeader(userId, groupId);
 
             Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
 
@@ -69,6 +75,36 @@ public class PostService {
                 .build();
 
         postRepository.save(post);
+
+        // 알림 트리거 추가
+        List<Membership> members = membershipRepository.findByGroup_IdAndJoinStatus(groupId, JoinStatus.APPROVED);
+
+        for (Membership membership : members) {
+            User member = membership.getUser();
+
+            if (member.getId().equals(userId)) continue; // 작성자 제외
+
+            NotificationType type = post.getIsNotice() ?
+                    NotificationType.NOTICE :
+                    NotificationType.POST;
+
+            NotificationArgs baseArgs = new NotificationArgs(
+                    user.getName(),
+                    group.getName(),
+                    null,
+                    member.getId(),
+                    post.getGroup().getId(),
+                    post.getId(),
+                    null
+            );
+
+            notificationService.sendNotice(
+                    type,
+                    member,
+                    group,
+                    baseArgs
+            );
+        }
         return SavePostResponse.from(post);
     }
 

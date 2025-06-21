@@ -15,4 +15,9 @@ public class PostNotificationTemplate implements NotificationTemplate{
     public String generateContent(NotificationArgs args) {
         return String.format("%s 님이 새 게시글을 올렸습니다.", args.senderName());
     }
+
+    @Override
+    public String generateUrl(NotificationArgs args) {
+        return "/api/group/" + args.groupId() + "/posts/" + args.postId();
+    }
 }
