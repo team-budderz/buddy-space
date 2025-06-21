@@ -34,7 +34,6 @@ import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
 @RequiredArgsConstructor
 public class VoteService {
 	private final UserRepository userRepository;
-	private final GroupRepository groupRepository;
 	private final VoteOptionRepository voteOptionRepository;
 	private final VoteRepository voteRepository;
 	private final VoteSelectionRepository voteSelectionRepository;
@@ -73,8 +72,10 @@ public class VoteService {
 
 		voteSelectionRepository.deleteAllByVoteOptionIn(voteId);
 		voteOptionRepository.deleteAllByVoteId(vote.getId());
+		// TODO: 에러 발생 확인 코드
+		// vote = voteRepository.findById(voteId)
+		// 	.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
 		vote.update(request.title(), request.isAnonymous(), request.options());
-
 		String profileImageUrl = profileImageProvider.getProfileImageUrl(vote.getAuthor());
 		return SaveVoteResponse.from(vote, profileImageUrl);
 	}
