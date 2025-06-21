@@ -77,4 +77,6 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             @Param("lastRead") Long lastReadMessageId
     );
 
+
+
 }

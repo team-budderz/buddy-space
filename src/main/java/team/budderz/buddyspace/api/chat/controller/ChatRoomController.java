@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import team.budderz.buddyspace.api.chat.request.rest.AddParticipantRequest;
 import team.budderz.buddyspace.api.chat.request.rest.CreateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.request.rest.UpdateChatRoomRequest;
 import team.budderz.buddyspace.api.chat.response.rest.*;
@@ -111,30 +110,6 @@ public class ChatRoomController {
         // (서비스에서 validateMember 등 체크)
         List<ChatRoomMemberResponse> members = chatRoomService.getChatRoomMembers(groupId, roomId, userId);
         return new BaseResponse<>(members);
-    }
-
-    // 참여자 초대  -----------------------------------------------------------------------------------------------------
-    @PostMapping("/{roomId}/participants")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void addParticipant(
-            @AuthenticationPrincipal UserAuth userAuth,
-            @PathVariable Long groupId,
-            @PathVariable Long roomId,
-            @RequestBody AddParticipantRequest req
-    ) {
-        chatRoomService.addParticipant(groupId, roomId, userAuth.getUserId(), req);
-    }
-
-    // 참여자 강퇴  -----------------------------------------------------------------------------------------------------
-    @DeleteMapping("/{roomId}/participants/{targetUserId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeParticipant(
-            @AuthenticationPrincipal UserAuth userAuth,
-            @PathVariable Long groupId,
-            @PathVariable Long roomId,
-            @PathVariable Long targetUserId
-    ) {
-        chatRoomService.removeParticipant(groupId, roomId, userAuth.getUserId(), targetUserId);
     }
 
     // 읽음 상태 조회 -----------------------------------------------------------------------------------------------------

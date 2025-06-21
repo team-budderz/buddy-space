@@ -106,7 +106,9 @@ public class ChatWebSocketController {
         Long userId    = extractSenderId(headers);
         Long messageId = payload.messageId();
 
-        // WS 전용 삭제
+        try {
+
+            // WS 전용 삭제
         chatMessageService.deleteMessageByRoom(roomId, messageId, userId);
 
         // 삭제 이벤트 브로드캐스트 (클라이언트가 이걸 받아서 li 제거)
@@ -122,6 +124,9 @@ public class ChatWebSocketController {
                 "/sub/chat/rooms/" + roomId + "/messages",
                 event
         );
+        } catch (Exception e) {
+            sendErrorToClient("메시지 삭제에 실패했습니다: " + e.getMessage(), userId);
+        }
     }
 
     // ────────────────────────────────────────────────────────────────────────
