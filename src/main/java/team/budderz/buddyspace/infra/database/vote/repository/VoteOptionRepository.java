@@ -9,10 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import team.budderz.buddyspace.infra.database.vote.entity.VoteOption;
 
 public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
-	@Modifying
+	@Modifying(clearAutomatically = true)
 	@Query("DELETE FROM VoteOption vo WHERE vo.vote.id = :voteId")
 	void deleteAllByVoteId(Long voteId);
-
-	@Query("SELECT vo.id FROM VoteOption vo WHERE vo.vote.id = :voteId")
-	List<Long> findAllVoteOptionIdsByVoteId(Long voteId);
 }

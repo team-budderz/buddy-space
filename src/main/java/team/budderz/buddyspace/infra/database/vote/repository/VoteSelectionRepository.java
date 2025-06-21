@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import team.budderz.buddyspace.infra.database.vote.entity.VoteSelection;
 
 public interface VoteSelectionRepository extends JpaRepository<VoteSelection, Long> {
-	@Modifying
+	@Modifying(clearAutomatically = true)
 	@Query("""
 		DELETE FROM VoteSelection vs
 		WHERE vs.voteOption.id IN (

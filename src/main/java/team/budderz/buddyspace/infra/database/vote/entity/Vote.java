@@ -78,7 +78,7 @@ public class Vote extends BaseEntity {
     public void update(String title, boolean isAnonymous, List<String> options) {
         this.title = title;
         this.isAnonymous = isAnonymous;
-        this.options = new ArrayList<>();
+        this.options.clear();
         for (String optionName : options) {
             addOption(optionName);
         }

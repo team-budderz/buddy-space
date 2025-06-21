@@ -1,11 +1,13 @@
 spring:
+  config:
+    activate:
+      on-profile: "deploy"
   jackson:
     time-zone: Asia/Seoul
   datasource:
-    url: jdbc:postgresql://localhost:5432/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/${DEPLOY_DB_NAME}
+    username: ${DEPLOY_DB_USERNAME}
+    password: ${DEPLOY_DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,8 +19,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
+    mongodb:
+      uri: mongodb://mongodb:27017/${DEPLOY_MONGO_DB_NAME}
   security:
     oauth2:
       client:
@@ -29,7 +33,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
+            redirect-uri: ${SOCIAL_LOGIN_REDIRECT_URI}
             client-name: Google
         provider:
           google:
@@ -40,9 +44,11 @@ spring:
 
 logging:
   level:
-    org.springframework.security: DEBUG
-  file:
-    path: ./logs
+    root: INFO
+    team.budderz.buddyspace: DEBUG
+    org.springframework: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 kakao:
   map:
@@ -70,9 +76,3 @@ app:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
-
-#  data:
-#    mongodb:
-#      uri: mongodb://localhost:27017/mydatabase
-
-
