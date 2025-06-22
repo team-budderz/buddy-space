@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.chat.request.ws.ChatMessageSendRequest;
+import team.budderz.buddyspace.api.chat.request.ws.DeleteMessageRequest;
 import team.budderz.buddyspace.api.chat.request.ws.ReadReceiptRequest;
 import team.budderz.buddyspace.api.chat.response.ws.ChatMessageResponse;
 import team.budderz.buddyspace.api.chat.response.ws.ReadReceiptResponse;
@@ -44,7 +45,7 @@ public class ChatWebSocketController {
             ChatMessageResponse savedMessage = chatMessageService.saveChatMessage(completedRequest);
 
             // Broadcast
-            String destination = "/sub/chat/rooms/" + completedRequest.roomId();
+            String destination = "/sub/chat/rooms/" + completedRequest.roomId() + "/messages";
             messagingTemplate.convertAndSend(destination, savedMessage);
 
         } catch (Exception e) {
@@ -89,6 +90,43 @@ public class ChatWebSocketController {
                 "/sub/chat/rooms/" + roomId + "/read-sync",
                 allReads
         );
+    }
+
+    /**
+     * WebSocket 으로 내 메시지 삭제 요청
+     * 클라이언트에서 stompClient.send("/pub/chat/rooms/{roomId}/delete", …)
+     */
+    @MessageMapping("/chat/rooms/{roomId}/delete")
+    @Transactional
+    public void deleteMessageWs(
+            @DestinationVariable Long roomId,
+            DeleteMessageRequest payload,
+            MessageHeaders headers
+    ) {
+        Long userId    = extractSenderId(headers);
+        Long messageId = payload.messageId();
+
+        try {
+
+            // WS 전용 삭제
+        chatMessageService.deleteMessageByRoom(roomId, messageId, userId);
+
+        // 삭제 이벤트 브로드캐스트 (클라이언트가 이걸 받아서 li 제거)
+        Map<String,Object> event = Map.of(
+                "event","message:delete",
+                "data", Map.of(
+                        "roomId",    roomId,
+                        "messageId", messageId,
+                        "senderId",  userId
+                )
+        );
+        messagingTemplate.convertAndSend(
+                "/sub/chat/rooms/" + roomId + "/messages",
+                event
+        );
+        } catch (Exception e) {
+            sendErrorToClient("메시지 삭제에 실패했습니다: " + e.getMessage(), userId);
+        }
     }
 
     // ────────────────────────────────────────────────────────────────────────
