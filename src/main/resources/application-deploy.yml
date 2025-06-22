@@ -79,3 +79,13 @@ app:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
+
+---
+
+spring:
+  servlet:
+    multipart:
+      maxFileSize: 20MB
+      maxRequestSize: 100MB
+
+---
