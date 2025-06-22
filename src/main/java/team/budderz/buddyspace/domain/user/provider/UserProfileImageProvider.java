@@ -22,7 +22,7 @@ public class UserProfileImageProvider {
         if (profile == null || profile.isEmpty()) {
             return null; // 기본 이미지인 경우 null
         }
-        AttachmentResponse uploaded = attachmentService.upload(profile, userId, S3Directory.PROFILE.getPath());
+        AttachmentResponse uploaded = attachmentService.upload(profile, userId, S3Directory.PROFILE);
         return attachmentService.findAttachmentOrThrow(uploaded.id());
     }
 

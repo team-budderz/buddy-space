@@ -268,7 +268,7 @@ public class GroupService {
         if (coverImage == null || coverImage.isEmpty()) {
             return null; // 기본 이미지인 경우 null
         }
-        AttachmentResponse uploaded = attachmentService.upload(coverImage, userId, S3Directory.GROUP_COVER.getPath());
+        AttachmentResponse uploaded = attachmentService.upload(coverImage, userId, S3Directory.GROUP_COVER);
         return attachmentService.findAttachmentOrThrow(uploaded.id());
     }
 
