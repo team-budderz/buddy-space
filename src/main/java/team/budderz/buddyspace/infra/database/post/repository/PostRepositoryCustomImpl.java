@@ -10,6 +10,7 @@ import team.budderz.buddyspace.infra.database.post.entity.QPost;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -97,14 +98,15 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     }
 
     private FindsPostResponse toFindsPostResponse(Tuple tuple, QPost post) {
-        Long commentCount = Long.valueOf(tuple.get(post.comments.size()));
         return new FindsPostResponse(
                 tuple.get(post.user.profileAttachment.id),
                 null,
                 tuple.get(post.user.name),
                 tuple.get(post.createdAt),
                 tuple.get(post.content),
-                commentCount != null ? commentCount : 0L
+                Optional.ofNullable(tuple.get(post.comments.size()))
+                        .map(Integer::longValue)
+                        .orElse(0L)
         );
     }
 }
