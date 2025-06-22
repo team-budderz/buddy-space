@@ -9,4 +9,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     Long countByGroupIdAndIsNoticeTrue(Long groupId);
 
     void deleteAllByGroup_Id(Long groupId);
+
+    List<Post> findByGroup_Id(Long groupId);
 }

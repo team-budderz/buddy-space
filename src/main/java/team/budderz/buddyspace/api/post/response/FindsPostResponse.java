@@ -23,4 +23,15 @@ public record FindsPostResponse(
                 this.commentsNum
         );
     }
+
+    public FindsPostResponse withRenderedContent(String renderedContent) {
+        return new FindsPostResponse(
+                this.profileAttachmentId,
+                this.userImgUrl,
+                this.userName,
+                this.createdAt,
+                renderedContent,
+                this.commentsNum
+        );
+    }
 }
