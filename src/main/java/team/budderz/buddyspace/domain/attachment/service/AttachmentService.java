@@ -26,7 +26,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -40,20 +42,6 @@ public class AttachmentService {
     private final Tika tika = new Tika(); // 파일 내용 기반 MIME 타입 판별기
 
     /**
-     * 게시글 첨부파일 업로드
-     *
-     * @param file       업로드할 파일
-     * @param uploaderId 업로더 ID
-     * @return 업로드된 첨부파일 정보
-     */
-    @Transactional
-    public AttachmentResponse upload(MultipartFile file, Long uploaderId) {
-        // 파일 유형 기반으로 S3 디렉토리 결정
-        String directory = determinePostDirectory(file).getPath();
-        return upload(file, uploaderId, directory);
-    }
-
-    /**
      * 첨부파일 업로드
      * - 동영상의 경우 썸네일 생성하여 함께 저장
      *
@@ -63,7 +51,7 @@ public class AttachmentService {
      * @return 업로드된 첨부파일 정보
      */
     @Transactional
-    public AttachmentResponse upload(MultipartFile file, Long uploaderId, String directory) {
+    public AttachmentResponse upload(MultipartFile file, Long uploaderId, S3Directory directory) {
         // 파일 null 이거나 비어 있으면 예외
         if (file == null || file.isEmpty()) {
             throw new AttachmentException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND);
@@ -100,6 +88,7 @@ public class AttachmentService {
                 .map(s3Service::generateViewUrl)
                 .orElse(null);
 
+        log.info("첨부파일 S3 업로드 및 DB 저장 성공: attachmentId={}", saved.getId());
         return AttachmentResponse.of(saved, viewUrl, thumbnailUrl);
     }
 
@@ -131,6 +120,10 @@ public class AttachmentService {
     public String getViewUrl(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
         return s3Service.generateViewUrl(attachment.getKey());
+    }
+
+    public String getViewUrlByKey(String key) {
+        return s3Service.generateViewUrl(key);
     }
 
     /**
@@ -175,6 +168,22 @@ public class AttachmentService {
     }
 
     /**
+     * 첨부파일 일괄 삭제
+     *
+     * @param attachmentIds 삭제할 첨부파일 ID 리스트
+     */
+    @Transactional
+    public void deleteAttachments(List<Long> attachmentIds) {
+        for (Long id : attachmentIds) {
+            try {
+                delete(id);
+            } catch (Exception e) {
+                log.warn("첨부파일 일괄 삭제 중 실패: id={}, errorMessage={}", id, e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
      * 첨부파일 조회
      *
      * @param attachmentId 첨부파일 ID
@@ -185,25 +194,22 @@ public class AttachmentService {
                 .orElseThrow(() -> new AttachmentException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND));
     }
 
-    /**
-     * 실제 MIME 타입 기반 S3 디렉토리 결정 - 게시글 첨부파일용
-     *
-     * @param file 업로드할 파일
-     * @return S3 디렉토리 경로
-     */
-    private S3Directory determinePostDirectory(MultipartFile file) {
-        String mimeType = getMimeType(file);
-
-        if (mimeType != null && mimeType.startsWith("image/")) {
-            return S3Directory.POST_IMAGE;
-        }
-        if (mimeType != null && mimeType.startsWith("video/")) {
-            return S3Directory.POST_VIDEO;
-        }
-        return S3Directory.POST_FILE;
+    public Attachment findAttachmentByKey(String key) {
+        return attachmentRepository.findByKey(key)
+                .orElseThrow(() -> new AttachmentException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND));
     }
 
-    private String getMimeType(MultipartFile file) {
+    public List<Attachment> findAttachmentsByIds(Set<Long> attachmentIds) {
+        return attachmentRepository.findAllById(attachmentIds);
+    }
+
+    /**
+     * 첨부파일 MIME 타입 결정
+     *
+     * @param file 첨부파일
+     * @return 해당 첨부파일의 MIME 타입
+     */
+    public String getMimeType(MultipartFile file) {
         try {
             return tika.detect(file.getInputStream()); // 파일 내용 기반으로 MIME 타입 감지
 
@@ -214,18 +220,13 @@ public class AttachmentService {
         }
     }
 
+    // 첨부파일이 동영상인지 확인
     private boolean isVideo(MultipartFile file) {
         String mimeType = getMimeType(file);
         return mimeType.startsWith("video/");
     }
 
-    /**
-     * 동영상 썸네일 생성 및 S3 업로드
-     *
-     * @param file     업로드한 동영상 파일
-     * @param videoKey 원본 동영상의 S3 Key
-     * @return 썸네일의 S3 Key
-     */
+    // 동영상 썸네일 생성 및 S3, DB 업로드
     private String uploadThumbnail(MultipartFile file, String videoKey) {
         File tempVideo = null;
         try {
@@ -239,9 +240,10 @@ public class AttachmentService {
             byte[] imageBytes = os.toByteArray();
 
             String baseName = FileNameUtil.getBaseName(videoKey);
-            String thumbnailKey = S3Directory.POST_THUMBNAIL + "/" + baseName + "_thumbnail.jpg";
+            String thumbnailKey = S3Directory.POST_THUMBNAIL.getPath() + "/" + baseName + "_thumbnail.jpg";
 
             s3Service.upload(imageBytes, thumbnailKey, "image/jpeg");
+
             return thumbnailKey;
 
         } catch (IOException | JCodecException e) {
