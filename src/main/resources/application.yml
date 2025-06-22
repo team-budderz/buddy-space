@@ -36,6 +36,14 @@ jwt:
 ---
 
 spring:
+  servlet:
+    multipart:
+      maxFileSize: 20MB
+      maxRequestSize: 100MB
+
+---
+
+spring:
   config:
     activate:
       on-profile: "local"
