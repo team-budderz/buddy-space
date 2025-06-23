@@ -1,13 +1,17 @@
 package team.budderz.buddyspace.domain.post.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.comment.response.FindsCommentResponse;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
 import team.budderz.buddyspace.api.post.response.*;
+import team.budderz.buddyspace.domain.attachment.service.PostAttachmentService;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
+import team.budderz.buddyspace.domain.notification.service.NotificationService;
+import team.budderz.buddyspace.domain.post.event.PostEvent;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.exception.BaseException;
@@ -15,6 +19,7 @@ import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
+import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
