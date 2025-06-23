@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.domain.comment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.comment.request.CommentRequest;
@@ -8,6 +9,8 @@ import team.budderz.buddyspace.api.comment.response.CommentResponse;
 import team.budderz.buddyspace.api.comment.response.FindsRecommentResponse;
 import team.budderz.buddyspace.api.comment.response.RecommentResponse;
 import team.budderz.buddyspace.api.notification.response.NotificationArgs;
+import team.budderz.buddyspace.domain.comment.event.CommentEvent;
+import team.budderz.buddyspace.domain.comment.event.ReplyEvent;
 import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
 import team.budderz.buddyspace.domain.notification.service.NotificationService;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
@@ -36,6 +39,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final UserProfileImageProvider profileImageProvider;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 댓글 저장
     @Transactional
@@ -65,25 +69,7 @@ public class CommentService {
 
         // 알림 전송
         User postWriter = post.getUser();
-
-        if(!postWriter.getId().equals(userId)) {
-            NotificationArgs args = new NotificationArgs(
-                    user.getName(),
-                    post.getGroup().getName(),
-                    null,
-                    postWriter.getId(),
-                    post.getGroup().getId(),
-                    post.getId(),
-                    comment.getId()
-            );
-
-            notificationService.sendNotice(
-                    NotificationType.COMMENT,
-                    postWriter,
-                    post.getGroup(),
-                    args
-            );
-        }
+        eventPublisher.publishEvent(new CommentEvent(comment, user));
 
         return CommentResponse.from(comment);
     }
@@ -125,49 +111,8 @@ public class CommentService {
         comment.getChildren().add(reComment);
 
         // 알림 전송
-        User postWriter = post.getUser();
-        User parentCommentWriter  = reComment.getParent().getUser();
+        eventPublisher.publishEvent(new ReplyEvent(reComment, user));
 
-        NotificationArgs argsForPostWriter  = new NotificationArgs(
-                user.getName(),
-                post.getGroup().getName(),
-                null,
-                postWriter.getId(),
-                post.getGroup().getId(),
-                post.getId(),
-                reComment.getId()
-        );
-
-        NotificationArgs argsForParentCommentWriter = new NotificationArgs(
-                user.getName(),
-                post.getGroup().getName(),
-                null,
-                parentCommentWriter.getId(),
-                post.getGroup().getId(),
-                post.getId(),
-                reComment.getId()
-        );
-
-        // 게시글 작성자에게 알림
-        if (!postWriter.getId().equals(userId)) {
-            notificationService.sendNotice(
-                    NotificationType.REPLY,
-                    postWriter,
-                    post.getGroup(),
-                    argsForPostWriter
-            );
-        }
-
-        // 부모 댓글 작성자에게 알림 (작성자, 게시글 작성자 다를 때)
-        if (!parentCommentWriter.getId().equals(userId)
-                && !parentCommentWriter.getId().equals(postWriter.getId())) {
-            notificationService.sendNotice(
-                    NotificationType.REPLY,
-                    parentCommentWriter,
-                    post.getGroup(),
-                    argsForParentCommentWriter
-            );
-        }
         return RecommentResponse.from(reComment);
     }
 
