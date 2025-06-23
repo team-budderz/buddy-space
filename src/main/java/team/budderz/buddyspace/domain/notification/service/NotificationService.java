@@ -1,10 +1,14 @@
 package team.budderz.buddyspace.domain.notification.service;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.client.protocol.decoder.StreamGroupInfoDecoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.notification.response.FindsNotificationResponse;
 import team.budderz.buddyspace.api.notification.response.NotificationArgs;
@@ -27,9 +31,10 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final SsePushService ssePushService;
+    private final EntityManager entityManager;
 
     // 알림 보내기
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendNotice(
             NotificationType type,
             User receiver,
@@ -49,7 +54,7 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
-
+        entityManager.flush(); // 강제 플러시
         ssePushService.send(receiver.getId(), notification);
     }
 
