@@ -49,7 +49,7 @@ public class Group extends BaseEntity {
     private String address;
 
     @Column(name = "is_neighborhood_auth_required")
-    private boolean isNeighborhoodAuthRequired;
+    private Boolean isNeighborhoodAuthRequired;
 
     @ManyToOne
     @JoinColumn(name = "leader_id", nullable = false)
@@ -65,6 +65,7 @@ public class Group extends BaseEntity {
         this.type = request.type();
         this.interest = request.interest();
         this.leader = leader;
+        this.isNeighborhoodAuthRequired = setNeighborhoodAuthRequired(request.type());
     }
 
     public void updateInviteCode(String inviteCode) {
@@ -93,5 +94,12 @@ public class Group extends BaseEntity {
         if (request.access() != null) this.access = request.access();
         if (request.type() != null) this.type = request.type();
         if (request.interest() != null) this.interest = request.interest();
+    }
+
+    private Boolean setNeighborhoodAuthRequired(GroupType type) {
+        if (type.equals(GroupType.ONLINE)) {
+            return null;
+        }
+        return false;
     }
 }

@@ -47,9 +47,9 @@ public class MembershipService {
         Group group = validator.findGroupOrThrow(groupId);
 
         // 오프라인, 온/오프라인 모임의 경우 검증
-        if (!group.getType().equals(GroupType.ONLINE)) {
+        if (!group.getType().equals(GroupType.ONLINE) && group.getIsNeighborhoodAuthRequired() != null) {
             // 동네 인증 사용자만 가입 요청 가능한 모임에 동네 미인증 사용자인 경우 예외
-            if (group.isNeighborhoodAuthRequired() && user.getNeighborhood() == null) {
+            if (group.getIsNeighborhoodAuthRequired() && user.getNeighborhood() == null) {
                 throw new GroupException(GroupErrorCode.NEIGHBOR_VERIFICATION_REQUIRED);
             }
             // 모임의 동네와 사용자의 동네가 일치하지 않을 경우 예외

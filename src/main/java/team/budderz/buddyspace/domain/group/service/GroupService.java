@@ -21,8 +21,8 @@ import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.global.response.PageResponse;
-import team.budderz.buddyspace.infra.client.s3.S3Directory;
 import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
+import team.budderz.buddyspace.infra.client.s3.S3Directory;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
@@ -43,8 +43,6 @@ import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
 import java.util.List;
 
-import static team.budderz.buddyspace.domain.group.constant.GroupDefaults.DEFAULT_PAGE_SIZE;
-
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -63,6 +61,8 @@ public class GroupService {
     private final GroupValidator validator;
     private final AttachmentService attachmentService;
     private final DefaultImageProvider defaultImageProvider;
+
+    public static final int DEFAULT_PAGE_SIZE = 100;
 
     /**
      * 모임 생성
@@ -192,9 +192,11 @@ public class GroupService {
         // 모임 리더 여부 검증
         validator.validateLeader(userId, groupId);
         Group group = validator.findGroupOrThrow(groupId);
+        String coverImageUrl = getCoverImageUrl(group, group.getCoverAttachment());
 
         if (neighborhoodAuthRequired == null || neighborhoodAuthRequired.equals(false)) {
             group.updateNeighborhoodAuthRequired(false);
+            return GroupResponse.from(group, coverImageUrl);
         }
 
         // 온라인 모임인 경우 예외
@@ -211,8 +213,6 @@ public class GroupService {
         }
 
         group.updateNeighborhoodAuthRequired(true);
-
-        String coverImageUrl = getCoverImageUrl(group, group.getCoverAttachment());
 
         return GroupResponse.from(group, coverImageUrl);
     }

@@ -26,9 +26,6 @@ public record GroupResponse(
         Boolean isNeighborhoodAuthRequired
 ) {
     public static GroupResponse from(Group group, String coverImageUrl) {
-        Boolean isAuthRequired = null;
-        if (group.isNeighborhoodAuthRequired()) isAuthRequired = true;
-
         Long coverAttachmentId = null;
         if (group.getCoverAttachment() != null) coverAttachmentId = group.getCoverAttachment().getId();
 
@@ -42,7 +39,7 @@ public record GroupResponse(
                 group.getType(),
                 group.getInterest(),
                 group.getAddress(),
-                isAuthRequired
+                group.getIsNeighborhoodAuthRequired()
         );
     }
 }
