@@ -189,16 +189,19 @@ public class AttachmentService {
      * @param attachmentId 첨부파일 ID
      * @return 첨부파일 엔티티
      */
+    @Transactional(readOnly = true)
     public Attachment findAttachmentOrThrow(Long attachmentId) {
         return attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new AttachmentException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public Attachment findAttachmentByKey(String key) {
         return attachmentRepository.findByKey(key)
                 .orElseThrow(() -> new AttachmentException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public List<Attachment> findAttachmentsByIds(Set<Long> attachmentIds) {
         return attachmentRepository.findAllById(attachmentIds);
     }
@@ -218,6 +221,13 @@ public class AttachmentService {
             return Optional.ofNullable(file.getContentType()) // 클라이언트가 보낸 파일 유형이 있다면 사용
                     .orElse("application/octet-stream"); // 없으면 기본값
         }
+    }
+
+    // 첨부파일이 이미지인지 확인
+    public boolean isImage(MultipartFile file) {
+        if (file == null) return true; // 기본 이미지
+        String mimeType = getMimeType(file);
+        return mimeType.startsWith("image/");
     }
 
     // 첨부파일이 동영상인지 확인
