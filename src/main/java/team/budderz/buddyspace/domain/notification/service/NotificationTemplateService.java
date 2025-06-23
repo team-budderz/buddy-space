@@ -29,4 +29,13 @@ public class NotificationTemplateService {
 
         return template.generateContent(args);
     }
+
+    public String generateUrl(NotificationType type, NotificationArgs args) {
+        NotificationTemplate template = templateMap.get(type);
+        if(template == null) {
+            throw new BaseException(NotificationErrorCode.UNSUPPORTED_NOTIFICATION_TYPE);
+        }
+
+        return template.generateUrl(args);
+    }
 }

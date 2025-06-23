@@ -4,6 +4,9 @@ public record NotificationArgs(
         String senderName,
         String groupName,
         String content,
-        Long targetId
+        Long memberId,
+        Long groupId,
+        Long postId,
+        Long commentId
 ) {
 }

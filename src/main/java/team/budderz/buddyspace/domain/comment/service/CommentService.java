@@ -1,19 +1,25 @@
 package team.budderz.buddyspace.domain.comment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.comment.request.CommentRequest;
 import team.budderz.buddyspace.api.comment.response.CommentResponse;
 import team.budderz.buddyspace.api.comment.response.FindsRecommentResponse;
 import team.budderz.buddyspace.api.comment.response.RecommentResponse;
+import team.budderz.buddyspace.api.notification.response.NotificationArgs;
+import team.budderz.buddyspace.domain.comment.event.CommentEvent;
+import team.budderz.buddyspace.domain.comment.event.ReplyEvent;
 import team.budderz.buddyspace.domain.comment.exception.CommentErrorCode;
+import team.budderz.buddyspace.domain.notification.service.NotificationService;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.comment.entity.Comment;
 import team.budderz.buddyspace.infra.database.comment.repository.CommentRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
+import team.budderz.buddyspace.infra.database.notification.entity.NotificationType;
 import team.budderz.buddyspace.infra.database.post.entity.Post;
 import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -32,6 +38,8 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final UserProfileImageProvider profileImageProvider;
+    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 댓글 저장
     @Transactional
@@ -58,6 +66,11 @@ public class CommentService {
                 .build();
 
         commentRepository.save(comment);
+
+        // 알림 전송
+        User postWriter = post.getUser();
+        eventPublisher.publishEvent(new CommentEvent(comment, user));
+
         return CommentResponse.from(comment);
     }
 
@@ -96,6 +109,10 @@ public class CommentService {
 
         commentRepository.save(reComment);
         comment.getChildren().add(reComment);
+
+        // 알림 전송
+        eventPublisher.publishEvent(new ReplyEvent(reComment, user));
+
         return RecommentResponse.from(reComment);
     }
 
