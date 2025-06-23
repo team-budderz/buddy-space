@@ -167,7 +167,7 @@ public class GroupService {
      * 오프라인 모임 동네 변경
      *
      * @param groupId 모임 ID
-     * @param userId 로그인 사용자 ID (리더)
+     * @param userId  로그인 사용자 ID (리더)
      * @return 변경된 모임 정보
      */
     @Transactional
@@ -198,6 +198,14 @@ public class GroupService {
         return GroupResponse.from(group, coverImageUrl);
     }
 
+    /**
+     * 동네 인증 사용자만 가입 요청 받기 설정
+     *
+     * @param groupId                  모임 ID
+     * @param userId                   로그인 사용자 ID (리더)
+     * @param neighborhoodAuthRequired 동네 인증 사용자만 가입 요청 받기 여부
+     * @return 변경된 모임 정보
+     */
     @Transactional
     public GroupResponse updateGroupNeighborhoodAuthRequired(Long groupId, Long userId, Boolean neighborhoodAuthRequired) {
         // 모임 리더 여부 검증
@@ -205,14 +213,15 @@ public class GroupService {
         Group group = validator.findGroupOrThrow(groupId);
         String coverImageUrl = getCoverImageUrl(group, group.getCoverAttachment());
 
-        if (neighborhoodAuthRequired == null || neighborhoodAuthRequired.equals(false)) {
-            group.updateNeighborhoodAuthRequired(false);
-            return GroupResponse.from(group, coverImageUrl);
-        }
-
         // 온라인 모임인 경우 예외
         if (group.getType().equals(GroupType.ONLINE)) {
             throw new GroupException(GroupErrorCode.INVALID_GROUP_TYPE);
+        }
+
+        // false 일 경우 바로 설정 후 모임 정보 반환
+        if (neighborhoodAuthRequired == null || neighborhoodAuthRequired.equals(false)) {
+            group.updateNeighborhoodAuthRequired(false);
+            return GroupResponse.from(group, coverImageUrl);
         }
 
         User leader = userRepository.findById(userId)
