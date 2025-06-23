@@ -123,6 +123,10 @@ public class GroupService {
      */
     @Transactional
     public GroupResponse updateGroup(Long userId, Long groupId, UpdateGroupRequest request, MultipartFile coverImage) {
+        if (!attachmentService.isImage(coverImage)) {
+            throw new GroupException(GroupErrorCode.INVALID_IMAGE_TYPE);
+        }
+
         // 리더 여부 검증
         validator.validateLeader(userId, groupId);
         Group group = validator.findGroupOrThrow(groupId);
@@ -144,6 +148,13 @@ public class GroupService {
         } else if (request.coverAttachmentId() != null) {
             // 기존 이미지 유지
             coverAttachment = attachmentService.findAttachmentOrThrow(request.coverAttachmentId());
+
+        } else {
+            // 기존 커버 이미지가 기본 이미지가 아니면 삭제
+            Attachment oldAttachment = group.getCoverAttachment();
+            if (oldAttachment != null && !defaultImageProvider.isDefaultGroupCoverKey(oldAttachment.getKey())) {
+                attachmentService.delete(oldAttachment.getId());
+            }
         }
 
         group.updateCoverAttachment(coverAttachment);
