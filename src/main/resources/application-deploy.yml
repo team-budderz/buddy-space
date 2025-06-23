@@ -75,6 +75,9 @@ app:
       online: group-cover/default_online.png
       offline: group-cover/default_offline.png
       hybrid: group-cover/default_hybrid.png
+  invite:
+    base:
+      url: https://budderz.co.kr/invite?code=
 
 jwt:
   secret:
