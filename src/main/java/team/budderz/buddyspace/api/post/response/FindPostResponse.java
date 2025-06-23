@@ -9,7 +9,7 @@ public record FindPostResponse(
         String userImgUrl,
         String userName,
         LocalDateTime createdAt,
-        String content,
+        String renderedContent,
         Long commentNum,
         List<FindsCommentResponse> comments
 ) {
@@ -17,11 +17,11 @@ public record FindPostResponse(
             String userImgUrl,
             String userName,
             LocalDateTime createdAt,
-            String content,
+            String renderedContent,
             Long commentNum,
             List<FindsCommentResponse> comments
     ) {
-        return new FindPostResponse(userImgUrl, userName, createdAt, content, commentNum, comments);
+        return new FindPostResponse(userImgUrl, userName, createdAt, renderedContent, commentNum, comments);
     }
 }
 

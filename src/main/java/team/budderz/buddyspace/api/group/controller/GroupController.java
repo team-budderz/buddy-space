@@ -1,9 +1,11 @@
 package team.budderz.buddyspace.api.group.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import team.budderz.buddyspace.api.group.request.SaveGroupRequest;
@@ -19,6 +21,7 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
 /**
  * 모임 기본 CRUD
  */
+@Validated
 @RestController
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor
@@ -47,6 +50,28 @@ public class GroupController {
     ) {
         Long loginUserId = userAuth.getUserId();
         GroupResponse response = groupService.updateGroup(loginUserId, groupId, request, coverImage);
+
+        return new BaseResponse<>(response);
+    }
+
+    @PatchMapping("/{groupId}/address")
+    public BaseResponse<GroupResponse> updateGroupAddress(@PathVariable Long groupId,
+                                                          @AuthenticationPrincipal UserAuth userAuth) {
+        Long loginUserId = userAuth.getUserId();
+        GroupResponse response = groupService.updateGroupAddress(groupId, loginUserId);
+
+        return new BaseResponse<>(response);
+    }
+
+    @PatchMapping("/{groupId}/neighborhood-auth-required")
+    public BaseResponse<GroupResponse> updateGroupNeighborhoodAuthRequired(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal UserAuth userAuth,
+            @RequestBody @NotNull Boolean neighborhoodAuthRequired
+    ) {
+        Long loginUserId = userAuth.getUserId();
+        GroupResponse response =
+                groupService.updateGroupNeighborhoodAuthRequired(groupId, loginUserId, neighborhoodAuthRequired);
 
         return new BaseResponse<>(response);
     }

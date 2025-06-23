@@ -37,10 +37,10 @@ public class S3Service {
      *
      * @param file       업로드할 파일
      * @param uploaderId 업로더 ID
-     * @param prefix     S3 디렉토리
+     * @param directory     S3 디렉토리
      * @return 업로드된 S3 객체의 key
      */
-    public String upload(MultipartFile file, Long uploaderId, String prefix) {
+    public String upload(MultipartFile file, Long uploaderId, S3Directory directory) {
         if (file.isEmpty()) {
             throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
         }
@@ -60,7 +60,7 @@ public class S3Service {
         String timeStamp = LocalDateTime.now().format(FORMATTER);
 
         // 저장 경로 키 생성 = 디렉토리/파일명_업로더ID_타임스탬프.확장자
-        String key = String.format("%s/%s_%d_%s%s", prefix, baseName, uploaderId, timeStamp, extension);
+        String key = String.format("%s/%s_%d_%s%s", directory.getPath(), baseName, uploaderId, timeStamp, extension);
 
         try {
             // 업로드 요청 객체 생성

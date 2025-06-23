@@ -21,8 +21,8 @@ import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.global.response.PageResponse;
-import team.budderz.buddyspace.infra.client.s3.S3Directory;
 import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
+import team.budderz.buddyspace.infra.client.s3.S3Directory;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
@@ -43,8 +43,6 @@ import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
 import java.util.List;
 
-import static team.budderz.buddyspace.domain.group.constant.GroupDefaults.DEFAULT_PAGE_SIZE;
-
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -64,6 +62,8 @@ public class GroupService {
     private final AttachmentService attachmentService;
     private final DefaultImageProvider defaultImageProvider;
 
+    public static final int DEFAULT_PAGE_SIZE = 100;
+
     /**
      * 모임 생성
      * - 커버 이미지, 리더, 권한 정보 설정
@@ -75,6 +75,9 @@ public class GroupService {
      */
     @Transactional
     public GroupResponse saveGroup(Long userId, SaveGroupRequest request, MultipartFile coverImage) {
+        if (!attachmentService.isImage(coverImage)) {
+            throw new GroupException(GroupErrorCode.INVALID_IMAGE_TYPE);
+        }
 
         User leader = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
@@ -83,6 +86,9 @@ public class GroupService {
 
         // 오프라인 모임일 경우 모임 동네 정보를 리더의 동네로 저장
         if (!group.getType().equals(GroupType.ONLINE)) {
+            if (StringUtils.isBlank(leader.getAddress())) {
+                throw new GroupException(GroupErrorCode.LEADER_ADDRESS_NOT_FOUND);
+            }
             group.updateAddress(leader.getAddress());
         }
 
@@ -124,18 +130,89 @@ public class GroupService {
         // 모임 정보 업데이트
         group.updateGroupInfo(request);
 
-        // 기존 커버 이미지가 기본 이미지가 아니면 삭제
-        Attachment oldAttachment = group.getCoverAttachment();
-        if (oldAttachment != null && !defaultImageProvider.isDefaultGroupCoverKey(oldAttachment.getKey())) {
-            attachmentService.delete(oldAttachment.getId());
+        Attachment coverAttachment = null;
+
+        if (coverImage != null && !coverImage.isEmpty()) {
+            // 기존 커버 이미지가 기본 이미지가 아니면 삭제
+            Attachment oldAttachment = group.getCoverAttachment();
+            if (oldAttachment != null && !defaultImageProvider.isDefaultGroupCoverKey(oldAttachment.getKey())) {
+                attachmentService.delete(oldAttachment.getId());
+            }
+            // 새 이미지 업로드
+            coverAttachment = getCoverAttachment(coverImage, userId);
+
+        } else if (request.coverAttachmentId() != null) {
+            // 기존 이미지 유지
+            coverAttachment = attachmentService.findAttachmentOrThrow(request.coverAttachmentId());
         }
 
-        // 새 커버 이미지 업로드 및 설정
-        Attachment coverAttachment = getCoverAttachment(coverImage, userId);
         group.updateCoverAttachment(coverAttachment);
-
-        // 커버 이미지 url
         String coverImageUrl = getCoverImageUrl(group, coverAttachment);
+
+        return GroupResponse.from(group, coverImageUrl);
+    }
+
+    /**
+     * 오프라인 모임 동네 변경
+     *
+     * @param groupId 모임 ID
+     * @param userId 로그인 사용자 ID (리더)
+     * @return 변경된 모임 정보
+     */
+    @Transactional
+    public GroupResponse updateGroupAddress(Long groupId, Long userId) {
+        // 모임 리더 여부 검증
+        validator.validateLeader(userId, groupId);
+        Group group = validator.findGroupOrThrow(groupId);
+
+        // 온라인 모임인 경우 예외
+        if (group.getType().equals(GroupType.ONLINE)) {
+            throw new GroupException(GroupErrorCode.INVALID_GROUP_TYPE);
+        }
+
+        User leader = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        // 리더의 동네 정보가 존재하지 않으면 예외
+        if (StringUtils.isBlank(leader.getAddress())) {
+            throw new GroupException(GroupErrorCode.LEADER_ADDRESS_NOT_FOUND);
+        }
+
+        // 오프라인 모임 동네 설정
+        group.updateAddress(leader.getAddress());
+
+        // 모임 커버 이미지 url 생성
+        String coverImageUrl = getCoverImageUrl(group, group.getCoverAttachment());
+
+        return GroupResponse.from(group, coverImageUrl);
+    }
+
+    @Transactional
+    public GroupResponse updateGroupNeighborhoodAuthRequired(Long groupId, Long userId, Boolean neighborhoodAuthRequired) {
+        // 모임 리더 여부 검증
+        validator.validateLeader(userId, groupId);
+        Group group = validator.findGroupOrThrow(groupId);
+        String coverImageUrl = getCoverImageUrl(group, group.getCoverAttachment());
+
+        if (neighborhoodAuthRequired == null || neighborhoodAuthRequired.equals(false)) {
+            group.updateNeighborhoodAuthRequired(false);
+            return GroupResponse.from(group, coverImageUrl);
+        }
+
+        // 온라인 모임인 경우 예외
+        if (group.getType().equals(GroupType.ONLINE)) {
+            throw new GroupException(GroupErrorCode.INVALID_GROUP_TYPE);
+        }
+
+        User leader = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        // 리더의 동네 인증 정보가 없을 경우 예외
+        if (leader.getNeighborhood() == null) {
+            throw new GroupException(GroupErrorCode.LEADER_VERIFICATION_NOT_FOUND);
+        }
+
+        group.updateNeighborhoodAuthRequired(true);
 
         return GroupResponse.from(group, coverImageUrl);
     }
@@ -268,7 +345,7 @@ public class GroupService {
         if (coverImage == null || coverImage.isEmpty()) {
             return null; // 기본 이미지인 경우 null
         }
-        AttachmentResponse uploaded = attachmentService.upload(coverImage, userId, S3Directory.GROUP_COVER.getPath());
+        AttachmentResponse uploaded = attachmentService.upload(coverImage, userId, S3Directory.GROUP_COVER);
         return attachmentService.findAttachmentOrThrow(uploaded.id());
     }
 

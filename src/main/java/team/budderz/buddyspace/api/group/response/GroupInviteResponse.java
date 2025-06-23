@@ -6,14 +6,16 @@ public record GroupInviteResponse(
         Long groupId,
         String groupName,
         String groupDescription,
-        String inviteLink
+        String inviteLink,
+        String code
 ) {
     public static GroupInviteResponse of(Group group, String inviteLink) {
         return new GroupInviteResponse(
                 group.getId(),
                 group.getName(),
                 group.getDescription(),
-                inviteLink
+                inviteLink,
+                group.getInviteCode()
         );
     }
 }

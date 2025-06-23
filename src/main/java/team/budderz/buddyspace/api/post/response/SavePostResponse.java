@@ -5,6 +5,7 @@ import team.budderz.buddyspace.infra.database.post.entity.Post;
 import java.time.LocalDateTime;
 
 public record SavePostResponse(
+        Long postId,
         Long groupId,
         Long userId,
         String content,
@@ -15,6 +16,7 @@ public record SavePostResponse(
 ) {
     public static SavePostResponse from(Post post) {
         return new SavePostResponse(
+                post.getId(),
                 post.getGroup().getId(),
                 post.getUser().getId(),
                 post.getContent(),

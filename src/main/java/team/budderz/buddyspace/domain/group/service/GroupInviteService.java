@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.domain.group.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.group.response.GroupInviteResponse;
@@ -9,13 +10,14 @@ import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
 
-import static team.budderz.buddyspace.domain.group.constant.GroupDefaults.*;
-
 @Service
 @RequiredArgsConstructor
 public class GroupInviteService {
 
     private final GroupValidator validator;
+
+    @Value("${app.invite.base.url}")
+    private String inviteBaseUrl;
 
     @Transactional
     public GroupInviteResponse updateInviteLink(Long loginUserId, Long groupId) {
@@ -23,7 +25,7 @@ public class GroupInviteService {
         Group group = validator.findGroupOrThrow(groupId);
 
         if (group.getInviteCode() != null) {
-            return GroupInviteResponse.of(group, DEFAULT_INVITE_BASE_URL + group.getInviteCode());
+            return GroupInviteResponse.of(group, inviteBaseUrl + group.getInviteCode());
         }
 
         String code;
@@ -33,7 +35,7 @@ public class GroupInviteService {
 
         group.updateInviteCode(code);
 
-        return GroupInviteResponse.of(group, DEFAULT_INVITE_BASE_URL + code);
+        return GroupInviteResponse.of(group, inviteBaseUrl + code);
     }
 
     @Transactional(readOnly = true)
@@ -41,7 +43,7 @@ public class GroupInviteService {
         validator.validateLeader(loginUserId, groupId);
         Group group = validator.findGroupOrThrow(groupId);
 
-        String inviteLink = group.getInviteCode() == null ? null : DEFAULT_INVITE_BASE_URL + group.getInviteCode();
+        String inviteLink = group.getInviteCode() == null ? null : inviteBaseUrl + group.getInviteCode();
 
         return GroupInviteResponse.of(group, inviteLink);
     }

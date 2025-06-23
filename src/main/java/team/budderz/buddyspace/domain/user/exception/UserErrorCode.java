@@ -15,7 +15,8 @@ public enum UserErrorCode implements ErrorCode {
     INVALID_USER_REQUEST(HttpStatus.BAD_REQUEST.value() ,"U004","유효하지 않은 사용자 요청입니다."),
     INVALID_USER_ID(HttpStatus.UNAUTHORIZED.value() ,"U005","유효하지 않은 사용자 ID입니다."),
     PASSWORD_NOT_MATCH(HttpStatus.NOT_FOUND.value() ,"U006","비밀번호가 일치하지 않습니다."),
-    USER_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value() ,"U007","사용자 탈퇴에 실패했습니다.")
+    USER_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value() ,"U007","사용자 탈퇴에 실패했습니다."),
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST.value(), "U008", "사용자 프로필은 이미지 형식만 설정 가능합니다.")
     ;
 
 

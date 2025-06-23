@@ -23,6 +23,11 @@ public record UpdateGroupRequest(
         String description,
 
         /**
+         * 모임 커버 이미지 첨부파일 ID
+         */
+        Long coverAttachmentId,
+
+        /**
          * 모임 공개 여부 (GroupAccess Enum)
          * - PUBLIC, PRIVATE
          */

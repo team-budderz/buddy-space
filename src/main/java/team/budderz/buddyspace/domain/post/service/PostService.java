@@ -8,6 +8,7 @@ import team.budderz.buddyspace.api.comment.response.FindsCommentResponse;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
 import team.budderz.buddyspace.api.post.response.*;
+import team.budderz.buddyspace.domain.attachment.service.PostAttachmentService;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.notification.service.NotificationService;
 import team.budderz.buddyspace.domain.post.event.PostEvent;
@@ -40,6 +41,7 @@ public class PostService {
     private final MembershipRepository membershipRepository;
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostAttachmentService postAttachmentService;
 
     // 게시글 저장
     @Transactional
@@ -76,6 +78,8 @@ public class PostService {
         postRepository.save(post);
 
         eventPublisher.publishEvent(new PostEvent(post, user));
+        postAttachmentService.bindAttachmentsToPost(request.content(), post, userId); // 첨부파일 연결
+
         return SavePostResponse.from(post);
     }
 
@@ -120,6 +124,10 @@ public class PostService {
         }
 
         post.updatePost(request.content(), request.isNotice());
+        // 기존 첨부파일 삭제
+        postAttachmentService.deletePostFiles(post);
+        // 새 content 기준으로 첨부파일 재연결
+        postAttachmentService.bindAttachmentsToPost(request.content(), post, userId);
 
         return UpdatePostResponse.from(post);
     }
@@ -138,6 +146,7 @@ public class PostService {
 
         validator.validatePermission(userId, groupId, PermissionType.DELETE_POST, post.getUser().getId());
 
+        postAttachmentService.deletePostFiles(post); // 게시글 첨부파일 삭제
         postRepository.delete(post);
     }
 
@@ -151,7 +160,7 @@ public class PostService {
         int offset = page * pageSize;
 
         List<FindsPostResponse> result = postRepository.findsPost(groupId, offset, pageSize);
-        return generateProfileImageUrls(result);
+        return enrichPostResponses(result);
     }
 
     // 게시글 공지 조회(내용 일부)
@@ -168,7 +177,7 @@ public class PostService {
             Long groupId
     ) {
         List<FindsPostResponse> result = postRepository.findsNoticePost(groupId);
-        return generateProfileImageUrls(result);
+        return enrichPostResponses(result);
     }
 
     // 게시글 상세 조회
@@ -199,21 +208,29 @@ public class PostService {
                 })
                 .toList();
 
+        // 첨부파일 URL 포함한 content 로 변환 (조회용)
+        String renderedContent = postAttachmentService.renderPostContent(post.getContent());
+
         return FindPostResponse.of(
                 postUserImgUrl,
                 post.getUser().getName(),
                 post.getCreatedAt(),
-                post.getContent(),
+                renderedContent,
                 (long) post.getComments().size(),
                 commentResponses
         );
     }
 
-    private List<FindsPostResponse> generateProfileImageUrls(List<FindsPostResponse> result) {
+    private List<FindsPostResponse> enrichPostResponses(List<FindsPostResponse> result) {
         return result.stream()
                 .map(post -> {
-                    String url = profileImageProvider.getProfileImageUrl(post.profileAttachmentId());
-                    return post.withProfileImageUrl(url);
+                    // 프로필 이미지 URL 생성
+                    String profileUrl = profileImageProvider.getProfileImageUrl(post.profileAttachmentId());
+                    // content 렌더링
+                    String renderedContent = postAttachmentService.renderPostContent(post.content());
+                    // 프로필 이미지와 렌더링된 content 반영
+                    return post.withProfileImageUrl(profileUrl)
+                            .withRenderedContent(renderedContent);
                 })
                 .toList();
     }
