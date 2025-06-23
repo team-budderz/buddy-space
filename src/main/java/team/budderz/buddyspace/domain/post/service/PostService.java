@@ -7,7 +7,6 @@ import team.budderz.buddyspace.api.comment.response.FindsCommentResponse;
 import team.budderz.buddyspace.api.post.request.SavePostRequest;
 import team.budderz.buddyspace.api.post.request.UpdatePostRequest;
 import team.budderz.buddyspace.api.post.response.*;
-import team.budderz.buddyspace.domain.attachment.service.PostAttachmentService;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.post.exception.PostErrorCode;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
@@ -34,6 +33,9 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final GroupValidator validator;
     private final UserProfileImageProvider profileImageProvider;
+    private final MembershipRepository membershipRepository;
+    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
     private final PostAttachmentService postAttachmentService;
 
     // 게시글 저장
@@ -51,9 +53,7 @@ public class PostService {
         validator.validatePermission(userId, groupId, PermissionType.CREATE_POST);
 
         if (request.isNotice()) {
-            if (!Objects.equals(userId, group.getLeader().getId())) {
-                throw new BaseException(PostErrorCode.NOTICE_POST_ONLY_ALLOWED_BY_LEADER);
-            }
+            validator.validateLeader(userId, groupId);
 
             Long noticeNum = postRepository.countByGroupIdAndIsNoticeTrue(groupId);
 
@@ -71,6 +71,8 @@ public class PostService {
                 .build();
 
         postRepository.save(post);
+
+        eventPublisher.publishEvent(new PostEvent(post, user));
         postAttachmentService.bindAttachmentsToPost(request.content(), post, userId); // 첨부파일 연결
 
         return SavePostResponse.from(post);
