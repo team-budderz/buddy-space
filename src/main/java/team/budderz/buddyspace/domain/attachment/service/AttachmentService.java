@@ -225,9 +225,9 @@ public class AttachmentService {
 
     // 첨부파일이 이미지인지 확인
     public boolean isImage(MultipartFile file) {
-        if (file == null) return true; // 기본 이미지
+        if (file == null || file.isEmpty()) return true; // 기본 이미지 처리
         String mimeType = getMimeType(file);
-        return mimeType.startsWith("image/");
+        return mimeType != null && mimeType.startsWith("image/");
     }
 
     // 첨부파일이 동영상인지 확인
