@@ -176,6 +176,13 @@ public class UserService {
         } else if (updateRequest.profileAttachmentId() != null) {
             // 기존 이미지 유지
             profileAttachment = attachmentService.findAttachmentOrThrow(updateRequest.profileAttachmentId());
+
+        } else {
+            // 기존 프로필 이미지가 기본 이미지가 아니면 삭제
+            Attachment oldAttachment = user.getProfileAttachment();
+            if (oldAttachment != null && !defaultImageProvider.isDefaultProfileKey(oldAttachment.getKey())) {
+                attachmentService.delete(oldAttachment.getId());
+            }
         }
 
         user.updateProfileAttachment(profileAttachment);

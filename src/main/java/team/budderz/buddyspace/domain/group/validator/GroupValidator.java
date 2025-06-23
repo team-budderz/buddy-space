@@ -115,6 +115,11 @@ public class GroupValidator {
         }
     }
 
+    /**
+     * 사용자 탈퇴 시 모임 리더 여부 및 모임 멤버 존재 여부 검증
+     *
+     * @param userId 사용자 ID
+     */
     public void validateUserCanBeDeleted(Long userId) {
         boolean hasOtherMembers
                 = membershipRepository.existsByGroup_Leader_IdAndMemberRoleNot(userId, MemberRole.LEADER);
@@ -123,32 +128,48 @@ public class GroupValidator {
         }
     }
 
+    /**
+     * 초대 코드로 모임 존재 여부 검증
+     *
+     * @param code 초대 코드
+     * @return 해당 초대 코드의 모임 존재 여부
+     */
     public boolean isExistsGroupByCode(String code) {
         return groupRepository.existsByInviteCode(code);
     }
 
+    /**
+     * 초대 코드로 모임 정보 조회
+     *
+     * @param code 초대 코드
+     * @return 조회된 모임 정보
+     */
     public Group findGroupByCode(String code) {
         return groupRepository.findByInviteCode(code)
                 .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
     }
 
+    // 모임 존재 여부 검증
     private void existsGroup(Long groupId) {
         if (!groupRepository.existsById(groupId)) {
             throw new GroupException(GroupErrorCode.GROUP_NOT_FOUND);
         }
     }
 
+    // 사용자 존재 여부 검증
     private void existsUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new UserException(UserErrorCode.USER_NOT_FOUND);
         }
     }
 
+    // 멤버십 존재 여부 검증 및 반환
     private Membership findMembershipOrThrow(Long userId, Long groupId) {
         return membershipRepository.findByUser_IdAndGroup_Id(userId, groupId)
                 .orElseThrow(() -> new MembershipException(MembershipErrorCode.MEMBERSHIP_NOT_FOUND));
     }
 
+    // 생성 권한 검증
     private void validateCreatePermission(Long userId, Long groupId, PermissionType type) {
         MemberRole memberRole = getMemberRole(userId, groupId);
         MemberRole allowedRole = getAllowedRole(groupId, type);
@@ -158,6 +179,7 @@ public class GroupValidator {
         }
     }
 
+    // 삭제 권한 검증
     private void validateDeletePermission(Long userId, Long groupId, PermissionType type, Long authorId) {
         if (isOwner(userId, authorId)) return;
 
@@ -171,17 +193,20 @@ public class GroupValidator {
         }
     }
 
+    // 멤버 권한 반환
     private MemberRole getMemberRole(Long userId, Long groupId) {
         Membership membership = findMembershipOrThrow(userId, groupId);
         return membership.getMemberRole();
     }
 
+    // 모임의 기능에 설정된 권한 정보 반환
     private MemberRole getAllowedRole(Long groupId, PermissionType type) {
         return groupPermissionRepository.findByGroup_IdAndType(groupId, type)
                 .map(GroupPermission::getRole)
                 .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_PERMISSION_NOT_FOUND));
     }
 
+    // 콘텐츠 소유자 여부 검증
     private boolean isOwner(Long userId, Long authorId) {
         return userId.equals(authorId);
     }
