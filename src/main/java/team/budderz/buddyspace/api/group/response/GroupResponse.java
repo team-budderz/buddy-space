@@ -10,16 +10,17 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupType;
  * 모임 생성/수정 응답 DTO
  */
 public record GroupResponse(
-        Long groupId,
-        String groupName,
-        String groupDescription,
-        String groupCoverImageUrl,
-        GroupAccess groupAccess,
-        GroupType groupType,
-        GroupInterest groupInterest,
+        Long id,
+        String name,
+        String description,
+        Long coverAttachmentId,
+        String coverImageUrl,
+        GroupAccess access,
+        GroupType type,
+        GroupInterest interest,
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        String groupAddress,
+        String address,
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         Boolean isNeighborhoodAuthRequired
@@ -28,10 +29,14 @@ public record GroupResponse(
         Boolean isAuthRequired = null;
         if (group.isNeighborhoodAuthRequired()) isAuthRequired = true;
 
+        Long coverAttachmentId = null;
+        if (group.getCoverAttachment() != null) coverAttachmentId = group.getCoverAttachment().getId();
+
         return new GroupResponse(
                 group.getId(),
                 group.getName(),
                 group.getDescription(),
+                coverAttachmentId,
                 coverImageUrl,
                 group.getAccess(),
                 group.getType(),

@@ -22,8 +22,14 @@ public enum GroupErrorCode implements ErrorCode {
     PERMISSION_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST.value(), "G009", "지원하지 않는 모임 권한 유형입니다."),
     UNSUPPORTED_PERMISSION_VALIDATION(HttpStatus.BAD_REQUEST.value(), "G010", "권한 검증을 지원하지 않는 기능입니다."),
     MISSING_PERMISSION_TYPE(HttpStatus.BAD_REQUEST.value(), "G011", "모든 권한 유형에 대한 설정이 필요합니다."),
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST.value(), "G012", "모임 커버는 이미지 형식만 설정 가능합니다."),
+    INVALID_GROUP_TYPE(HttpStatus.BAD_REQUEST.value(), "G013", "온라인 모임은 동네 관련 설정을 할 수 없습니다."),
+    LEADER_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "G014", "모임 리더의 동네 정보를 찾을 수 없습니다."),
+    LEADER_VERIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "G015", "모임 리더의 동네 인증 정보를 찾을 수 없습니다."),
+    NEIGHBOR_VERIFICATION_REQUIRED(HttpStatus.FORBIDDEN.value(), "G016", "동네 인증 사용자만 가입 요청할 수 있는 모임입니다."),
+    NOT_A_NEIGHBOR_GROUP(HttpStatus.BAD_REQUEST.value(), "G017", "동네 모임이 아닙니다. 동네를 변경하거나 초대 링크를 통해 가입하세요."),
 
-    FUNCTION_ACCESS_DENIED(HttpStatus.FORBIDDEN.value(), "G012", "해당 기능에 대한 접근 권한이 없습니다.");
+    FUNCTION_ACCESS_DENIED(HttpStatus.FORBIDDEN.value(), "G018", "해당 기능에 대한 접근 권한이 없습니다.");
 
     private final int status;
     private final String code;

@@ -79,6 +79,10 @@ public class Group extends BaseEntity {
         this.address = address;
     }
 
+    public void updateNeighborhoodAuthRequired(boolean isNeighborhoodAuthRequired) {
+        this.isNeighborhoodAuthRequired = isNeighborhoodAuthRequired;
+    }
+
     public void updateCoverAttachment(Attachment coverAttachment) {
         this.coverAttachment = coverAttachment;
     }
