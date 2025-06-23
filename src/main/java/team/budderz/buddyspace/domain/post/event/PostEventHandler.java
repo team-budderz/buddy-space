@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.domain.post.event;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class PostEventHandler {
 
     private final NotificationService notificationService;
@@ -39,6 +41,10 @@ public class PostEventHandler {
 
         List<Membership> members = membershipRepository.findByGroup_IdAndJoinStatus(groupId, JoinStatus.APPROVED);
 
+        if (members.isEmpty()) {
+            return;
+        }
+
         for (Membership membership : members) {
             User member = membership.getUser();
 
@@ -58,12 +64,17 @@ public class PostEventHandler {
                     null
             );
 
-            notificationService.sendNotice(
-                    type,
-                    member,
-                    post.getGroup(),
-                    baseArgs
-            );
+            try {
+                notificationService.sendNotice(
+                        type,
+                        member,
+                        post.getGroup(),
+                        baseArgs
+                );
+            } catch (Exception e) {
+                log.error("알림 전송 실패 - postId: {}, memberId: {}", post.getId(), member.getId(), e);
+            }
+
         }
     }
 }
