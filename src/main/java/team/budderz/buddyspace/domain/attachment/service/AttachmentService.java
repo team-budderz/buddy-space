@@ -174,6 +174,10 @@ public class AttachmentService {
      */
     @Transactional
     public void deleteAttachments(List<Long> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            throw new AttachmentException(AttachmentErrorCode.EMPTY_ATTACHMENT_ID_LIST);
+        }
+
         for (Long id : attachmentIds) {
             try {
                 delete(id);
