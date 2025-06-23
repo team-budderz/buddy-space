@@ -29,6 +29,7 @@ public class NotificationService {
     private final SsePushService ssePushService;
 
     // 알림 보내기
+    @Transactional
     public void sendNotice(
             NotificationType type,
             User receiver,
