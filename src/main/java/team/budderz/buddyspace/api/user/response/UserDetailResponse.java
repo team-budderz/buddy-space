@@ -13,9 +13,13 @@ public record UserDetailResponse(
         UserGender gender,
         String address,
         String phone,
+        Long profileAttachmentId,
         String profileImageUrl
 ) {
     public static UserDetailResponse from(User user, String profileImageUrl) {
+        Long profileAttachmentId = null;
+        if (user.getProfileAttachment() != null) profileAttachmentId = user.getProfileAttachment().getId();
+
         return new UserDetailResponse(
                 user.getId(),
                 user.getName(),
@@ -24,6 +28,7 @@ public record UserDetailResponse(
                 user.getGender(),
                 user.getAddress(),
                 user.getPhone(),
+                profileAttachmentId,
                 profileImageUrl
         );
     }

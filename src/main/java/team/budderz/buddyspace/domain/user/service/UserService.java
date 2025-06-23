@@ -22,6 +22,7 @@ import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.global.security.JwtUtil;
+import team.budderz.buddyspace.global.util.AddressNormalizer;
 import team.budderz.buddyspace.global.util.RedisUtil;
 import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
@@ -65,6 +66,7 @@ public class UserService {
         }
 
         String encodedPassword = passwordEncoder.encode(signupRequest.password());
+        String normalizeAddress = AddressNormalizer.normalizeAddress(signupRequest.address()); // 주소 정제
 
         User user = User.builder()
                 .name(signupRequest.name())
@@ -72,7 +74,7 @@ public class UserService {
                 .password(encodedPassword)
                 .birthDate(signupRequest.birthDate())
                 .gender(signupRequest.gender())
-                .address(signupRequest.address())
+                .address(normalizeAddress)
                 .phone(signupRequest.phone())
                 .provider(UserProvider.LOCAL)
                 .role(UserRole.USER)
@@ -147,24 +149,36 @@ public class UserService {
             Long userId, String passwordToken, HttpServletResponse response,
             UserUpdateRequest updateRequest, MultipartFile profileImage
     ) {
+        if (!attachmentService.isImage(profileImage)) {
+            throw new UserException(UserErrorCode.INVALID_IMAGE_TYPE);
+        }
+
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.INVALID_USER_ID)
         );
 
         validatePasswordToken(userId, passwordToken, response);
-        user.updateUser(updateRequest.address(), updateRequest.phone());
 
-        // 기존 프로필 이미지가 기본 이미지가 아니면 삭제
-        Attachment oldAttachment = user.getProfileAttachment();
-        if (oldAttachment != null && !defaultImageProvider.isDefaultProfileKey(oldAttachment.getKey())) {
-            attachmentService.delete(oldAttachment.getId());
+        String normalizeAddress = AddressNormalizer.normalizeAddress(updateRequest.address()); // 주소 정제
+        user.updateUser(normalizeAddress, updateRequest.phone());
+
+        Attachment profileAttachment = null;
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            // 기존 프로필 이미지가 기본 이미지가 아니면 삭제
+            Attachment oldAttachment = user.getProfileAttachment();
+            if (oldAttachment != null && !defaultImageProvider.isDefaultProfileKey(oldAttachment.getKey())) {
+                attachmentService.delete(oldAttachment.getId());
+            }
+            // 새 프로필 이미지 업로드
+            profileAttachment = profileImageProvider.getProfileAttachment(profileImage, userId);
+
+        } else if (updateRequest.profileAttachmentId() != null) {
+            // 기존 이미지 유지
+            profileAttachment = attachmentService.findAttachmentOrThrow(updateRequest.profileAttachmentId());
         }
 
-        // 새 프로필 이미지 업로드 및 생성
-        Attachment profileAttachment = profileImageProvider.getProfileAttachment(profileImage, userId);
         user.updateProfileAttachment(profileAttachment);
-
-        // 프로필 이미지 url
         String profileImageUrl = profileImageProvider.getProfileImageUrl(user);
 
         return UserUpdateResponse.from(user, profileImageUrl);
