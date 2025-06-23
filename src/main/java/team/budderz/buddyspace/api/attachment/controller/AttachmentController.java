@@ -1,6 +1,8 @@
 package team.budderz.buddyspace.api.attachment.controller;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.attachment.response.AttachmentResponse;
 import team.budderz.buddyspace.domain.attachment.service.AttachmentService;
@@ -8,6 +10,7 @@ import team.budderz.buddyspace.global.response.BaseResponse;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/attachments")
 @RequiredArgsConstructor
@@ -34,7 +37,7 @@ public class AttachmentController {
     }
 
     @DeleteMapping
-    public BaseResponse<Void> deleteAttachments(@RequestBody List<Long> attachmentIds) {
+    public BaseResponse<Void> deleteAttachments(@RequestBody @NotNull List<Long> attachmentIds) {
         attachmentService.deleteAttachments(attachmentIds);
         return new BaseResponse<>(null);
     }
