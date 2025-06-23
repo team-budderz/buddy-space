@@ -26,8 +26,15 @@ public class PostEventHandler {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(PostEvent event) {
+        if (event == null || event.getPost() == null || event.getWriter() == null) {
+            return;
+        }
         Post post = event.getPost();
         User user = event.getWriter();
+
+        if (post.getGroup() == null) {
+            return;
+        }
         Long groupId = post.getGroup().getId();
 
         List<Membership> members = membershipRepository.findByGroup_IdAndJoinStatus(groupId, JoinStatus.APPROVED);
