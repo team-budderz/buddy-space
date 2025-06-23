@@ -2,6 +2,8 @@ package team.budderz.buddyspace.domain.notification.template;
 
 import org.springframework.stereotype.Component;
 import team.budderz.buddyspace.api.notification.response.NotificationArgs;
+import team.budderz.buddyspace.domain.notification.exception.NotificationErrorCode;
+import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.database.notification.entity.NotificationType;
 
 @Component
@@ -18,6 +20,9 @@ public class JoinRequestNotificationTemplate implements NotificationTemplate{
 
     @Override
     public String generateUrl(NotificationArgs args) {
-        return "/api/groups/" + args.groupId() + "/members/" + args.memberId() + "/approve";
+        if (args == null || args.groupId() == null || args.postId() == null || args.memberId() == null) {
+            throw new BaseException(NotificationErrorCode.INVALID_NOTIFICATION_ARGUMENT);
+        }
+        return String.format("/api/groups/%d/members/%d/approve", args.groupId(), args.memberId());
     }
 }
