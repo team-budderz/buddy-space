@@ -17,9 +17,18 @@ public class EmitterRepository {
         remove(userId); // 기존 emitter이 있다면 정리
 
         // emitter 생명주기 콜백 등록
-        emitter.onCompletion(() -> remove(userId));
-        emitter.onTimeout(() -> remove(userId));
-        emitter.onError((ex) -> remove(userId));
+        emitter.onCompletion(() -> {
+            log.debug("SSE 연결 완료: userId={}", userId);
+            emitters.remove(userId);
+        });
+        emitter.onTimeout(() -> {
+            log.debug("SSE 연결 타임아웃: userId={}", userId);
+            emitters.remove(userId);
+        });
+        emitter.onError((ex) -> {
+            log.debug("SSE 연결 오류: userId={}", userId);
+            emitters.remove(userId);
+        });
 
         emitters.put(userId, emitter);
     }
