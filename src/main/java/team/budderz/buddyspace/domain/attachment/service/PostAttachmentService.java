@@ -205,9 +205,7 @@ public class PostAttachmentService {
         postAttachmentRepository.deleteAllByPost(post);
 
         // 고아 첨부파일 삭제 (S3 + DB)
-        for (Long orphanAttachmentId : orphanAttachmentIds) {
-            attachmentService.delete(orphanAttachmentId);
-        }
+        attachmentService.deleteAttachments(orphanAttachmentIds);
     }
 
     /**
