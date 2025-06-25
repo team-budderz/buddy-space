@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/favicon.ico",
                                 "/test-websocket.html",
                                 "/test-post-attachment.html",
+                                "/test/**",
                                 "/ws/**",
                                 "/static/**",
                                 "/api/users/login",
