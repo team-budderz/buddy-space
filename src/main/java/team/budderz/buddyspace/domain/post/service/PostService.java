@@ -124,8 +124,8 @@ public class PostService {
         }
 
         post.updatePost(request.content(), request.isNotice());
-        // 기존 첨부파일 삭제
-        postAttachmentService.deletePostFiles(post);
+        // 기존 첨부파일 연결 삭제 및 고아 첨부파일 정리
+        postAttachmentService.deletePostAttachmentsForUpdate(post);
         // 새 content 기준으로 첨부파일 재연결
         postAttachmentService.bindAttachmentsToPost(request.content(), post, userId);
 

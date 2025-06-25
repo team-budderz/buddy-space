@@ -20,6 +20,7 @@ import team.budderz.buddyspace.infra.database.post.repository.PostRepository;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -176,18 +177,54 @@ public class PostAttachmentService {
     }
 
     /**
+     * 게시글 첨부파일 연결 정보 제거 및 고아 첨부파일 정리
+     *
+     * @param post 게시글 엔티티
+     */
+    @Transactional
+    public void deletePostAttachmentsForUpdate(Post post) {
+        // 본문에서 사용 중인 data-id 파싱
+        Set<Long> usedAttachmentIds = extractAttachmentIdsFromContent(post.getContent());
+
+        // 기존 게시글에 연결된 첨부파일 전체 조회
+        List<PostAttachment> postAttachments = postAttachmentRepository.findAllByPost(post);
+
+        // 첨부파일 연결이 없으면 바로 종료
+        if (postAttachments.isEmpty()) return;
+
+        // 삭제 대상 Attachment ID 수집
+        List<Long> orphanAttachmentIds = new ArrayList<>();
+        for (PostAttachment postAttachment : postAttachments) {
+            Long attachmentId = postAttachment.getAttachment().getId();
+            if (!usedAttachmentIds.contains(attachmentId)) {
+                orphanAttachmentIds.add(attachmentId);
+            }
+        }
+
+        // 기존 연결 정보 삭제
+        postAttachmentRepository.deleteAllByPost(post);
+
+        // 고아 첨부파일 삭제 (S3 + DB)
+        for (Long orphanAttachmentId : orphanAttachmentIds) {
+            attachmentService.delete(orphanAttachmentId);
+        }
+    }
+
+    /**
      * 게시글 첨부파일 전체 삭제
      *
      * @param post 게시글 엔티티
      */
     @Transactional
     public void deletePostFiles(Post post) {
-        List<Long> attachmentIds = new ArrayList<>();
         List<PostAttachment> postAttachments = postAttachmentRepository.findAllByPost(post);
-        // 게시글에 첨부된 파일 ID 리스트 생성
-        for (PostAttachment postAttachment : postAttachments) {
-            attachmentIds.add(postAttachment.getAttachment().getId());
-        }
+
+        // 첨부파일 연결이 없으면 바로 종료
+        if (postAttachments.isEmpty()) return;
+
+        List<Long> attachmentIds = postAttachments.stream()
+                .map(postAttachment -> postAttachment.getAttachment().getId())
+                .collect(Collectors.toList());
 
         // 중간 테이블 연결 데이터 전체 삭제
         postAttachmentRepository.deleteAllByPost(post);
