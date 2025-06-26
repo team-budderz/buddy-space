@@ -55,7 +55,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                         membership.user.id.eq(userId),
                         membership.joinStatus.eq(JoinStatus.APPROVED)
                 )
-                .orderBy(membership.joinedAt.asc())
+                .orderBy(membership.joinedAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -104,6 +104,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                     t.get(group.type),
                     t.get(group.interest),
                     memberCounts.getOrDefault(groupId, 0L),
+                    JoinStatus.APPROVED,
                     t.get(group.coverAttachment.id)
             ));
         }
@@ -130,8 +131,8 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
      * @return 조회된 모임 목록
      */
     @Override
-    public Page<GroupListResponse> findOnlineGroups(GroupSortType sortType, GroupInterest interest, Pageable pageable) {
-        return findGroupsByCondition(Set.of(GroupType.ONLINE, GroupType.HYBRID), null, sortType, interest, pageable);
+    public Page<GroupListResponse> findOnlineGroups(Long userId, GroupSortType sortType, GroupInterest interest, Pageable pageable) {
+        return findGroupsByCondition(userId, Set.of(GroupType.ONLINE, GroupType.HYBRID), null, sortType, interest, pageable);
     }
 
     /**
@@ -144,8 +145,8 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
      * @return 조회된 모임 목록
      */
     @Override
-    public Page<GroupListResponse> findOfflineGroups(String address, GroupSortType sortType, GroupInterest interest, Pageable pageable) {
-        return findGroupsByCondition(Set.of(GroupType.OFFLINE, GroupType.HYBRID), address, sortType, interest, pageable);
+    public Page<GroupListResponse> findOfflineGroups(Long userId, String address, GroupSortType sortType, GroupInterest interest, Pageable pageable) {
+        return findGroupsByCondition(userId, Set.of(GroupType.OFFLINE, GroupType.HYBRID), address, sortType, interest, pageable);
     }
 
     /**
@@ -157,9 +158,10 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
      * @return 조회된 모임 목록
      */
     @Override
-    public Page<GroupListResponse> searchGroupsByName(String keyword, GroupInterest interest, Pageable pageable) {
+    public Page<GroupListResponse> searchGroupsByName(Long userId, String keyword, GroupInterest interest, Pageable pageable) {
         QGroup group = QGroup.group;
         QMembership membership = QMembership.membership;
+        QMembership userMembership = new QMembership("userMembership"); // 사용자 가입 여부 확인용
 
         BooleanBuilder conditions = new BooleanBuilder();
         conditions.and(group.access.eq(GroupAccess.PUBLIC)); // 공개 모임만 검색
@@ -184,21 +186,26 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                         group.type,
                         group.interest,
                         membership.id.countDistinct().as("memberCount"),
-                        group.coverAttachment.id
+                        group.coverAttachment.id,
+                        userMembership.joinStatus
                 )
                 .from(group)
                 .leftJoin(membership).on(
                         membership.group.eq(group),
                         membership.joinStatus.eq(JoinStatus.APPROVED)
                 )
+                .leftJoin(userMembership).on(
+                        userMembership.group.eq(group),
+                        userMembership.user.id.eq(userId)
+                )
                 .where(conditions)
-                .groupBy(group.id)
+                .groupBy(group.id, userMembership.joinStatus)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         List<GroupListResponse> content = tuples.stream()
-                .map(t -> toGroupListResponse(t, group, membership))
+                .map(t -> toGroupListResponse(t, group, membership, userMembership))
                 .toList();
 
         Long total = queryFactory
@@ -220,13 +227,15 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
      * @param pageable   페이징 정보
      * @return 조회된 모임 목록
      */
-    private Page<GroupListResponse> findGroupsByCondition(Set<GroupType> groupTypes,
+    private Page<GroupListResponse> findGroupsByCondition(Long userId,
+                                                          Set<GroupType> groupTypes,
                                                           @Nullable String address,
                                                           GroupSortType sortType,
                                                           GroupInterest interest,
                                                           Pageable pageable) {
         QGroup group = QGroup.group;
         QMembership membership = QMembership.membership;
+        QMembership userMembership = new QMembership("userMembership"); // 사용자 가입 여부 확인용
 
         BooleanBuilder conditions = buildConditions(groupTypes, interest, address);
 
@@ -238,15 +247,20 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                         group.type,
                         group.interest,
                         membership.id.countDistinct().as("memberCount"),
-                        group.coverAttachment.id
+                        group.coverAttachment.id,
+                        userMembership.joinStatus
                 )
                 .from(group)
                 .leftJoin(membership).on(
                         membership.group.eq(group),
                         membership.joinStatus.eq(JoinStatus.APPROVED)
                 )
+                .leftJoin(userMembership).on(
+                        userMembership.group.eq(group),
+                        userMembership.user.id.eq(userId)
+                )
                 .where(conditions)
-                .groupBy(group.id)
+                .groupBy(group.id, userMembership.joinStatus)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(sortType == GroupSortType.POPULAR ?
@@ -255,7 +269,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 .fetch();
 
         List<GroupListResponse> content = tuples.stream()
-                .map(t -> toGroupListResponse(t, group, membership))
+                .map(t -> toGroupListResponse(t, group, membership, userMembership))
                 .toList();
 
         Long total = queryFactory
@@ -288,7 +302,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
         return builder;
     }
 
-    private GroupListResponse toGroupListResponse(Tuple tuple, QGroup group, QMembership membership) {
+    private GroupListResponse toGroupListResponse(Tuple tuple, QGroup group, QMembership membership, QMembership userMembership) {
         return new GroupListResponse(
                 tuple.get(group.id),
                 tuple.get(group.name),
@@ -297,6 +311,7 @@ public class GroupRepositoryImpl implements GroupQueryRepository {
                 tuple.get(group.type),
                 tuple.get(group.interest),
                 tuple.get(membership.id.countDistinct().as("memberCount")),
+                tuple.get(userMembership.joinStatus),
                 tuple.get(group.coverAttachment.id)
         );
     }

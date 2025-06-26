@@ -262,10 +262,10 @@ public class GroupService {
      * @return 조회된 모임 목록
      */
     @Transactional(readOnly = true)
-    public PageResponse<GroupListResponse> findOnlineGroups(GroupSortType sortType, String interest, int page) {
+    public PageResponse<GroupListResponse> findOnlineGroups(Long userId, GroupSortType sortType, String interest, int page) {
         GroupInterest interestType = StringUtils.isNotBlank(interest) ? GroupInterest.fromName(interest) : null;
         Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
-        Page<GroupListResponse> result = groupRepository.findOnlineGroups(sortType, interestType, pageable);
+        Page<GroupListResponse> result = groupRepository.findOnlineGroups(userId, sortType, interestType, pageable);
 
         return PageResponse.from(generateCoverImageUrls(result));
     }
@@ -288,7 +288,7 @@ public class GroupService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
-        Page<GroupListResponse> result = groupRepository.findOfflineGroups(user.getAddress(), sortType, interestType, pageable);
+        Page<GroupListResponse> result = groupRepository.findOfflineGroups(userId, user.getAddress(), sortType, interestType, pageable);
         return PageResponse.from(generateCoverImageUrls(result));
     }
 
@@ -301,7 +301,7 @@ public class GroupService {
      * @return 검색 결과 목록
      */
     @Transactional(readOnly = true)
-    public PageResponse<GroupListResponse> searchGroupsByName(String keyword, String interest, int page) {
+    public PageResponse<GroupListResponse> searchGroupsByName(Long userId, String keyword, String interest, int page) {
         GroupInterest interestType = StringUtils.isNotBlank(interest) ? GroupInterest.fromName(interest) : null;
         Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
 
@@ -309,7 +309,7 @@ public class GroupService {
             return PageResponse.from(Page.empty(pageable)); // 검색 키워드 없이 요청한 경우 빈 페이지 반환
         }
 
-        Page<GroupListResponse> result = groupRepository.searchGroupsByName(keyword, interestType, pageable);
+        Page<GroupListResponse> result = groupRepository.searchGroupsByName(userId, keyword, interestType, pageable);
         return PageResponse.from(generateCoverImageUrls(result));
     }
 
