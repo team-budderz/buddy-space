@@ -38,4 +38,10 @@ public class AttachmentController {
         attachmentService.deleteAttachments(attachmentIds);
         return new BaseResponse<>(null);
     }
+
+    @DeleteMapping("/orphans")
+    public BaseResponse<Integer> deleteOrphanAttachments() {
+        Integer deleteSize = attachmentService.deleteOrphanAttachments();
+        return new BaseResponse<>(deleteSize); // 삭제된 개수 반환
+    }
 }

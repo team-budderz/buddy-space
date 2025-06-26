@@ -174,9 +174,7 @@ public class AttachmentService {
      */
     @Transactional
     public void deleteAttachments(List<Long> attachmentIds) {
-        if (attachmentIds == null || attachmentIds.isEmpty()) {
-            throw new AttachmentException(AttachmentErrorCode.EMPTY_ATTACHMENT_ID_LIST);
-        }
+        if (attachmentIds == null || attachmentIds.isEmpty()) return;
 
         for (Long id : attachmentIds) {
             try {
@@ -185,6 +183,26 @@ public class AttachmentService {
                 log.warn("첨부파일 일괄 삭제 중 실패: id={}, errorMessage={}", id, e.getMessage(), e);
             }
         }
+    }
+
+    @Transactional
+    public Integer deleteOrphanAttachments() {
+        List<Attachment> orphans = attachmentRepository.findOrphanAttachments();
+        List<Long> ids = orphans.stream()
+                .map(Attachment::getId)
+                .toList();
+
+        if (ids.isEmpty()) return 0;
+
+        for (Long id : ids) {
+            try {
+                delete(id);
+            } catch (Exception e) {
+                log.warn("고아 첨부파일 일괄 삭제 중 실패: id={}, errorMessage={}", id, e.getMessage(), e);
+            }
+        }
+
+        return ids.size();
     }
 
     /**
