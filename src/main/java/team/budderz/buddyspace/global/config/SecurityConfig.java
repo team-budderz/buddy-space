@@ -42,6 +42,8 @@ public class SecurityConfig {
                                 "/test-websocket.html",
                                 "/test-post-attachment.html",
                                 "/test/**",
+                                "/js/**",
+                                "/css/**",
                                 "/ws/**",
                                 "/static/**",
                                 "/api/users/login",
