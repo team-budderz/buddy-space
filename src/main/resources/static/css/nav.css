@@ -1,0 +1,42 @@
+/* 탭 메뉴 스타일 */
+nav.group-nav {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+
+nav.group-nav a {
+    text-decoration: none;
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+nav.group-nav a:hover,
+nav.group-nav a.active {
+    background-color: #007bff;
+    color: white;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f8f9fa;
+}
+
+main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.group-content {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 30px;
+    min-height: 250px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}

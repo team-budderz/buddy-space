@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세</title>
+    <script src="/js/config.js" defer></script>
+    <script src="/js/header.js" defer></script>
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/post.js" defer></script>
+    <link rel="stylesheet" href="/css/nav.css" />
+    <link rel="stylesheet" href="/css/post.css"/>
+</head>
+<body>
+<main>
+    <section class="group-content">
+        <div class="post-header">
+            <div class="post-header-left">
+                <img id="user-img" src="" alt="프로필">
+                <div>
+                    <strong id="user-name">작성자</strong><br>
+                    <span class="post-meta" id="created-at">작성일</span>
+                </div>
+            </div>
+            <div id="post-actions" style="display: none;">
+                <button class="btn-edit" onclick="editPost()">수정</button>
+                <button class="btn-delete" onclick="deletePost()">삭제</button>
+            </div>
+        </div>
+
+        <div class="post-content" id="post-content"></div>
+
+        <section class="comment-section">
+            <h3 id="comment-count">댓글</h3>
+            <div id="comment-list"></div>
+        </section>
+    </section>
+</main>
+</body>
+</html>

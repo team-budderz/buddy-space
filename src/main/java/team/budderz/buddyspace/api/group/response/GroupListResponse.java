@@ -3,6 +3,7 @@ package team.budderz.buddyspace.api.group.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import team.budderz.buddyspace.infra.database.group.entity.GroupInterest;
 import team.budderz.buddyspace.infra.database.group.entity.GroupType;
+import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 
 /**
  * 모임 목록 조회 응답 DTO
@@ -15,6 +16,7 @@ public record GroupListResponse(
         GroupType groupType,
         GroupInterest groupInterest,
         Long memberCount,
+        JoinStatus joinStatus,
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         Long coverAttachmentId
@@ -28,6 +30,7 @@ public record GroupListResponse(
                 this.groupType,
                 this.groupInterest,
                 this.memberCount,
+                this.joinStatus,
                 null
         );
     }

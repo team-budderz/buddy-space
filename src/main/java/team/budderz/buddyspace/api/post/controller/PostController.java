@@ -21,7 +21,7 @@ public class PostController {
     private final PostService postService;
 
     // 게시글 생성
-    @PostMapping("/group/{groupId}/posts")
+    @PostMapping("/groups/{groupId}/posts")
     public BaseResponse<SavePostResponse> savePost (
             @PathVariable Long groupId,
             @RequestBody @Valid SavePostRequest request,
@@ -33,7 +33,7 @@ public class PostController {
     }
 
     // 게시글 수정
-    @PatchMapping("/group/{groupId}/posts/{postId}")
+    @PatchMapping("/groups/{groupId}/posts/{postId}")
     public BaseResponse<UpdatePostResponse> updatePost (
             @PathVariable Long groupId,
             @PathVariable Long postId,
@@ -46,7 +46,7 @@ public class PostController {
     }
 
     // 게시글 삭제
-    @DeleteMapping("/group/{groupId}/posts/{postId}")
+    @DeleteMapping("/groups/{groupId}/posts/{postId}")
     public BaseResponse<String> deletePost (
             @PathVariable Long groupId,
             @PathVariable Long postId,
@@ -58,7 +58,7 @@ public class PostController {
     }
 
     // 게시글 전체 조회
-    @GetMapping("/group/{groupId}/posts")
+    @GetMapping("/groups/{groupId}/posts")
     public BaseResponse<List<FindsPostResponse>> findsPost (
             @PathVariable Long groupId,
             @RequestParam(defaultValue = "0") int page
@@ -68,7 +68,7 @@ public class PostController {
     }
 
     // 게시글 공지 조회(내용 일부)
-    @GetMapping("/group/{groupId}/posts-notice")
+    @GetMapping("/groups/{groupId}/posts-notice")
     public BaseResponse<List<FindsNoticePostResponse>> findNoticePostSummaries(
             @PathVariable Long groupId
     ) {
@@ -77,7 +77,7 @@ public class PostController {
     }
 
     // 게시글 공지 조회
-    @GetMapping("/group/{groupId}/posts/notice")
+    @GetMapping("/groups/{groupId}/posts/notice")
     public BaseResponse<List<FindsPostResponse>> findsNoticePost (
             @PathVariable Long groupId
     ) {
@@ -86,7 +86,7 @@ public class PostController {
     }
 
     // 게시글 상세 조회
-    @GetMapping("/group/{groupId}/posts/{postId}")
+    @GetMapping("/groups/{groupId}/posts/{postId}")
     public BaseResponse<FindPostResponse> findPost(
             @PathVariable Long groupId,
             @PathVariable Long postId

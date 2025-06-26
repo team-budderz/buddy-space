@@ -99,12 +99,14 @@ public class GroupController {
 
     @GetMapping("/on")
     public BaseResponse<PageResponse<GroupListResponse>> findOnlineGroups(
+            @AuthenticationPrincipal UserAuth userAuth,
             @RequestParam String sort,
             @RequestParam(required = false) String interest,
             @RequestParam(defaultValue = "0") int page
     ) {
+        Long loginUserId = userAuth.getUserId();
         GroupSortType sortType = GroupSortType.from(sort);
-        PageResponse<GroupListResponse> responses = groupService.findOnlineGroups(sortType, interest, page);
+        PageResponse<GroupListResponse> responses = groupService.findOnlineGroups(loginUserId, sortType, interest, page);
 
         return new BaseResponse<>(responses);
     }
@@ -125,11 +127,13 @@ public class GroupController {
 
     @GetMapping("/search")
     public BaseResponse<PageResponse<GroupListResponse>> searchGroupsByName(
+            @AuthenticationPrincipal UserAuth userAuth,
             @RequestParam String keyword,
             @RequestParam(required = false) String interest,
             @RequestParam(defaultValue = "0") int page
     ) {
-        PageResponse<GroupListResponse> responses = groupService.searchGroupsByName(keyword, interest, page);
+        Long loginUserId = userAuth.getUserId();
+        PageResponse<GroupListResponse> responses = groupService.searchGroupsByName(loginUserId, keyword, interest, page);
 
         return new BaseResponse<>(responses);
     }

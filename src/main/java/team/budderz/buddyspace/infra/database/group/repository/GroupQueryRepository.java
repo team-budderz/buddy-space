@@ -10,9 +10,9 @@ public interface GroupQueryRepository {
 
     Page<GroupListResponse> findGroupsByUser(Long userId, Pageable pageable);
 
-    Page<GroupListResponse> findOnlineGroups(GroupSortType sortType, GroupInterest interest, Pageable pageable);
+    Page<GroupListResponse> findOnlineGroups(Long userId, GroupSortType sortType, GroupInterest interest, Pageable pageable);
 
-    Page<GroupListResponse> findOfflineGroups(String address, GroupSortType sortType, GroupInterest interest, Pageable pageable);
+    Page<GroupListResponse> findOfflineGroups(Long userId, String address, GroupSortType sortType, GroupInterest interest, Pageable pageable);
 
-    Page<GroupListResponse> searchGroupsByName(String keyword, GroupInterest interest, Pageable pageable);
+    Page<GroupListResponse> searchGroupsByName(Long userId, String keyword, GroupInterest interest, Pageable pageable);
 }

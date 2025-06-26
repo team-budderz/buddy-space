@@ -199,6 +199,8 @@ public class PostService {
                 .map(comment -> {
                     String commentUserImgUrl = profileImageProvider.getProfileImageUrl(comment.getUser());
                     return FindsCommentResponse.of(
+                            comment.getId(),
+                            comment.getUser().getId(),
                             commentUserImgUrl,
                             comment.getUser().getName(),
                             comment.getContent(),
@@ -212,10 +214,12 @@ public class PostService {
         String renderedContent = postAttachmentService.renderPostContent(post.getContent());
 
         return FindPostResponse.of(
+                post.getUser().getId(),
                 postUserImgUrl,
                 post.getUser().getName(),
                 post.getCreatedAt(),
                 renderedContent,
+                post.getIsNotice(),
                 (long) post.getComments().size(),
                 commentResponses
         );

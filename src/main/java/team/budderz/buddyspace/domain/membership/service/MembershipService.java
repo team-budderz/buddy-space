@@ -3,6 +3,7 @@ package team.budderz.buddyspace.domain.membership.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.budderz.buddyspace.api.membership.response.MemberResponse;
 import team.budderz.buddyspace.api.membership.response.MembershipResponse;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
@@ -33,6 +34,31 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final GroupValidator validator;
     private final UserProfileImageProvider profileImageProvider;
+
+    /**
+     * 로그인한 사용자가 가입되어 있는 특정 모임과의 멤버십 정보 조회
+     *
+     * @param userId 로그인 사용자 ID
+     * @param groupId 모임 ID
+     * @return 멤버십 정보
+     */
+    @Transactional(readOnly = true)
+    public MemberResponse findMyMembership(Long userId, Long groupId) {
+        validator.validateMember(userId, groupId);
+        Membership membership = findMembershipByUserAndGroup(userId, groupId);
+
+        String profileImageUrl = profileImageProvider.getProfileImageUrl(membership.getUser());
+
+        return MemberResponse.of(
+                membership.getUser().getId(),
+                membership.getUser().getName(),
+                profileImageUrl,
+                membership.getMemberRole(),
+                membership.getJoinStatus(),
+                membership.getJoinPath(),
+                membership.getJoinedAt()
+        );
+    }
 
     /**
      * 모임 가입 요청

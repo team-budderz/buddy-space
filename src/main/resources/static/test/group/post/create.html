@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 작성</title>
+    <script src="/js/config.js" defer></script>
+    <script src="/js/header.js" defer></script>
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/post-file.js" defer></script>
+    <script src="/js/post-create.js" defer></script>
+    <link rel="stylesheet" href="/css/nav.css"/>
+    <link rel="stylesheet" href="/css/post-create-update.css"/>
+    </head>
+<body>
+<div id="header"></div>
+<div id="nav"></div>
+<main>
+    <section class="group-content">
+        <h2>게시글 작성</h2>
+        <div class="file-row">
+            <div class="file-controls">
+                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx" />
+            </div>
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="noticeCheck">
+            <label class="form-check-label" for="noticeCheck">공지글 여부</label>
+        </div>
+        <div id="previewContent" contenteditable="true"></div>
+        <div id="saveContent" style="display: none;"></div>
+        <button class="btn-submit" onclick="submitPost()">저장</button>
+        <button class="btn-cancel">취소</button>
+    </section>
+
+    <div id="fileModal">
+        <div id="fileModalContent">
+            <div id="modalPreview"></div>
+            <div style="margin-top: 10px;">
+                <button onclick="confirmAttachFile()">첨부</button>
+                <button onclick="cancelAttachFile()">취소</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>
