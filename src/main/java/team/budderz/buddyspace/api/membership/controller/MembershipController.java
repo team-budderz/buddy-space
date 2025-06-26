@@ -5,19 +5,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.budderz.buddyspace.api.membership.request.MemberRoleRequest;
+import team.budderz.buddyspace.api.membership.response.MemberResponse;
 import team.budderz.buddyspace.api.membership.response.MembershipResponse;
 import team.budderz.buddyspace.domain.membership.service.MembershipService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
 
 @RestController
-@RequestMapping("/api/groups/{groupId}/members")
+@RequestMapping("/api/groups/{groupId}")
 @RequiredArgsConstructor
 public class MembershipController {
 
     private final MembershipService membershipService;
 
-    @PostMapping("/requests")
+    @GetMapping("/membership")
+    public BaseResponse<MemberResponse> findMyMembership(@PathVariable Long groupId,
+                                                         @AuthenticationPrincipal UserAuth userAuth) {
+
+        Long loginUserId = userAuth.getUserId();
+        MemberResponse response = membershipService.findMyMembership(loginUserId, groupId);
+
+        return new BaseResponse<>(response);
+    }
+
+    @PostMapping("/members/requests")
     public BaseResponse<MembershipResponse> requestJoin(@PathVariable Long groupId,
                                                         @AuthenticationPrincipal UserAuth userAuth) {
         Long loginUserId = userAuth.getUserId();
@@ -26,7 +37,7 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
-    @PatchMapping("/{memberId}/approve")
+    @PatchMapping("/members/{memberId}/approve")
     public BaseResponse<MembershipResponse> approveMember(@PathVariable Long groupId,
                                                           @PathVariable Long memberId,
                                                           @AuthenticationPrincipal UserAuth userAuth) {
@@ -36,7 +47,7 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
-    @DeleteMapping("/{memberId}/reject")
+    @DeleteMapping("/members/{memberId}/reject")
     public BaseResponse<Void> rejectMember(@PathVariable Long groupId,
                                            @PathVariable Long memberId,
                                            @AuthenticationPrincipal UserAuth userAuth) {
@@ -46,7 +57,7 @@ public class MembershipController {
         return new BaseResponse<>(null);
     }
 
-    @DeleteMapping("/{memberId}/expel")
+    @DeleteMapping("/members/{memberId}/expel")
     public BaseResponse<Void> expelMember(@PathVariable Long groupId,
                                           @PathVariable Long memberId,
                                           @AuthenticationPrincipal UserAuth userAuth) {
@@ -56,7 +67,7 @@ public class MembershipController {
         return new BaseResponse<>(null);
     }
 
-    @PatchMapping("/{memberId}/block")
+    @PatchMapping("/members/{memberId}/block")
     public BaseResponse<MembershipResponse> blockMember(@PathVariable Long groupId,
                                                         @PathVariable Long memberId,
                                                         @AuthenticationPrincipal UserAuth userAuth) {
@@ -66,7 +77,7 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
-    @DeleteMapping("/{memberId}/unblock")
+    @DeleteMapping("/members/{memberId}/unblock")
     public BaseResponse<Void> unblockMember(@PathVariable Long groupId,
                                             @PathVariable Long memberId,
                                             @AuthenticationPrincipal UserAuth userAuth) {
@@ -76,7 +87,7 @@ public class MembershipController {
         return new BaseResponse<>(null);
     }
 
-    @PatchMapping("/{memberId}/role")
+    @PatchMapping("/members/{memberId}/role")
     public BaseResponse<MembershipResponse> updateMemberRole(@PathVariable Long groupId,
                                                              @PathVariable Long memberId,
                                                              @RequestBody @Valid MemberRoleRequest request,
@@ -87,7 +98,7 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
-    @PatchMapping("/{memberId}/delegate")
+    @PatchMapping("/members/{memberId}/delegate")
     public BaseResponse<MembershipResponse> delegateLeader(@PathVariable Long groupId,
                                                            @PathVariable Long memberId,
                                                            @AuthenticationPrincipal UserAuth userAuth) {
@@ -97,7 +108,7 @@ public class MembershipController {
         return new BaseResponse<>(responses);
     }
 
-    @GetMapping
+    @GetMapping("/members")
     public BaseResponse<MembershipResponse> findApprovedMembers(@PathVariable Long groupId,
                                                                 @AuthenticationPrincipal UserAuth userAuth) {
         Long loginUserid = userAuth.getUserId();
@@ -106,7 +117,7 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
-    @GetMapping("/requested")
+    @GetMapping("/members/requested")
     public BaseResponse<MembershipResponse> findRequestedMembers(@PathVariable Long groupId,
                                                                 @AuthenticationPrincipal UserAuth userAuth) {
         Long loginUserid = userAuth.getUserId();
@@ -115,7 +126,7 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
-    @GetMapping("/blocked")
+    @GetMapping("/members/blocked")
     public BaseResponse<MembershipResponse> findBlockedMembers(@PathVariable Long groupId,
                                                                 @AuthenticationPrincipal UserAuth userAuth) {
         Long loginUserid = userAuth.getUserId();
