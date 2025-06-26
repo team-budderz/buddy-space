@@ -72,9 +72,8 @@ public class VoteService {
 
 		voteSelectionRepository.deleteAllByVoteOptionIn(voteId);
 		voteOptionRepository.deleteAllByVoteId(vote.getId());
-		// TODO: 에러 발생 확인 코드
-		// vote = voteRepository.findById(voteId)
-		// 	.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
+		vote = voteRepository.findById(voteId)
+			.orElseThrow(() -> new VoteException(VOTE_NOT_FOUND));
 		vote.update(request.title(), request.isAnonymous(), request.options());
 		String profileImageUrl = profileImageProvider.getProfileImageUrl(vote.getAuthor());
 		return SaveVoteResponse.from(vote, profileImageUrl);
