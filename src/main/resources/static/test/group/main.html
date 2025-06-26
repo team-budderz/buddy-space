@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <title>벗터</title>
+    <script src="/js/config.js" defer></script>
+    <script src="/js/header.js" defer></script>
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/group-main.js" defer></script>
+    <link rel="stylesheet" href="/css/nav.css" />
+    <link rel="stylesheet" href="/css/group-main.css"/>
+</head>
+<body>
+<main>
+    <!-- nav.menu는 nav.js에서 주입됨 -->
+
+    <section class="group-content">
+        <!-- 게시글 탭 콘텐츠 시작 -->
+        <section class="notice-preview">
+            <h2>공지사항</h2>
+            <div id="notice-list"></div>
+        </section>
+
+        <section class="post-section">
+            <div class="post-header">
+                <h2>목록</h2>
+                <button class="post-write-btn" onclick="goToPostCreate()">게시글 작성</button>
+            </div>
+            <div id="post-list"></div>
+        </section>
+        <!-- 게시글 탭 콘텐츠 끝 -->
+    </section>
+</main>
+</body>
+</html>

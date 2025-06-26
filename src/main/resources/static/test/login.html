@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>로그인 테스트</title>
+    <script src="/js/config.js"></script> <!-- 반드시 먼저 로드 -->
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -103,13 +104,13 @@
         const requestBody = { email, password };
 
         try {
-            const response = await fetch('http://localhost:8080/api/users/login', {
+            const response = await fetch(`${API_BASE_URL}/api/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestBody),
-                credentials: 'include'  // 쿠키 포함 (refreshToken 받기 위한 설정)
+                credentials: 'include'  // 쿠키 포함
             });
 
             const data = await response.json();
@@ -118,9 +119,7 @@
                 const accessToken = data.result?.accessToken;
                 if (accessToken) {
                     result.textContent = "로그인 성공!\n\nAccess Token:\n" + accessToken;
-
                     localStorage.setItem('accessToken', accessToken);
-
                     setTimeout(() => {
                         window.location.href = 'main.html';
                     }, 1000);
@@ -128,12 +127,10 @@
                     result.textContent = "로그인 실패: 토큰이 없습니다.";
                 }
             } else {
-                // 실패 처리 (에러 메시지 출력)
                 const message = data.message || '알 수 없는 오류';
                 const code = data.code || 'UNKNOWN';
                 result.textContent = `로그인 실패 (${code})\n${message}`;
             }
-
         } catch (error) {
             result.textContent = '요청 실패: ' + error;
         }

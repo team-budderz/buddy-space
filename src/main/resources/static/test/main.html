@@ -1,28 +1,24 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>벗터</title>
-    <script src="/test/header.js" defer></script>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f9f9f9;
-        }
-
-        main {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-    </style>
+    <script src="/js/config.js" defer></script>
+    <script src="/js/header.js" defer></script>
+    <script src="/js/main.js" defer></script>
+    <link rel="stylesheet" href="/css/main.css"/>
 </head>
 <body>
-<!-- header.js가 실행되면 여기에 헤더가 삽입됨 -->
 <main>
-    <h1>메인 콘텐츠 영역</h1>
-    <p>여기에 탭과 리스트 등 메인 내용을 넣을 수 있어요.</p>
+    <div class="tabs">
+        <div class="tab active" data-tab="my">나의 벗터</div>
+        <div class="tab" data-tab="online">온 벗터</div>
+        <div class="tab" data-tab="offline">오프 벗터</div>
+    </div>
+
+    <div id="user-location" style="display:none;">📍</div>
+    <div class="group-grid" id="groupListContainer"></div>
 </main>
+
 </body>
 </html>

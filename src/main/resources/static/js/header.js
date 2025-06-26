@@ -1,27 +1,66 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    const accessToken = localStorage.getItem('accessToken');
+// 토큰 자동 재발급 기능 포함한 fetch wrapper 정의
+async function fetchWithAuth(url, options = {}) {
+    let accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-        alert("로그인이 필요합니다.");
-        window.location.href = "login.html";
+        window.location.href = "/test/login.html";
         return;
     }
 
-    // 사용자 정보 조회
-    let profileImageUrl = "https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png";
-    try {
-        const response = await fetch("http://localhost:8080/api/users/me", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${accessToken}`
-            },
+    // 기본 Authorization 헤더 설정
+    options.headers = {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${accessToken}`
+    };
+    options.credentials = "include";
+
+    let response = await fetch(`${API_BASE_URL}${url}`, options);
+
+    if (response.status === 401) {
+        // accessToken 만료 → refresh 요청 시도
+        const refreshRes = await fetch(`${API_BASE_URL}/api/token/refresh`, {
+            method: "POST",
             credentials: "include"
+        });
+
+        const refreshData = await refreshRes.json();
+
+        if (refreshRes.ok && refreshData.result?.accessToken) {
+            // 새로운 accessToken 저장하고 요청 재시도
+            localStorage.setItem("accessToken", refreshData.result.accessToken);
+            options.headers.Authorization = `Bearer ${refreshData.result.accessToken}`;
+            response = await fetch(`${API_BASE_URL}${url}`, options);
+        } else {
+            alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
+            window.location.href = "/test/login.html";
+            return;
+        }
+    }
+
+    return response;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    let accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+        window.location.href = "/test/login.html";
+        return;
+    }
+
+    window.loggedInUser = null;
+    let profileImageUrl = "https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png";
+
+    try {
+        const response = await fetchWithAuth("/api/users/me", {
+            method: "GET"
         });
 
         const data = await response.json();
         if (response.ok) {
             profileImageUrl = data.result.profileImageUrl || profileImageUrl;
+            window.loggedInUser = data.result;
         } else {
             console.warn("사용자 정보 조회 실패:", data.message || data.code);
+            window.location.href = "/test/login.html";
         }
     } catch (err) {
         console.error("사용자 정보 요청 중 오류:", err);
@@ -73,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchButton.addEventListener("click", () => {
         const keyword = searchInput.value.trim();
         if (keyword) {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}`;
+            window.location.href = `/test/search.html?keyword=${keyword}`;
         }
     });
     searchContainer.appendChild(searchInput);

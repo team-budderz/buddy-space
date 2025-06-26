@@ -1,0 +1,141 @@
+.post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.post-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.post-header img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.post-meta {
+    font-size: 14px;
+    color: #888;
+}
+
+.post-content {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 30px;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+}
+
+#post-actions {
+    display: flex;
+    gap: 8px;
+}
+
+#post-actions button {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.comment-section h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.comment {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.comment-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.comment-info img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.comment-buttons button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.replies {
+    margin-top: 10px;
+    padding-left: 10%;
+}
+
+.reply {
+    background-color: #f1f1f1;
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 6px;
+}
+
+.reply-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reply-header img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+
+.reply-buttons {
+    margin-left: auto;
+}
+
+.reply-buttons button {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.more-replies-btn {
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    font-size: 13px;
+    cursor: pointer;
+    margin-left: 10%;
+}
