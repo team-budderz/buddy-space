@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public record FindsPostResponse(
         @JsonInclude(JsonInclude.Include.NON_NULL)
         Long profileAttachmentId,
+        Long id,
         String userImgUrl,
         String userName,
         LocalDateTime createdAt,
@@ -16,6 +17,7 @@ public record FindsPostResponse(
     public FindsPostResponse withProfileImageUrl(String url) {
         return new FindsPostResponse(
                 null,
+                this.id,
                 url,
                 this.userName,
                 this.createdAt,
@@ -27,6 +29,7 @@ public record FindsPostResponse(
     public FindsPostResponse withRenderedContent(String renderedContent) {
         return new FindsPostResponse(
                 this.profileAttachmentId,
+                this.id,
                 this.userImgUrl,
                 this.userName,
                 this.createdAt,

@@ -22,7 +22,7 @@ public class CommentController {
     private final CommentService commentService;
 
     // 댓글 생성
-    @PostMapping("/group/{groupId}/posts/{postId}/comments")
+    @PostMapping("/groups/{groupId}/posts/{postId}/comments")
     public BaseResponse<CommentResponse> saveComment (
             @PathVariable Long groupId,
             @PathVariable Long postId,
@@ -36,7 +36,7 @@ public class CommentController {
     }
 
     // 대댓글 생성
-    @PostMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
+    @PostMapping("/groups/{groupId}/posts/{postId}/comments/{commentId}")
     public BaseResponse<RecommentResponse> saveComment (
             @PathVariable Long groupId,
             @PathVariable Long postId,
@@ -51,7 +51,7 @@ public class CommentController {
     }
 
     // 댓글 수정 (대댓글 포함)
-    @PatchMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
+    @PatchMapping("/groups/{groupId}/posts/{postId}/comments/{commentId}")
     public BaseResponse<CommentResponse> updateComment (
             @PathVariable Long groupId,
             @PathVariable Long postId,
@@ -65,7 +65,7 @@ public class CommentController {
     }
 
      // 댓글 삭제
-    @DeleteMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
+    @DeleteMapping("/groups/{groupId}/posts/{postId}/comments/{commentId}")
     public BaseResponse<String> deletecomment (
             @PathVariable Long groupId,
             @PathVariable Long postId,
@@ -78,7 +78,7 @@ public class CommentController {
     }
 
     // 대댓글 조회
-    @GetMapping("/group/{groupId}/posts/{postId}/comments/{commentId}")
+    @GetMapping("/groups/{groupId}/posts/{postId}/comments/{commentId}")
     public BaseResponse<List<FindsRecommentResponse>> findsRecomment(
             @PathVariable Long groupId,
             @PathVariable Long postId,
