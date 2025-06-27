@@ -2,18 +2,87 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>벗터 메뉴</title>
+    <title>벗터 메뉴 - 사진첩</title>
     <script src="/js/config.js" defer></script>
     <script src="/js/header.js" defer></script>
     <script src="/js/nav.js" defer></script>
-    <link rel="stylesheet" href="/css/nav.css" />
+    <script src="/js/album.js" defer></script>
+    <link rel="stylesheet" href="/css/header.css"/>
+    <link rel="stylesheet" href="/css/nav.css"/>
+    <link rel="stylesheet" href="/css/album.css"/>
 </head>
 <body>
 <main>
     <section class="group-content">
-        <h2>사진첩</h2>
-        <p>이곳에 각 메뉴별 콘텐츠가 동적으로 표시됩니다.</p>
+        <div class="photo-album-container">
+            <!-- 왼쪽 사이드바 -->
+            <div class="photo-sidebar">
+                <ul class="photo-menu-list">
+                    <li class="photo-menu-item">
+                        <a href="#" class="photo-menu-link active" data-category="all">
+                            <span class="photo-menu-icon">🗂️</span>
+                            전체
+                            <span class="photo-menu-count" id="countAll">0</span>
+                        </a>
+                    </li>
+                    <li class="photo-menu-item">
+                        <a href="#" class="photo-menu-link" data-category="image">
+                            <span class="photo-menu-icon">📷</span>
+                            사진
+                            <span class="photo-menu-count" id="countPhotos">0</span>
+                        </a>
+                    </li>
+                    <li class="photo-menu-item">
+                        <a href="#" class="photo-menu-link" data-category="video">
+                            <span class="photo-menu-icon">🎬</span>
+                            영상
+                            <span class="photo-menu-count" id="countVideos">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 오른쪽 메인 콘텐츠 -->
+            <div class="photo-main-content">
+                <div class="photo-header">
+                    <h4 id="categoryTitle">전체 미디어</h4>
+                </div>
+
+                <div class="photo-grid" id="photoGrid">
+                    <!-- 로딩 상태 -->
+                    <div class="loading-container" id="loadingContainer">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">사진을 불러오는 중...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
+
+    <!-- 미디어 뷰어 모달 -->
+    <div class="media-modal" id="mediaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">파일명</h3>
+                <div class="modal-actions">
+                    <button class="modal-btn download-btn" id="downloadBtn">
+                        📥 다운로드
+                    </button>
+                    <button class="modal-btn close-btn" id="closeModalBtn">
+                        ✕ 닫기
+                    </button>
+                </div>
+            </div>
+            <div class="modal-media-container" id="modalMediaContainer">
+                <!-- 미디어 콘텐츠가 여기에 동적으로 삽입됩니다 -->
+            </div>
+            <div class="modal-info">
+                <div class="modal-info-grid" id="modalInfoGrid">
+                    <!-- 파일 정보가 여기에 동적으로 삽입됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

@@ -5,7 +5,7 @@ const locationDiv = document.getElementById('user-location');
 const groupTypeMap = {
     ONLINE: "온라인",
     OFFLINE: "오프라인",
-    HYBRID: "온/오프라인"
+    HYBRID: "온·오프라인"
 };
 
 const groupInterestMap = {
@@ -99,11 +99,11 @@ function renderGroups(groups, includeCreate, tabType) {
         name.textContent = group.groupName;
         info.appendChild(name);
 
-        if (group.groupDescription) {
-            const desc = document.createElement("p");
-            desc.textContent = group.groupDescription;
-            info.appendChild(desc);
-        }
+        // if (group.groupDescription) {
+        //     const desc = document.createElement("p");
+        //     desc.textContent = group.groupDescription;
+        //     info.appendChild(desc);
+        // }
 
         const meta = document.createElement("div");
         meta.className = "group-meta";

@@ -6,25 +6,46 @@
     <script src="/js/config.js" defer></script>
     <script src="/js/header.js" defer></script>
     <script src="/js/main.js" defer></script>
+    <link rel="stylesheet" href="/css/header.css"/>
     <link rel="stylesheet" href="/css/main.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <main>
-    <div class="tabs">
-        <div class="tab active" data-tab="my">나의 벗터</div>
-        <div class="tab" data-tab="online">온 벗터</div>
-        <div class="tab" data-tab="offline">오프 벗터</div>
-    </div>
+    <div class="main-container">
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" data-tab="my">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">나의 벗터</span>
+                </div>
+                <div class="tab" data-tab="online">
+                    <span class="tab-icon">💻</span>
+                    <span class="tab-text">온 벗터</span>
+                </div>
+                <div class="tab" data-tab="offline">
+                    <span class="tab-icon">📍</span>
+                    <span class="tab-text">오프 벗터</span>
+                </div>
+            </div>
+        </div>
 
-    <div id="user-location" style="display:none;">📍</div>
-    <div class="sort-options" style="display:none; margin-bottom: 20px;">
-        <select id="sortSelect" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px;">
-            <option value="popular">인기순</option>
-            <option value="latest">최신순</option>
-        </select>
+        <div class="content-header">
+            <div class="sort-options">
+                <select id="sortSelect" class="sort-select">
+                    <option value="popular">🔥 인기순</option>
+                    <option value="latest">⏰ 최신순</option>
+                </select>
+            </div>
+            <div id="user-location" class="location-badge">📍</div>
+        </div>
+
+        <div class="group-grid" id="groupListContainer">
+            <!-- 그룹 카드들이 여기에 동적으로 추가됩니다 -->
+        </div>
     </div>
-    <div class="group-grid" id="groupListContainer"></div>
 </main>
-
 </body>
 </html>

@@ -12,6 +12,8 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import team.budderz.buddyspace.global.exception.BaseException;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -131,16 +133,19 @@ public class S3Service {
      */
     public String generateDownloadUrl(String key, String originalFilename) {
         try {
+            // 한글 파일명을 URL 인코딩
+            String encodedFilename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8)
+                    .replaceAll("\\+", "%20"); // 공백을 %20으로 변경
+
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucket)
                     .key(key)
-                    // 다운로드 트리거 설정
-                    .responseContentDisposition("attachment; filename=\"" + originalFilename + "\"")
+                    // UTF-8로 인코딩된 파일명 사용
+                    .responseContentDisposition("attachment; filename*=UTF-8''" + encodedFilename)
                     .build();
 
-            Duration expiration = Duration.ofMinutes(10); // 유효시간 10분
+            Duration expiration = Duration.ofMinutes(10);
 
-            // presigned URL 생성 후 문자열로 변환
             String url = s3Presigner.presignGetObject(builder -> builder
                     .getObjectRequest(getObjectRequest)
                     .signatureDuration(expiration)
