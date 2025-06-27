@@ -27,6 +27,15 @@ function extractDong(address) {
 }
 
 function updateUserLocation(tabType) {
+    const sortOptions = document.querySelector('.sort-options');
+
+    // 정렬 드롭다운 보이기: online, offline일 때만
+    if (tabType === "online" || tabType === "offline") {
+        sortOptions.style.display = "block";
+    } else {
+        sortOptions.style.display = "none";
+    }
+
     if (tabType === "offline" && window.loggedInUser?.address) {
         const dong = extractDong(window.loggedInUser.address);
         locationDiv.textContent = `📍${dong}`;
@@ -36,6 +45,8 @@ function updateUserLocation(tabType) {
     }
 }
 
+let currentSort = 'popular'; // 기본값
+
 async function fetchGroups(tabType) {
     let url = "";
     let includeCreate = false;
@@ -44,9 +55,9 @@ async function fetchGroups(tabType) {
         url = `/api/groups/my`;
         includeCreate = true;
     } else if (tabType === "online") {
-        url = `/api/groups/on?sort=popular`;
+        url = `/api/groups/on?sort=${currentSort}`;
     } else if (tabType === "offline") {
-        url = `/api/groups/off?sort=popular`;
+        url = `/api/groups/off?sort=${currentSort}`;
     }
 
     try {
@@ -161,6 +172,13 @@ tabs.forEach(tab => {
         tabs.forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
         const selectedTab = tab.dataset.tab;
+
+        // 정렬 초기화
+        if (selectedTab === "online" || selectedTab === "offline") {
+            currentSort = "popular";
+            document.getElementById('sortSelect').value = "popular";
+        }
+
         fetchGroups(selectedTab);
         updateUserLocation(selectedTab);
     });
@@ -169,4 +187,10 @@ tabs.forEach(tab => {
 document.addEventListener("DOMContentLoaded", () => {
     fetchGroups("my");
     updateUserLocation("my");
+});
+
+document.getElementById('sortSelect').addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    const activeTab = document.querySelector('.tab.active').dataset.tab;
+    fetchGroups(activeTab);
 });
