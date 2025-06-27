@@ -10,86 +10,197 @@
     <link rel="stylesheet" href="/css/header.css"/>
     <link rel="stylesheet" href="/css/nav.css" />
     <link rel="stylesheet" href="/css/group-create.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <main>
-    <form id="groupForm">
-        <!-- 1. 커버 이미지 & 모임 이름 -->
-        <div class="row">
-            <div class="cover-section">
-                <input type="file" id="coverImage" accept="image/*">
-                <img id="preview" class="cover-preview" src="#" alt="미리보기" style="display: none; margin-top: 10px;">
-            </div>
-            <div class="name-section">
-                <label for="groupName">모임 이름</label>
-                <input type="text" id="groupName" name="groupName" required>
-            </div>
+    <div class="create-container">
+        <div class="page-header">
+            <h1 class="page-title">새로운 벗터 만들기</h1>
+            <p class="page-subtitle">당신만의 특별한 공간을 만들어보세요</p>
         </div>
 
-        <!-- 2. 공개 여부 -->
-        <div class="row">
-            <label>공개 여부 *</label>
-            <div class="radio-group">
-                <div class="radio-item">
-                    <input type="radio" id="public" name="visibility" value="PUBLIC" required>
-                    <label for="public">공개</label>
-                </div>
-                <div class="radio-item">
-                    <input type="radio" id="private" name="visibility" value="PRIVATE" required>
-                    <label for="private">비공개</label>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. 모임 유형 -->
-        <div class="row">
-            <label>모임 유형 *</label>
-            <div class="radio-group">
-                <div class="radio-item">
-                    <input type="radio" id="online" name="type" value="ONLINE" required>
-                    <label for="online">온라인</label>
-                </div>
-                <div class="radio-item">
-                    <input type="radio" id="offline" name="type" value="OFFLINE" required>
-                    <label for="offline">오프라인</label>
-                </div>
-                <div class="radio-item">
-                    <input type="radio" id="both" name="type" value="HYBRID" required>
-                    <label for="both">온/오프라인</label>
+        <form id="groupForm" class="create-form">
+            <!-- 1. 커버 이미지 & 모임 이름 -->
+            <div class="form-section">
+                <div class="row main-info">
+                    <div class="cover-section">
+                        <label class="cover-label">
+                            <span class="label-text">커버 이미지</span>
+                            <div class="cover-upload-area">
+                                <input type="file" id="coverImage" accept="image/*">
+                                <div class="upload-placeholder">
+                                    <div class="upload-icon">📷</div>
+                                    <div class="upload-text">클릭하여 이미지 업로드</div>
+                                    <div class="upload-hint">JPG, PNG 파일 (최대 5MB)</div>
+                                </div>
+                                <img id="preview" class="cover-preview" src="#" alt="미리보기" style="display: none;">
+                            </div>
+                        </label>
+                    </div>
+                    <div class="name-section">
+                        <label for="groupName" class="input-label">
+                            <span class="label-text">모임 이름 *</span>
+                            <input type="text" id="groupName" name="groupName" placeholder="예: 주말 등산 모임" required>
+                        </label>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 4. 관심사 -->
-        <div class="row">
-            <label>관심사 *</label>
-            <div class="radio-group">
-                <div class="radio-item"><input type="radio" id="hobby" name="interest" value="HOBBY" required><label
-                        for="hobby">취미</label></div>
-                <div class="radio-item"><input type="radio" id="family" name="interest" value="FAMILY"><label
-                        for="family">가족</label></div>
-                <div class="radio-item"><input type="radio" id="school" name="interest" value="SCHOOL"><label
-                        for="school">학교</label></div>
-                <div class="radio-item"><input type="radio" id="work" name="interest" value="BUSINESS"><label
-                        for="work">업무</label></div>
-                <div class="radio-item"><input type="radio" id="fitness" name="interest" value="EXERCISE"><label
-                        for="fitness">운동</label></div>
-                <div class="radio-item"><input type="radio" id="game" name="interest" value="GAME"><label
-                        for="game">게임</label></div>
-                <div class="radio-item"><input type="radio" id="study" name="interest" value="STUDY"><label for="study">스터디</label>
+            <!-- 2. 공개 여부 -->
+            <div class="form-section">
+                <div class="section-header">
+                    <p>모임의 공개 범위를 선택해주세요</p>
                 </div>
-                <div class="radio-item"><input type="radio" id="fan" name="interest" value="FAN"><label
-                        for="fan">팬</label></div>
-                <div class="radio-item"><input type="radio" id="etc" name="interest" value="OTHER"><label
-                        for="etc">기타</label></div>
-            </div>
-        </div>
-        <!-- 오류 메시지 영역 -->
-        <div id="errorMessage" class="error-message"></div>
 
-        <button id="submitBtn" type="submit">모임 만들기</button>
-    </form>
+                <div class="radio-group">
+                    <label class="radio-card" for="public">
+                        <input type="radio" id="public" name="visibility" value="PUBLIC" required>
+                        <div class="radio-content">
+                            <div class="radio-icon">🌍</div>
+                            <div class="radio-info">
+                                <div class="radio-title">공개</div>
+                                <div class="radio-desc">누구나 모임을 찾고 참여할 수 있어요</div>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="radio-card" for="private">
+                        <input type="radio" id="private" name="visibility" value="PRIVATE" required>
+                        <div class="radio-content">
+                            <div class="radio-icon">🔒</div>
+                            <div class="radio-info">
+                                <div class="radio-title">비공개</div>
+                                <div class="radio-desc">초대받은 사람만 참여할 수 있어요</div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. 모임 유형 -->
+            <div class="form-section">
+                <div class="section-header">
+                    <p>어떤 방식으로 모임을 진행하시나요?</p>
+                </div>
+
+                <div class="radio-group">
+                    <label class="radio-card" for="online">
+                        <input type="radio" id="online" name="type" value="ONLINE" required>
+                        <div class="radio-content">
+                            <div class="radio-icon">💻</div>
+                            <div class="radio-info">
+                                <div class="radio-title">온라인</div>
+                                <div class="radio-desc">채팅으로 만나요</div>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="radio-card" for="offline">
+                        <input type="radio" id="offline" name="type" value="OFFLINE" required>
+                        <div class="radio-content">
+                            <div class="radio-icon">🏢</div>
+                            <div class="radio-info">
+                                <div class="radio-title">오프라인</div>
+                                <div class="radio-desc">동네에서 만나요</div>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="radio-card" for="both">
+                        <input type="radio" id="both" name="type" value="HYBRID" required>
+                        <div class="radio-content">
+                            <div class="radio-icon">🔄</div>
+                            <div class="radio-info">
+                                <div class="radio-title">온·오프라인</div>
+                                <div class="radio-desc">상황에 따라 유연하게 진행해요</div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 4. 관심사 -->
+            <div class="form-section">
+                <div class="section-header">
+                    <p>모임의 주요 관심사를 선택해주세요</p>
+                </div>
+
+                <div class="interest-grid">
+                    <label class="interest-card" for="hobby">
+                        <input type="radio" id="hobby" name="interest" value="HOBBY" required>
+                        <div class="interest-content">
+                            <div class="interest-icon">🎨</div>
+                            <div class="interest-title">취미</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="family">
+                        <input type="radio" id="family" name="interest" value="FAMILY">
+                        <div class="interest-content">
+                            <div class="interest-icon">👨‍👩‍👧‍👦</div>
+                            <div class="interest-title">가족</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="school">
+                        <input type="radio" id="school" name="interest" value="SCHOOL">
+                        <div class="interest-content">
+                            <div class="interest-icon">🎓</div>
+                            <div class="interest-title">학교</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="work">
+                        <input type="radio" id="work" name="interest" value="BUSINESS">
+                        <div class="interest-content">
+                            <div class="interest-icon">💼</div>
+                            <div class="interest-title">업무</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="fitness">
+                        <input type="radio" id="fitness" name="interest" value="EXERCISE">
+                        <div class="interest-content">
+                            <div class="interest-icon">💪</div>
+                            <div class="interest-title">운동</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="game">
+                        <input type="radio" id="game" name="interest" value="GAME">
+                        <div class="interest-content">
+                            <div class="interest-icon">🎮</div>
+                            <div class="interest-title">게임</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="study">
+                        <input type="radio" id="study" name="interest" value="STUDY">
+                        <div class="interest-content">
+                            <div class="interest-icon">📚</div>
+                            <div class="interest-title">스터디</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="fan">
+                        <input type="radio" id="fan" name="interest" value="FAN">
+                        <div class="interest-content">
+                            <div class="interest-icon">⭐</div>
+                            <div class="interest-title">팬</div>
+                        </div>
+                    </label>
+                    <label class="interest-card" for="etc">
+                        <input type="radio" id="etc" name="interest" value="OTHER">
+                        <div class="interest-content">
+                            <div class="interest-icon">🌟</div>
+                            <div class="interest-title">기타</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 오류 메시지 영역 -->
+            <div id="errorMessage" class="error-message"></div>
+
+            <button id="submitBtn" type="submit" class="submit-btn">
+                <span class="btn-icon">✨</span>
+                <span class="btn-text">모임 만들기</span>
+            </button>
+        </form>
+    </div>
 </main>
-
 </body>
 </html>
