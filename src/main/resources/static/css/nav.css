@@ -1,42 +1,176 @@
-/* 탭 메뉴 스타일 */
+/* 전체 레이아웃 */
+body {
+    margin: 0;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 탭 네비게이션 */
 nav.group-nav {
     display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+nav.group-nav {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 nav.group-nav a {
     text-decoration: none;
-    color: #333;
-    padding: 8px 12px;
-    border-radius: 6px;
+    color: #718096;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
-nav.group-nav a:hover,
+nav.group-nav a::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+nav.group-nav a:hover::before {
+    left: 100%;
+}
+
+nav.group-nav a:hover {
+    color: #4a5568;
+    transform: translateY(-1px);
+}
+
 nav.group-nav a.active {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f8f9fa;
-}
-
-main {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px 20px;
-}
-
+/* 컨텐츠 영역 */
 .group-content {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 30px;
-    min-height: 250px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 40px;
+    min-height: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* 애니메이션 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    main {
+        padding: 15px;
+    }
+
+    nav.group-nav {
+        padding: 8px;
+        gap: 4px;
+    }
+
+    nav.group-nav a {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+
+    .group-content {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    nav.group-nav {
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    nav.group-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    nav.group-nav a {
+        flex-shrink: 0;
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+/* 다크모드 지원 */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    }
+
+    nav.group-nav {
+        background: rgba(26, 32, 44, 0.95);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    nav.group-nav a {
+        color: #a0aec0;
+    }
+
+    nav.group-nav a:hover {
+        color: #e2e8f0;
+    }
+
+    .group-content {
+        background: rgba(26, 32, 44, 0.95);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* 접근성 개선 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 포커스 스타일 */
+nav.group-nav a:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
 }

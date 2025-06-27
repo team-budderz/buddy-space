@@ -6,14 +6,23 @@
     <script src="/js/config.js" defer></script>
     <script src="/js/header.js" defer></script>
     <script src="/js/search.js" defer></script>
+    <link rel="stylesheet" href="/css/header.css"/>
     <link rel="stylesheet" href="/css/search.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <main>
-    <h2 id="keyword-display">검색 키워드</h2>
-    <p id="result-count">검색 결과</p>
-    <div id="groupListContainer"></div>
+    <div class="search-result-container">
+        <div class="search-header">
+            <h2 id="keyword-display">검색 키워드</h2>
+            <p id="result-count">검색 결과</p>
+        </div>
+        <div id="groupListContainer" class="group-grid">
+            <!-- 검색 결과가 여기에 동적으로 추가됩니다 -->
+        </div>
+    </div>
 </main>
-
 </body>
 </html>

@@ -2,139 +2,44 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>로그인 테스트</title>
-    <script src="/js/config.js"></script> <!-- 반드시 먼저 로드 -->
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f5f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background-color: #ffffff;
-            padding: 32px 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 24px;
-            color: #333;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px 12px;
-            margin-bottom: 18px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4a90e2;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #357ab8;
-        }
-
-        pre {
-            background-color: #f0f0f0;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 24px;
-            font-size: 14px;
-            color: #333;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-    </style>
+    <title>로그인</title>
+    <script src="/js/config.js"></script>
+    <script src="/js/login.js" defer></script>
+    <link rel="stylesheet" href="/css/login.css"/>
 </head>
 <body>
 <div class="container">
-    <h2>로그인</h2>
+    <div class="logo">
+        <div class="logo-icon"></div>
+        <p class="subtitle">계정에 로그인하여 시작하세요</p>
+    </div>
+
     <form id="loginForm">
-        <label for="email">이메일</label>
-        <input type="email" id="email" name="email" required>
+        <div class="form-group">
+            <div class="input-wrapper">
+                <input type="email" id="email" name="email" required placeholder="example@email.com">
+                <span class="input-icon">📧</span>
+            </div>
+        </div>
 
-        <label for="password">비밀번호</label>
-        <input type="password" id="password" name="password" required>
+        <div class="form-group">
+            <div class="input-wrapper">
+                <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요">
+                <span class="input-icon">🔒</span>
+            </div>
+        </div>
 
-        <button type="submit">로그인</button>
+        <!-- 메시지 영역 (로그인 버튼 위) -->
+        <div id="message" class="message"></div>
+
+        <button type="submit" id="loginBtn">
+            <span class="btn-text">로그인</span>
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>로그인 중...</span>
+            </div>
+        </button>
     </form>
-
-    <pre id="result"></pre>
 </div>
-
-<script>
-    const form = document.getElementById('loginForm');
-    const result = document.getElementById('result');
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        const requestBody = { email, password };
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/users/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody),
-                credentials: 'include'  // 쿠키 포함
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                const accessToken = data.result?.accessToken;
-                if (accessToken) {
-                    result.textContent = "로그인 성공!\n\nAccess Token:\n" + accessToken;
-                    localStorage.setItem('accessToken', accessToken);
-                    setTimeout(() => {
-                        window.location.href = 'main.html';
-                    }, 1000);
-                } else {
-                    result.textContent = "로그인 실패: 토큰이 없습니다.";
-                }
-            } else {
-                const message = data.message || '알 수 없는 오류';
-                const code = data.code || 'UNKNOWN';
-                result.textContent = `로그인 실패 (${code})\n${message}`;
-            }
-        } catch (error) {
-            result.textContent = '요청 실패: ' + error;
-        }
-    });
-</script>
 </body>
 </html>
