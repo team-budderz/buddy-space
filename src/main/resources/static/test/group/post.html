@@ -10,30 +10,54 @@
     <link rel="stylesheet" href="/css/header.css"/>
     <link rel="stylesheet" href="/css/nav.css" />
     <link rel="stylesheet" href="/css/post.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <main>
     <section class="group-content">
-        <div class="post-header">
-            <div class="post-header-left">
-                <img id="user-img" src="" alt="프로필">
-                <div>
-                    <strong id="user-name">작성자</strong><br>
-                    <span class="post-meta" id="created-at">작성일</span>
+        <article class="post-container">
+            <!-- 게시글 헤더 -->
+            <header class="post-header">
+                <div class="post-author-info">
+                    <div class="author-avatar">
+                        <img id="user-img" src="/placeholder.svg" alt="프로필">
+                    </div>
+                    <div class="author-details">
+                        <h3 class="author-name" id="user-name">작성자</h3>
+                        <time class="post-timestamp" id="created-at">작성일</time>
+                    </div>
+                </div>
+                <div class="post-actions" id="post-actions" style="display: none;">
+                    <button class="action-btn edit-btn" onclick="editPost()">
+                        <span class="btn-icon">✏️</span>
+                        <span class="btn-text">수정</span>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deletePost()">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">삭제</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 게시글 내용 -->
+            <div class="post-content-wrapper">
+                <div class="post-content" id="post-content">
+                    <!-- 게시글 내용이 여기에 동적으로 삽입됩니다 -->
                 </div>
             </div>
-            <div id="post-actions" style="display: none;">
-                <button class="btn-edit" onclick="editPost()">수정</button>
-                <button class="btn-delete" onclick="deletePost()">삭제</button>
-            </div>
-        </div>
 
-        <div class="post-content" id="post-content"></div>
-
-        <section class="comment-section">
-            <h3 id="comment-count">댓글</h3>
-            <div id="comment-list"></div>
-        </section>
+            <!-- 댓글 섹션 -->
+            <section class="comment-section">
+                <div class="comment-header">
+                    <h3 class="comment-title" id="comment-count">댓글</h3>
+                </div>
+                <div class="comment-list" id="comment-list">
+                    <!-- 댓글들이 여기에 동적으로 삽입됩니다 -->
+                </div>
+            </section>
+        </article>
     </section>
 </main>
 </body>
