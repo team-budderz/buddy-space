@@ -40,6 +40,7 @@ async function loadMembersData() {
 
         renderMembers()
         updateInviteButton()
+        updateWithdrawButton()
     } catch (error) {
         console.error("멤버 데이터 로드 실패:", error)
         showError("멤버 정보를 불러오는데 실패했습니다.")
@@ -139,6 +140,18 @@ function updateInviteButton() {
     }
 }
 
+// 탈퇴 버튼 업데이트
+function updateWithdrawButton() {
+    const withdrawSection = document.getElementById("withdraw-section")
+    const isCurrentUserLeader = GroupPermissions.isLeader()
+
+    if (!isCurrentUserLeader && currentUser) {
+        withdrawSection.style.display = "block"
+    } else {
+        withdrawSection.style.display = "none"
+    }
+}
+
 // 권한 체크 함수들
 function isLeader() {
     return GroupPermissions.isLeader()
@@ -166,7 +179,7 @@ function showMemberMenu(memberId, memberName) {
 
     let optionsHTML = ""
 
-    console.log("isLeader: ", isLeader());
+    console.log("isLeader: ", isLeader())
     if (isLeader()) {
         optionsHTML = `
             <div class="menu-option" onclick="startDirectChat(${memberId}, '${memberName}')">
@@ -243,7 +256,7 @@ async function blockMember(memberId, memberName) {
 
 // 1:1 대화 시작
 async function startDirectChat(memberId, memberName) {
-    alert(`${memberName}님과의 1:1 대화 기능은 준비 중입니다.`);
+    alert(`${memberName}님과의 1:1 대화 기능은 준비 중입니다.`)
     closeModal()
 }
 
@@ -449,12 +462,43 @@ function showToast(message) {
     }, 3000)
 }
 
+// 모임 탈퇴
+async function withdrawFromGroup() {
+    if (!confirm("정말로 이 모임에서 탈퇴하시겠습니까?\n탈퇴 후에는 다시 가입 요청을 하거나, \n비공개 모임일 경우 초대 링크로만 참여할 수 있습니다.")) {
+        return
+    }
+
+    try {
+        const response = await fetchWithAuth(`/api/groups/${groupId}/withdraw`, {
+            method: "DELETE",
+        })
+
+        if (response.ok) {
+            alert("모임에서 탈퇴되었습니다.")
+            // 메인 페이지로 이동
+            window.location.href = "/test/main.html"
+        } else {
+            const data = await response.json()
+            alert(`탈퇴 실패: ${data.message || "알 수 없는 오류"}`)
+        }
+    } catch (error) {
+        console.error("모임 탈퇴 실패:", error)
+        alert("모임 탈퇴 중 오류가 발생했습니다.")
+    }
+}
+
 // 이벤트 리스너 설정
 function setupEventListeners() {
     // 초대 버튼
     const inviteBtn = document.getElementById("invite-btn")
     if (inviteBtn) {
         inviteBtn.addEventListener("click", inviteMembers)
+    }
+
+    // 탈퇴 버튼
+    const withdrawBtn = document.getElementById("withdraw-btn")
+    if (withdrawBtn) {
+        withdrawBtn.addEventListener("click", withdrawFromGroup)
     }
 
     // 모달 닫기
