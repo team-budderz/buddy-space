@@ -80,8 +80,9 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public void updateUser(String address, String phone) {
+    public void updateUser(String address, Neighborhood neighborhood, String phone) {
         this.address = address;
+        this.neighborhood = neighborhood;
         this.phone = phone;
     }
 
