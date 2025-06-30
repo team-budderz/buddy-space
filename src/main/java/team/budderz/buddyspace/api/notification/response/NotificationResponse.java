@@ -20,7 +20,7 @@ public record NotificationResponse(
                 notification.getContent(),
                 notification.getUrl(),
                 notification.isRead(),
-                notification.getGroup().getName(),
+                notification.getGroup() != null ? notification.getGroup().getName() : null,
                 notification.getCreatedAt(),
                 notification.getType()
         );
