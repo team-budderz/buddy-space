@@ -23,7 +23,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run tests with Gradle
-        run: ./gradlew test --stacktrace --info
+        run: ./gradlew test --stacktrace --info --build-cache
 
       - name: Build with Gradle
-        run: ./gradlew build --stacktrace --info
+        run: ./gradlew build --stacktrace --info --build-cache
