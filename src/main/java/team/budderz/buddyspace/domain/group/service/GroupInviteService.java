@@ -57,7 +57,7 @@ public class GroupInviteService {
      */
     @Transactional(readOnly = true)
     public GroupInviteResponse findInviteLink(Long loginUserId, Long groupId) {
-        validator.validateLeader(loginUserId, groupId);
+        validator.validateMember(loginUserId, groupId);
         Group group = validator.findGroupOrThrow(groupId);
 
         String inviteLink = group.getInviteCode() == null ? null : inviteBaseUrl + group.getInviteCode();
@@ -74,7 +74,7 @@ public class GroupInviteService {
      */
     @Transactional
     public GroupInviteResponse deleteInviteLink(Long loginUserId, Long groupId) {
-        validator.validateLeader(loginUserId, groupId);
+        validator.validateMember(loginUserId, groupId);
         Group group = validator.findGroupOrThrow(groupId);
 
         group.updateInviteCode(null);

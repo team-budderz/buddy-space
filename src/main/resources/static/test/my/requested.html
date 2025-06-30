@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가입 요청 중인 벗터</title>
+    <script src="/js/config.js" defer></script>
+    <script src="/js/header.js" defer></script>
+    <script src="/js/requested.js" defer></script>
+    <link rel="stylesheet" href="/css/header.css"/>
+    <link rel="stylesheet" href="/css/profile.css"/>
+    <link rel="stylesheet" href="/css/requested.css"/>
+</head>
+<body>
+<main class="profile-container">
+    <div class="profile-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img id="sidebar-avatar" src="https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png" alt="프로필">
+                        <div class="avatar-fallback" id="sidebar-fallback">U</div>
+                    </div>
+                    <h2 id="sidebar-name">사용자</h2>
+                    <p id="sidebar-email">user@example.com</p>
+                </div>
+                <nav class="sidebar-nav">
+                    <button class="nav-item" onclick="window.location.href='/test/my/profile.html'">
+                        <span class="nav-icon">👤</span>
+                        내 정보 조회
+                    </button>
+                    <button class="nav-item active">
+                        <span class="nav-icon">👥</span>
+                        가입 요청 중인 벗터
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 로딩 상태 -->
+            <div id="loading" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>가입 요청 목록을 불러오는 중...</p>
+            </div>
+
+            <!-- 가입 요청 목록 -->
+            <div id="requests-content" class="requests-content" style="display: none;">
+                <!-- 헤더 -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="header-left">
+                            <h3><span class="card-icon">👥</span>가입 요청 중인 벗터</h3>
+                            <p class="card-description">현재 가입 신청한 모임들을 관리할 수 있습니다.</p>
+                        </div>
+                        <div class="request-stats">
+                            <span class="stats-badge" id="total-requests">0개 요청</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 필터 및 정렬 -->
+                <div class="info-card">
+                    <div class="card-content">
+                        <div class="filter-controls">
+                            <div class="filter-group">
+                                <label for="type-filter">모임 유형</label>
+                                <select id="type-filter" class="filter-select">
+                                    <option value="">전체</option>
+                                    <option value="ONLINE">온라인</option>
+                                    <option value="OFFLINE">오프라인</option>
+                                    <option value="HYBRID">온·오프라인</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="interest-filter">관심사</label>
+                                <select id="interest-filter" class="filter-select">
+                                    <option value="">전체</option>
+                                    <option value="HOBBY">취미</option>
+                                    <option value="FAMILY">가족</option>
+                                    <option value="SCHOOL">학교</option>
+                                    <option value="BUSINESS">업무</option>
+                                    <option value="EXERCISE">운동</option>
+                                    <option value="GAME">게임</option>
+                                    <option value="STUDY">스터디</option>
+                                    <option value="FAN">팬</option>
+                                    <option value="OTHER">기타</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="sort-select">정렬</label>
+                                <select id="sort-select" class="filter-select">
+                                    <option value="recent">최근 요청순</option>
+                                    <option value="name">이름순</option>
+                                    <option value="type">유형순</option>
+                                    <option value="interest">관심사순</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 요청 목록 -->
+                <div id="requests-list" class="requests-list">
+                    <!-- 동적으로 생성됨 -->
+                </div>
+
+                <!-- 빈 상태 -->
+                <div id="empty-state" class="info-card" style="display: none;">
+                    <div class="card-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3>가입 요청 내역이 없습니다</h3>
+                            <button class="btn btn-primary" onclick="window.location.href='/test/main.html'">
+                                벗터 둘러보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 요청 취소 확인 모달 -->
+<div id="cancel-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>가입 요청을 취소하시겠습니까?</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="cancel-group-info">
+                <img id="cancel-group-image" src="/placeholder.svg" alt="모임 이미지" class="cancel-group-image">
+                <div class="cancel-group-details">
+                    <h4 id="cancel-group-name">모임 이름</h4>
+                    <p id="cancel-group-description">모임 설명</p>
+                </div>
+            </div>
+            <p class="modal-description">가입 요청을 취소하면 다시 신청할 수 있습니다.</p>
+        </div>
+        <div class="modal-footer">
+            <button id="cancel-request-cancel" class="btn btn-secondary">취소</button>
+            <button id="cancel-request-confirm" class="btn btn-danger">요청 취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 토스트 알림 -->
+<div id="toast" class="toast"></div>
+</body>
+</html>

@@ -42,7 +42,7 @@ public class MembershipService {
     /**
      * 로그인한 사용자가 가입되어 있는 특정 모임과의 멤버십 정보 조회
      *
-     * @param userId 로그인 사용자 ID
+     * @param userId  로그인 사용자 ID
      * @param groupId 모임 ID
      * @return 멤버십 정보
      */
@@ -107,6 +107,23 @@ public class MembershipService {
         eventPublisher.publishEvent(new MembershipJoinRequestedEvent(group.getId(), user, group.getLeader()));
 
         return MembershipResponse.of(group, List.of(membership), profileImageProvider);
+    }
+
+    /**
+     * 가입 요청 취소
+     *
+     * @param loginUserId 로그인 사용자 ID
+     * @param groupId     모임 ID
+     */
+    @Transactional
+    public void cancelRequest(Long loginUserId, Long groupId) {
+        Membership membership = findMembershipByUserAndGroup(loginUserId, groupId);
+
+        if (membership.getJoinStatus() != JoinStatus.REQUESTED) {
+            throw new MembershipException(MembershipErrorCode.NOT_REQUESTED_MEMBER);
+        }
+
+        membershipRepository.deleteByUser_IdAndGroup_Id(loginUserId, groupId);
     }
 
     /**
@@ -246,6 +263,29 @@ public class MembershipService {
         }
 
         membershipRepository.deleteByUser_IdAndGroup_Id(memberId, groupId);
+    }
+
+    /**
+     * 모임 탈퇴
+     *
+     * @param loginUserId 사용자 ID
+     * @param groupId 모임 ID
+     */
+    @Transactional
+    public void withdrawGroup(Long loginUserId, Long groupId) {
+        validator.validateMember(loginUserId, groupId);
+
+        Membership membership = findMembershipByUserAndGroup(loginUserId, groupId);
+
+        if (membership.getMemberRole() == MemberRole.LEADER) {
+            throw new MembershipException(MembershipErrorCode.LEADER_CANNOT_WITHDRAW);
+        }
+
+        if (membership.getJoinStatus() != JoinStatus.APPROVED) {
+            throw new MembershipException(MembershipErrorCode.NOT_APPROVED_MEMBER);
+        }
+
+        membershipRepository.deleteByUser_IdAndGroup_Id(loginUserId, groupId);
     }
 
     /**

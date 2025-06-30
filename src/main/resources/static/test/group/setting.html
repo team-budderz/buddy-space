@@ -2,19 +2,258 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>벗터 메뉴</title>
-    <script src="/js/config.js" defer></script>
-    <script src="/js/header.js" defer></script>
-    <script src="/js/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>벗터 설정</title>
+    <script src="/js/config.js"></script>
+    <script src="/js/header.js"></script>
+    <script src="/js/group-base.js"></script>
+    <script src="/js/setting.js"></script>
     <link rel="stylesheet" href="/css/header.css"/>
-    <link rel="stylesheet" href="/css/nav.css" />
+    <link rel="stylesheet" href="/css/group-base.css" />
+    <link rel="stylesheet" href="/css/setting.css"/>
 </head>
 <body>
 <main>
     <section class="group-content">
-        <h2>설정</h2>
-        <p>이곳에 각 메뉴별 콘텐츠가 동적으로 표시됩니다.</p>
+        <div class="settings-container">
+            <!-- 벗터 기본 정보 관리 -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">벗터 기본 정보 관리</h3>
+                <div class="settings-menu-list">
+                    <div class="settings-menu-item" onclick="openGroupInfoModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">📝</span>
+                            <div class="settings-menu-text">
+                                <h4>벗터 이름 및 커버 설정</h4>
+                                <p>벗터 이름과 커버 이미지를 변경할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openDescriptionModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">💬</span>
+                            <div class="settings-menu-text">
+                                <h4>벗터 소개</h4>
+                                <p>벗터 소개글을 수정할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openAccessModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🔒</span>
+                            <div class="settings-menu-text">
+                                <h4>벗터 공개 타입</h4>
+                                <p id="current-access">공개</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openTypeModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🌐</span>
+                            <div class="settings-menu-text">
+                                <h4>벗터 유형</h4>
+                                <p id="current-type">온라인</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openInterestModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🎯</span>
+                            <div class="settings-menu-text">
+                                <h4>벗터 관심사</h4>
+                                <p id="current-interest">취미</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <!-- 오프라인 모임일 때만 표시 -->
+                    <div class="settings-menu-item offline-only" onclick="toggleNeighborhoodAuth()" style="display: none;">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🏠</span>
+                            <div class="settings-menu-text">
+                                <h4>동네 인증 사용자만 가입 요청 받기</h4>
+                                <p>동네 인증을 완료한 사용자만 가입 요청할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <div class="settings-toggle">
+                            <input type="checkbox" id="neighborhood-auth-toggle" class="settings-toggle-input">
+                            <label for="neighborhood-auth-toggle" class="settings-toggle-label"></label>
+                        </div>
+                    </div>
+
+                    <div class="settings-menu-item offline-only" onclick="updateGroupAddress()" style="display: none;">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">📍</span>
+                            <div class="settings-menu-text">
+                                <h4>벗터 동네 업데이트하기</h4>
+                                <p id="current-address">현재 동네 정보 없음</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 벗터 권한 관리 -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">벗터 권한 관리</h3>
+                <div class="settings-menu-list">
+                    <div class="settings-menu-item" onclick="openMemberRoleModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">👥</span>
+                            <div class="settings-menu-text">
+                                <h4>멤버 권한 설정</h4>
+                                <p>멤버들의 역할을 관리할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openPermissionModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">⚙️</span>
+                            <div class="settings-menu-text">
+                                <h4>기능별 권한 설정</h4>
+                                <p>각 기능별로 필요한 권한을 설정할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 벗터 멤버 관리 -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">벗터 멤버 관리</h3>
+                <div class="settings-menu-list">
+                    <div class="settings-menu-item" onclick="openJoinRequestModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">📋</span>
+                            <div class="settings-menu-text">
+                                <h4>가입 요청 중인 회원 관리</h4>
+                                <p>가입 요청을 승인하거나 거절할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openExpelMemberModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🚫</span>
+                            <div class="settings-menu-text">
+                                <h4>멤버 강제 탈퇴</h4>
+                                <p>문제가 있는 멤버를 강제로 탈퇴시킬 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openBlockMemberModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🔒</span>
+                            <div class="settings-menu-text">
+                                <h4>멤버 차단 및 차단 해제</h4>
+                                <p>멤버를 차단하거나 차단을 해제할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+
+                    <div class="settings-menu-item" onclick="openDelegateLeaderModal()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">👑</span>
+                            <div class="settings-menu-text">
+                                <h4>리더 위임하기</h4>
+                                <p>다른 멤버에게 리더 권한을 위임할 수 있습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 위험한 작업 -->
+            <div class="settings-section settings-danger-section">
+                <h3 class="settings-section-title">위험한 작업</h3>
+                <div class="settings-menu-list">
+                    <div class="settings-menu-item settings-danger-item" onclick="deleteGroup()">
+                        <div class="settings-menu-content">
+                            <span class="settings-menu-icon">🗑️</span>
+                            <div class="settings-menu-text">
+                                <h4>이 벗터 삭제하기</h4>
+                                <p>벗터를 완전히 삭제합니다. 이 작업은 되돌릴 수 없습니다</p>
+                            </div>
+                        </div>
+                        <span class="settings-menu-arrow">›</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
+
+    <!-- 모달들 -->
+    <!-- 벗터 정보 수정 모달 -->
+    <div id="group-info-modal" class="settings-modal">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h3>벗터 이름 및 커버 설정</h3>
+                <span class="settings-modal-close">&times;</span>
+            </div>
+            <div class="settings-modal-body">
+                <div class="settings-form-group">
+                    <label for="group-name">벗터 이름</label>
+                    <input type="text" id="group-name" maxlength="20" placeholder="벗터 이름을 입력하세요">
+                    <small class="settings-char-count">0/20</small>
+                </div>
+                <div class="settings-form-group">
+                    <label for="cover-image">커버 이미지</label>
+                    <div class="settings-image-upload">
+                        <img id="cover-preview" src="/placeholder.svg?height=200&width=400" alt="커버 이미지 미리보기">
+                        <input type="file" id="cover-image" accept="image/*" style="display: none;">
+                        <div class="settings-image-actions">
+                            <button type="button" onclick="document.getElementById('cover-image').click()" class="settings-upload-btn">이미지 선택</button>
+                            <button type="button" onclick="removeCoverImage()" class="settings-remove-btn">이미지 제거</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-modal-footer">
+                <button type="button" class="settings-btn settings-btn-secondary" onclick="closeModal('group-info-modal')">취소</button>
+                <button type="button" class="settings-btn settings-btn-primary" onclick="updateGroupInfo()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 기타 모달들은 동적으로 생성됩니다 -->
+    <div id="dynamic-modal" class="settings-modal">
+        <div class="settings-modal-content settings-modal-large">
+            <div class="settings-modal-header">
+                <h3 id="modal-title">제목</h3>
+                <span class="settings-modal-close">&times;</span>
+            </div>
+            <div class="settings-modal-body" id="modal-body">
+                <!-- 동적 콘텐츠 -->
+            </div>
+            <div class="settings-modal-footer" id="modal-footer">
+                <!-- 동적 버튼들 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay" class="settings-loading-overlay" style="display: none;">
+        <div class="settings-loading-spinner"></div>
+        <p>처리 중...</p>
+    </div>
 </main>
 </body>
 </html>

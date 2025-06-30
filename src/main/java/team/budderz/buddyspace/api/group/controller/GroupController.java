@@ -18,6 +18,8 @@ import team.budderz.buddyspace.global.response.PageResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
 import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
 
+import java.util.List;
+
 /**
  * 모임 기본 CRUD
  */
@@ -50,6 +52,15 @@ public class GroupController {
     ) {
         Long loginUserId = userAuth.getUserId();
         GroupResponse response = groupService.updateGroup(loginUserId, groupId, request, coverImage);
+
+        return new BaseResponse<>(response);
+    }
+
+    @GetMapping("/{groupId}")
+    public BaseResponse<GroupResponse> findGroup(@PathVariable Long groupId,
+                                                 @AuthenticationPrincipal UserAuth userAuth) {
+        Long loginUserId = userAuth.getUserId();
+        GroupResponse response = groupService.findGroup(groupId, loginUserId);
 
         return new BaseResponse<>(response);
     }
@@ -93,6 +104,15 @@ public class GroupController {
     ) {
         Long loginUserId = userAuth.getUserId();
         PageResponse<GroupListResponse> responses = groupService.findGroupsByUser(loginUserId, page);
+
+        return new BaseResponse<>(responses);
+    }
+
+    @GetMapping("/my-requested")
+    public BaseResponse<List<GroupResponse>> findMyRequested(@AuthenticationPrincipal UserAuth userAuth) {
+
+        Long loginUserId = userAuth.getUserId();
+        List<GroupResponse> responses = groupService.findMyRequested(loginUserId);
 
         return new BaseResponse<>(responses);
     }

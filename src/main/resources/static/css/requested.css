@@ -1,0 +1,384 @@
+/* 가입 요청 페이지 전용 스타일 */
+
+/* 요청 통계 */
+.request-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* 필터 컨트롤 */
+.filter-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.filter-select {
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* 요청 목록 */
+.requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* 요청 카드 */
+.request-card {
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.request-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.request-card-content {
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* 모임 이미지 */
+.group-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.group-image-fallback {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* 모임 정보 */
+.group-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.group-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+}
+
+.group-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.group-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* 모임 유형 배지 (온라인/오프라인) */
+.badge-type {
+    background: #e6fffa;
+    color: #234e52;
+}
+
+.badge-type.online {
+    background: #e0f2fe;
+    color: #0c4a6e;
+}
+
+.badge-type.offline {
+    background: #f0fdf4;
+    color: #14532d;
+}
+
+.badge-type.hybrid {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* 관심사 배지 */
+.badge-interest {
+    background: #fef5e7;
+    color: #744210;
+}
+
+.badge-interest.hobby {
+    background: #fce7f3;
+    color: #be185d;
+}
+
+.badge-interest.family {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.badge-interest.school {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.badge-interest.business {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.badge-interest.exercise {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.badge-interest.game {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.badge-interest.study {
+    background: #ecfccb;
+    color: #365314;
+}
+
+.badge-interest.fan {
+    background: #fdf2f8;
+    color: #be185d;
+}
+
+/* 공개 여부 배지 */
+.badge-access {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-access.private {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+.group-description {
+    color: #718096;
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.group-address {
+    color: #a0aec0;
+    font-size: 0.75rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* 요청 액션 */
+.request-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.request-status {
+    background: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.cancel-request-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 2px solid #e53e3e;
+    color: #e53e3e;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-request-btn:hover {
+    background: #e53e3e;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* 요청 취소 모달 */
+.cancel-group-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: #f7fafc;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.cancel-group-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.cancel-group-details h4 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.cancel-group-details p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #718096;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .filter-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .request-card-content {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .group-info {
+        width: 100%;
+    }
+
+    .request-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cancel-group-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .group-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* 다크모드 지원 */
+@media (prefers-color-scheme: dark) {
+    .request-card {
+        background: rgba(45, 55, 72, 0.95);
+        border-color: rgba(74, 85, 104, 0.3);
+    }
+
+    .group-name {
+        color: #e2e8f0;
+    }
+
+    .group-description {
+        color: #a0aec0;
+    }
+
+    .group-address {
+        color: #718096;
+    }
+
+    .filter-select {
+        background: rgba(45, 55, 72, 0.8);
+        border-color: rgba(74, 85, 104, 0.6);
+        color: #e2e8f0;
+    }
+
+    .cancel-group-info {
+        background: rgba(45, 55, 72, 0.8);
+    }
+
+    .cancel-group-details h4 {
+        color: #e2e8f0;
+    }
+
+    .cancel-group-details p {
+        color: #a0aec0;
+    }
+}

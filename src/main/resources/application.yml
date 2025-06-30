@@ -68,7 +68,7 @@ app:
       hybrid: group-cover/default_hybrid.png
   invite:
     base:
-      url: https://budderz.co.kr/invite?code=
+      url: http://localhost:8080/test/group/invite.html?code=
 
 jwt:
   secret:

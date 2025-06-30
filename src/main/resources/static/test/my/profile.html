@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 정보 조회</title>
+    <script src="/js/config.js" defer></script>
+    <script src="/js/header.js" defer></script>
+    <script src="/js/profile.js" defer></script>
+    <link rel="stylesheet" href="/css/header.css"/>
+    <link rel="stylesheet" href="/css/profile.css"/>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" async></script>
+</head>
+<body>
+<main class="profile-container">
+    <div class="profile-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img id="sidebar-avatar" src="https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png" alt="프로필">
+                        <div class="avatar-fallback" id="sidebar-fallback">U</div>
+                    </div>
+                    <h2 id="sidebar-name">사용자</h2>
+                    <p id="sidebar-email">user@example.com</p>
+                </div>
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" data-tab="profile">
+                        <span class="nav-icon">👤</span>
+                        내 정보 조회
+                    </button>
+                    <button class="nav-item" onclick="window.location.href='/test/my/requested.html'">
+                        <span class="nav-icon">👥</span>
+                        가입 요청 중인 벗터
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 로딩 상태 -->
+            <div id="loading" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>정보를 불러오는 중...</p>
+            </div>
+
+            <!-- 내 정보 조회 탭 -->
+            <div id="profile-tab" class="tab-content active">
+                <!-- 기본 정보 카드 -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><span class="card-icon">👤</span>기본 정보</h3>
+                        <p class="card-description">회원가입 시 등록된 기본 정보입니다.</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>이름</label>
+                                <p id="user-name">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>이메일</label>
+                                <p id="user-email">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>생년월일</label>
+                                <p id="user-birthdate">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>성별</label>
+                                <p id="user-gender">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>가입 방법</label>
+                                <span id="user-provider" class="provider-badge">일반</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 개인 정보 카드 -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="header-left">
+                            <h3><span class="card-icon">⚙️</span>개인 정보</h3>
+                            <p class="card-description">언제든지 수정할 수 있는 개인 정보입니다.</p>
+                        </div>
+                        <button id="edit-btn" class="btn btn-primary">수정</button>
+                    </div>
+                    <div class="card-content">
+                        <!-- 프로필 이미지 -->
+                        <div class="profile-image-section">
+                            <div class="profile-avatar large">
+                                <img id="profile-image" src="https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png" alt="프로필">
+                                <div class="avatar-fallback large" id="profile-fallback">U</div>
+                            </div>
+                            <div id="image-upload" class="image-upload" style="display: none;">
+                                <div class="image-controls">
+                                    <label for="profile-file" class="upload-btn">
+                                        <span class="upload-icon">📷</span>
+                                        이미지 변경
+                                    </label>
+                                    <button type="button" id="remove-image-btn" class="btn btn-outline btn-sm">
+                                        <span>🗑️</span>
+                                        이미지 제거
+                                    </button>
+                                </div>
+                                <input type="file" id="profile-file" accept="image/*" style="display: none;">
+                                <div id="image-preview" class="image-preview" style="display: none;">
+                                    <img id="preview-img" src="/placeholder.svg" alt="미리보기">
+                                    <p class="preview-text">새로 선택된 이미지</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="separator"></div>
+
+                        <!-- 동네 -->
+                        <div class="info-item">
+                            <label>동네</label>
+                            <div class="neighborhood-display-line">
+                                <div class="neighborhood-info">
+                                    <span id="neighborhood-address" class="neighborhood-address">미등록</span>
+                                    <span id="neighborhood-status-badge" class="neighborhood-status-badge unverified">[미인증]</span>
+                                </div>
+                                <button id="neighborhood-verify-btn" class="btn btn-primary btn-sm">
+                                    📍 동네 인증하기
+                                </button>
+                            </div>
+                            <div id="address-input-group" class="address-input-group" style="display: none;">
+                                <input type="text" id="edit-address" class="edit-input" placeholder="주소 검색을 클릭하세요" readonly>
+                                <button type="button" id="address-search-btn" class="btn btn-outline">주소 검색</button>
+                            </div>
+                        </div>
+
+                        <!-- 전화번호 -->
+                        <div class="info-item">
+                            <label>전화번호</label>
+                            <p id="user-phone" class="editable-info">미등록</p>
+                            <input type="text" id="edit-phone" class="edit-input" placeholder="010-1234-5678" style="display: none;">
+                        </div>
+
+                        <!-- 저장 버튼 -->
+                        <div id="save-buttons" class="save-buttons" style="display: none;">
+                            <button id="save-btn" class="btn btn-primary">저장</button>
+                            <button id="cancel-btn" class="btn btn-secondary">취소</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 보안 설정 카드 -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><span class="card-icon">🛡️</span>보안 설정</h3>
+                        <p class="card-description">계정 보안을 위한 설정입니다.</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>비밀번호 변경</h4>
+                                <p>정기적인 비밀번호 변경을 권장합니다.</p>
+                            </div>
+                            <button id="password-btn" class="btn btn-outline">변경</button>
+                        </div>
+
+                        <div class="separator"></div>
+
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4 class="danger">회원 탈퇴</h4>
+                                <p>계정을 영구적으로 삭제합니다.</p>
+                            </div>
+                            <button id="delete-btn" class="btn btn-danger">탈퇴</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 비밀번호 변경 모달 -->
+<div id="password-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>비밀번호 변경</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-description">새로운 비밀번호는 8자 이상, 대소문자, 숫자, 특수문자를 포함해야 합니다.</p>
+            <div class="form-group">
+                <label for="new-password">새 비밀번호</label>
+                <input type="password" id="new-password" class="form-input">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="password-cancel" class="btn btn-secondary">취소</button>
+            <button id="password-save" class="btn btn-primary">변경</button>
+        </div>
+    </div>
+</div>
+
+<!-- 비밀번호 인증 모달 -->
+<div id="password-auth-modal" class="modal auth-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>비밀번호 확인</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="auth-description">
+                <h4>🔒 보안 인증이 필요합니다</h4>
+                <p>개인정보 보호를 위해 현재 비밀번호를 입력해주세요.</p>
+            </div>
+            <div class="form-group">
+                <label for="auth-password">현재 비밀번호</label>
+                <input type="password" id="auth-password" class="form-input" placeholder="현재 비밀번호를 입력하세요">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="auth-cancel" class="btn btn-secondary">취소</button>
+            <button id="auth-confirm" class="btn btn-primary">확인</button>
+        </div>
+    </div>
+</div>
+
+<!-- 회원 탈퇴 확인 모달 -->
+<div id="delete-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>정말로 탈퇴하시겠습니까?</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-description">이 작업은 되돌릴 수 없습니다. 계정과 모든 데이터가 영구적으로 삭제됩니다.</p>
+        </div>
+        <div class="modal-footer">
+            <button id="delete-cancel" class="btn btn-secondary">취소</button>
+            <button id="delete-confirm" class="btn btn-danger">탈퇴</button>
+        </div>
+    </div>
+</div>
+
+<!-- 토스트 알림 -->
+<div id="toast" class="toast"></div>
+</body>
+</html>
