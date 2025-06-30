@@ -282,7 +282,7 @@ function applyFilters() {
     filteredGroups = requestedGroups.filter((group) => {
         const typeMatch = !typeFilter || group.type === typeFilter
         const interestMatch = !interestFilter || group.interest === interestFilter
-        return typeMatch && interestMatch && accessMatch
+        return typeMatch && interestMatch
     })
 
     // 정렬
