@@ -3,14 +3,11 @@ package team.budderz.buddyspace.domain.notification.service;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.client.protocol.decoder.StreamGroupInfoDecoder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import team.budderz.buddyspace.api.notification.response.FindsNotificationResponse;
 import team.budderz.buddyspace.api.notification.response.NotificationArgs;
 import team.budderz.buddyspace.api.notification.response.NotificationResponse;
 import team.budderz.buddyspace.domain.notification.exception.NotificationErrorCode;
@@ -23,6 +20,7 @@ import team.budderz.buddyspace.infra.database.notification.repository.Notificati
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -41,6 +39,7 @@ public class NotificationService {
             Group group,
             NotificationArgs args
     ) {
+        log.info("sendNotice 시작 - receiverId: {}, type: {}", receiver.getId(), type);
         String content = templateService.generateContent(type, args);
         String url = templateService.generateUrl(type, args);
 
@@ -55,12 +54,13 @@ public class NotificationService {
 
         notificationRepository.save(notification);
         entityManager.flush(); // 강제 플러시
+        log.info("send 호출 - receiverId: {}, notificationId: {}", receiver.getId(), notification.getId());
         ssePushService.send(receiver.getId(), notification);
     }
 
     // 알림 모음
     @Transactional(readOnly = true)
-    public Page<FindsNotificationResponse> findsNotice(
+    public Page<NotificationResponse> findsNotice(
             Long userId,
             Pageable pageable
     ) {
@@ -68,7 +68,7 @@ public class NotificationService {
                 .orElseThrow(() -> new BaseException(NotificationErrorCode.USER_ID_NOT_FOUND));
 
         return notificationRepository.findAllByUserOrderByCreatedAtDesc(user, pageable)
-                .map(FindsNotificationResponse::from);
+                .map(NotificationResponse::from);
     }
 
     // 알림 읽음 처리
