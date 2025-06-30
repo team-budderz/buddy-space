@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     header.appendChild(logoSection)
     header.appendChild(searchSection)
     header.appendChild(navSection)
-    header.appendChild(sseStatus)   // SSE 연결 여부 확인 css (테스트용)
+    // header.appendChild(sseStatus)   // SSE 연결 여부 확인 css (실전용 나중에 주석 풀어주세요!)
 
     // 페이지에 헤더 추가
     document.body.prepend(header)
@@ -421,27 +421,6 @@ async function fetchAlarmListPage(page = 0) {
         return [];
     }
 }
-
-// 드롭다운 끝에 sentinel 요소 추가
-const sentinel = document.createElement("div");
-sentinel.id = "alarm-sentinel";
-sentinel.style.height = "1px";
-sentinel.style.visibility = "hidden";
-dropdown.appendChild(sentinel);
-
-// IntersectionObserver로 감시
-const observer = new IntersectionObserver(async (entries) => {
-    const entry = entries[0];
-    if (entry.isIntersecting && !lastPage) {
-        const moreAlarms = await fetchAlarmListPage(currentPage);
-        if (moreAlarms.length > 0) {
-            const moreHTML = renderAlarmItemsHTML(moreAlarms); // 기존 render와 분리 필요
-            dropdown.insertAdjacentHTML("beforeend", moreHTML);
-        }
-    }
-}, { threshold: 1 });
-
-observer.observe(sentinel);
 
 function renderAlarmItemsHTML(alarms) {
     return alarms.map(alarm => {
