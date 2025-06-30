@@ -233,9 +233,12 @@ public class UserService {
             // 사용자가 생성한 모든 모임 조회
             List<Group> groups = groupRepository.findAllByLeader_Id(userId);
 
-            // 해당 모임들의 권한 설정 제거
             for (Group group : groups) {
+                // 해당 모임들의 권한 설정 제거
                 groupPermissionRepository.deleteAllByGroup_Id(group.getId());
+
+                // 해당 모임들에 가입 요청 중이거나 차단된 회원들과의 관계 제거
+                membershipRepository.deleteAllByGroup_Id(group.getId());
             }
 
             // 사용자가 속한 모든 모임에서 탈퇴 또는 가입 요청 취소 처리
