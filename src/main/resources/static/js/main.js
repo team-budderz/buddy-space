@@ -5,12 +5,14 @@
  * - 모임 참여 요청 처리
  * - 위치 기반 오프라인 모임 표시
  * - 정렬 기능 (인기순, 최신순)
+ * - 관심사별 필터링
  */
 
 // DOM 요소 참조
 const tabs = document.querySelectorAll(".tab")
 const container = document.getElementById("groupListContainer")
 const locationDiv = document.getElementById("user-location")
+const interestFilterContainer = document.getElementById("interestFilterContainer")
 
 // 모임 타입 매핑
 const groupTypeMap = {
@@ -32,8 +34,9 @@ const groupInterestMap = {
     OTHER: "기타",
 }
 
-// 현재 정렬 방식
+// 현재 정렬 방식 및 관심사 필터
 let currentSort = "popular"
+let currentInterest = ""
 
 // 주소에서 동 이름 추출
 function extractDong(address) {
@@ -48,6 +51,13 @@ function updateUserLocation(tabType) {
 
     // 정렬 드롭다운 표시 (온라인, 오프라인 탭에서만)
     sortOptions.style.display = tabType === "online" || tabType === "offline" ? "block" : "none"
+
+    // 관심사 필터 표시 (온라인, 오프라인 탭에서만)
+    if (tabType === "online" || tabType === "offline") {
+        interestFilterContainer.style.display = "block"
+    } else {
+        interestFilterContainer.style.display = "none"
+    }
 
     // 오프라인 탭에서 사용자 위치 표시
     if (tabType === "offline" && window.loggedInUser?.address) {
@@ -70,8 +80,14 @@ async function fetchGroups(tabType) {
         includeCreate = true
     } else if (tabType === "online") {
         url = `/api/groups/on?sort=${currentSort}`
+        if (currentInterest) {
+            url += `&interest=${currentInterest}`
+        }
     } else if (tabType === "offline") {
         url = `/api/groups/off?sort=${currentSort}`
+        if (currentInterest) {
+            url += `&interest=${currentInterest}`
+        }
     }
 
     try {
@@ -222,17 +238,37 @@ function showErrorMessage(message) {
     container.innerHTML = `<div class="error-message">${message}</div>`
 }
 
+// 관심사 필터 초기화
+function resetInterestFilter() {
+    currentInterest = ""
+    const interestFilters = document.querySelectorAll(".interest-filter")
+    interestFilters.forEach((filter) => {
+        filter.classList.remove("active")
+        if (filter.dataset.interest === "") {
+            filter.classList.add("active")
+        }
+    })
+}
+
 // 탭 변경 처리
 function handleTabChange(selectedTab) {
-    // 정렬 초기화
+    // 정렬 및 관심사 필터 초기화
     if (selectedTab === "online" || selectedTab === "offline") {
         currentSort = "popular"
         document.getElementById("sortSelect").value = "popular"
+        resetInterestFilter()
     }
 
     // 모임 목록 조회 및 UI 업데이트
     fetchGroups(selectedTab)
     updateUserLocation(selectedTab)
+}
+
+// 관심사 필터 변경 처리
+function handleInterestChange(interest) {
+    currentInterest = interest
+    const activeTab = document.querySelector(".tab.active").dataset.tab
+    fetchGroups(activeTab)
 }
 
 // 이벤트 리스너 설정
@@ -252,6 +288,20 @@ function setupEventListeners() {
         currentSort = e.target.value
         const activeTab = document.querySelector(".tab.active").dataset.tab
         fetchGroups(activeTab)
+    })
+
+    // 관심사 필터 클릭 이벤트
+    const interestFilters = document.querySelectorAll(".interest-filter")
+    interestFilters.forEach((filter) => {
+        filter.addEventListener("click", () => {
+            // 활성 상태 변경
+            interestFilters.forEach((f) => f.classList.remove("active"))
+            filter.classList.add("active")
+
+            // 관심사 필터 변경
+            const interest = filter.dataset.interest
+            handleInterestChange(interest)
+        })
     })
 }
 
