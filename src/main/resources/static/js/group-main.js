@@ -20,21 +20,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initializePermissions()
 
     // 데이터 로드
+    updateCreatePostButton()
     loadNotices()
     loadPosts()
 })
-
-// 권한 초기화
-async function initializePermissions() {
-    try {
-        const permissionsInitialized = await window.GroupPermissions.initialize(groupId)
-        if (permissionsInitialized) {
-            updateCreatePostButton()
-        }
-    } catch (error) {
-        console.error("권한 초기화 실패:", error)
-    }
-}
 
 // 게시글 작성 버튼 업데이트
 function updateCreatePostButton() {
