@@ -30,12 +30,16 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
-        String token = jwtUtil.extractToken(request);
         String requestURI = request.getRequestURI();
-
         if (requestURI.equals("/api/token/refresh")) {
             filterChain.doFilter(request, response);
             return;
+        }
+
+        String token = jwtUtil.extractToken(request);
+        // JWT 토큰이 HTTP 요청에 없을 경우, 쿠키에서 꺼내서 사용
+        if (token == null) {
+            token = extractTokenFromCookie(request, "accessToken");
         }
 
         if(token != null) {
@@ -67,5 +71,22 @@ public class SecurityFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * [수정] 쿠키에서 토큰을 추출하는 메서드
+     * @param request HTTP 요청
+     * @param cookieName 찾을 쿠키 이름
+     * @return 쿠키 값 또는 null
+     */
+    private String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
+        if (request.getCookies() == null) return null;
+
+        for (var cookie : request.getCookies()) {
+            if (cookieName.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }
