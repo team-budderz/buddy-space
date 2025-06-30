@@ -96,6 +96,15 @@ public class MembershipController {
         return new BaseResponse<>(null);
     }
 
+    @DeleteMapping("/withdraw")
+    public BaseResponse<Void> withdrawGroup(@PathVariable Long groupId,
+                                            @AuthenticationPrincipal UserAuth userAuth) {
+        Long loginUserId = userAuth.getUserId();
+        membershipService.withdrawGroup(loginUserId, groupId);
+
+        return new BaseResponse<>(null);
+    }
+
     @PatchMapping("/members/{memberId}/role")
     public BaseResponse<MembershipResponse> updateMemberRole(@PathVariable Long groupId,
                                                              @PathVariable Long memberId,

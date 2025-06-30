@@ -17,7 +17,8 @@ public enum MembershipErrorCode implements ErrorCode {
     LEADER_ROLE_UNIQUE(HttpStatus.CONFLICT.value(), "M006", "모임에는 리더가 반드시 한 명만 존재해야 합니다."),
     NOT_REQUESTED_MEMBER(HttpStatus.BAD_REQUEST.value(), "M007", "해당 모임에 가입 요청 상태가 아닙니다."),
     NOT_APPROVED_MEMBER(HttpStatus.BAD_REQUEST.value(), "M008", "해당 모임에 가입된 회원이 아닙니다."),
-    NOT_BLOCKED_MEMBER(HttpStatus.BAD_REQUEST.value(), "M009", "해당 모임에서 차단된 회원이 아닙니다.");
+    NOT_BLOCKED_MEMBER(HttpStatus.BAD_REQUEST.value(), "M009", "해당 모임에서 차단된 회원이 아닙니다."),
+    LEADER_CANNOT_WITHDRAW(HttpStatus.BAD_REQUEST.value(), "M010", "모임의 리더는 탈퇴할 수 없습니다. 리더를 위임하거나 모임을 삭제해주세요.");
 
 
     private final int status;

@@ -255,6 +255,29 @@ public class MembershipService {
     }
 
     /**
+     * 모임 탈퇴
+     *
+     * @param loginUserId 사용자 ID
+     * @param groupId 모임 ID
+     */
+    @Transactional
+    public void withdrawGroup(Long loginUserId, Long groupId) {
+        validator.validateMember(loginUserId, groupId);
+
+        Membership membership = findMembershipByUserAndGroup(loginUserId, groupId);
+
+        if (membership.getMemberRole() == MemberRole.LEADER) {
+            throw new MembershipException(MembershipErrorCode.LEADER_CANNOT_WITHDRAW);
+        }
+
+        if (membership.getJoinStatus() != JoinStatus.APPROVED) {
+            throw new MembershipException(MembershipErrorCode.NOT_APPROVED_MEMBER);
+        }
+
+        membershipRepository.deleteByUser_IdAndGroup_Id(loginUserId, groupId);
+    }
+
+    /**
      * 모임 멤버 권한 설정
      *
      * @param loginUserId 로그인 사용자 ID (모임 리더)
