@@ -37,6 +37,15 @@ public class MembershipController {
         return new BaseResponse<>(response);
     }
 
+    @DeleteMapping("/cancel-requests")
+    public BaseResponse<MembershipResponse> cancelRequest(@PathVariable Long groupId,
+                                                          @AuthenticationPrincipal UserAuth userAuth) {
+        Long loginUserId = userAuth.getUserId();
+        membershipService.cancelRequest(loginUserId, groupId);
+
+        return new BaseResponse<>(null);
+    }
+
     @PatchMapping("/members/{memberId}/approve")
     public BaseResponse<MembershipResponse> approveMember(@PathVariable Long groupId,
                                                           @PathVariable Long memberId,
@@ -119,7 +128,7 @@ public class MembershipController {
 
     @GetMapping("/members/requested")
     public BaseResponse<MembershipResponse> findRequestedMembers(@PathVariable Long groupId,
-                                                                @AuthenticationPrincipal UserAuth userAuth) {
+                                                                 @AuthenticationPrincipal UserAuth userAuth) {
         Long loginUserid = userAuth.getUserId();
         MembershipResponse response = membershipService.findRequestedMembers(loginUserid, groupId);
 
@@ -128,7 +137,7 @@ public class MembershipController {
 
     @GetMapping("/members/blocked")
     public BaseResponse<MembershipResponse> findBlockedMembers(@PathVariable Long groupId,
-                                                                @AuthenticationPrincipal UserAuth userAuth) {
+                                                               @AuthenticationPrincipal UserAuth userAuth) {
         Long loginUserid = userAuth.getUserId();
         MembershipResponse response = membershipService.findBlockedMembers(loginUserid, groupId);
 

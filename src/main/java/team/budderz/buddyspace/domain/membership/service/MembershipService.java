@@ -38,7 +38,7 @@ public class MembershipService {
     /**
      * 로그인한 사용자가 가입되어 있는 특정 모임과의 멤버십 정보 조회
      *
-     * @param userId 로그인 사용자 ID
+     * @param userId  로그인 사용자 ID
      * @param groupId 모임 ID
      * @return 멤버십 정보
      */
@@ -101,6 +101,23 @@ public class MembershipService {
         membershipRepository.save(membership);
 
         return MembershipResponse.of(group, List.of(membership), profileImageProvider);
+    }
+
+    /**
+     * 가입 요청 취소
+     *
+     * @param loginUserId 로그인 사용자 ID
+     * @param groupId     모임 ID
+     */
+    @Transactional
+    public void cancelRequest(Long loginUserId, Long groupId) {
+        Membership membership = findMembershipByUserAndGroup(loginUserId, groupId);
+
+        if (membership.getJoinStatus() != JoinStatus.REQUESTED) {
+            throw new MembershipException(MembershipErrorCode.NOT_REQUESTED_MEMBER);
+        }
+
+        membershipRepository.deleteByUser_IdAndGroup_Id(loginUserId, groupId);
     }
 
     /**
