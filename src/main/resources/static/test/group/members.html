@@ -5,16 +5,58 @@
     <title>벗터 메뉴</title>
     <script src="/js/config.js" defer></script>
     <script src="/js/header.js" defer></script>
-    <script src="/js/nav.js" defer></script>
+    <script src="/js/group-base.js" defer></script>
+    <script src="/js/members.js" defer></script>
     <link rel="stylesheet" href="/css/header.css"/>
-    <link rel="stylesheet" href="/css/nav.css" />
+    <link rel="stylesheet" href="/css/group-base.css" />
+    <link rel="stylesheet" href="/css/members.css" />
 </head>
 <body>
 <main>
-    <section class="group-content">
-        <h2>멤버 목록</h2>
-        <p>이곳에 각 메뉴별 콘텐츠가 동적으로 표시됩니다.</p>
-    </section>
+    <div class="group-content">
+        <div class="members-header">
+            <div class="members-title">
+                <h2>멤버 <span id="member-count">(0)</span></h2>
+            </div>
+            <button id="invite-btn" class="invite-button" style="display: none;">
+                멤버 초대하기
+            </button>
+        </div>
+
+        <div class="members-list" id="members-list">
+            <div class="loading">멤버 목록을 불러오는 중...</div>
+        </div>
+    </div>
 </main>
+
+<!-- 프로필 이미지 확대 모달 -->
+<div id="profile-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <img id="modal-image" src="/placeholder.svg" alt="프로필 이미지">
+        <div class="modal-info">
+            <p id="modal-join-date"></p>
+        </div>
+    </div>
+</div>
+
+<!-- 메뉴 모달 -->
+<div id="menu-modal" class="modal">
+    <div class="modal-content menu-modal-content">
+        <span class="close">&times;</span>
+        <div id="menu-options"></div>
+    </div>
+</div>
+
+<!-- 초대 모달 -->
+<div id="invite-modal" class="modal">
+    <div class="modal-content invite-modal-content">
+        <span class="close">&times;</span>
+        <h3 id="invite-modal-title">모임 초대</h3>
+        <div id="invite-modal-content">
+            <!-- 동적으로 생성됩니다 -->
+        </div>
+    </div>
+</div>
 </body>
 </html>

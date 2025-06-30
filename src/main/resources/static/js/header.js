@@ -1,16 +1,24 @@
-// 토큰 없으면 로그인 페이지로 이동
+/**
+ * 공통 헤더 컴포넌트
+ * - 사용자 인증 및 토큰 관리
+ * - 네비게이션 및 검색 기능
+ * - 프로필, 알림, 채팅 드롭다운
+ * - 인증이 필요한 API 요청을 위한 fetchWithAuth 함수 제공
+ */
+
+// 로그인 페이지로 리다이렉트
 function redirectToLogin() {
     window.location.href = "/test/login.html"
 }
 
-// accessToken 확인 및 리턴
+// 액세스 토큰 확인 및 반환
 function getAccessTokenOrRedirect() {
     const token = localStorage.getItem("accessToken")
     if (!token) redirectToLogin()
     return token
 }
 
-// 토큰 자동 재발급 포함 fetch wrapper
+// 토큰 자동 재발급을 포함한 인증 fetch 래퍼
 async function fetchWithAuth(url, options = {}) {
     const token = getAccessTokenOrRedirect()
     options.headers = {
@@ -21,6 +29,7 @@ async function fetchWithAuth(url, options = {}) {
 
     let response = await fetch(`${API_BASE_URL}${url}`, options)
 
+    // 토큰 만료 시 자동 재발급 시도
     if (response.status === 401) {
         const refreshRes = await fetch(`${API_BASE_URL}/api/token/refresh`, {
             method: "POST",
@@ -44,13 +53,13 @@ async function fetchWithAuth(url, options = {}) {
     return response
 }
 
-// 로그아웃
+// 사용자 로그아웃 처리
 function logoutUser() {
     localStorage.removeItem("accessToken")
     window.location.href = "/test/login.html"
 }
 
-// 드롭다운 생성 함수
+// 아이콘과 드롭다운 메뉴를 생성하는 공통 함수
 function createIconWithDropdown(iconSrc, altText, dropdownContentHTML) {
     const wrapper = document.createElement("div")
     wrapper.className = "dropdown-wrapper"
@@ -64,20 +73,19 @@ function createIconWithDropdown(iconSrc, altText, dropdownContentHTML) {
     dropdown.className = "dropdown-menu"
     dropdown.innerHTML = dropdownContentHTML
 
-    // 클릭 이벤트
+    // 아이콘 클릭 시 드롭다운 토글
     icon.addEventListener("click", (e) => {
         e.stopPropagation()
-        // 다른 드롭다운 닫기
+        // 다른 드롭다운 메뉴 닫기
         document.querySelectorAll(".dropdown-menu").forEach((menu) => {
             if (menu !== dropdown) {
                 menu.classList.remove("show")
             }
         })
-        // 현재 드롭다운 토글
         dropdown.classList.toggle("show")
     })
 
-    // 외부 클릭시 드롭다운 닫기
+    // 외부 클릭 시 드롭다운 닫기
     document.addEventListener("click", (e) => {
         if (!wrapper.contains(e.target)) {
             dropdown.classList.remove("show")
@@ -89,18 +97,28 @@ function createIconWithDropdown(iconSrc, altText, dropdownContentHTML) {
     return wrapper
 }
 
-// 헤더 렌더링
+// 검색 기능 처리
+function handleSearch(searchInput) {
+    const keyword = searchInput.value.trim()
+    if (keyword) {
+        window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}`
+    }
+}
+
+// 헤더 렌더링 및 초기화
 document.addEventListener("DOMContentLoaded", async () => {
-    // CSS 파일 로드
+    // 헤더 CSS 파일 동적 로드
     const link = document.createElement("link")
     link.rel = "stylesheet"
     link.href = "/css/header.css"
     document.head.appendChild(link)
 
+    // 토큰 확인
     getAccessTokenOrRedirect()
     window.loggedInUser = null
     let profileImageUrl = "https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png"
 
+    // 사용자 정보 로드
     try {
         const response = await fetchWithAuth("/api/users/me")
         const data = await response.json()
@@ -115,11 +133,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("사용자 정보 요청 중 오류:", err)
     }
 
-    // 헤더 생성
+    // 헤더 엘리먼트 생성
     const header = document.createElement("header")
     header.className = "main-header"
 
-    // 로고 섹션
+    // 로고 섹션 생성
     const logoSection = document.createElement("a")
     logoSection.href = "/test/main.html"
     logoSection.className = "logo-section"
@@ -131,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     logoSection.appendChild(logoImg)
 
-    // 검색 섹션
+    // 검색 섹션 생성
     const searchSection = document.createElement("div")
     searchSection.className = "search-section"
 
@@ -147,18 +165,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchButton.textContent = "검색"
     searchButton.className = "search-button"
 
-    // 검색 기능
-    const handleSearch = () => {
-        const keyword = searchInput.value.trim()
-        if (keyword) {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}`
-        }
-    }
-
-    searchButton.addEventListener("click", handleSearch)
+    // 검색 이벤트 리스너 등록
+    searchButton.addEventListener("click", () => handleSearch(searchInput))
     searchInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            handleSearch()
+            handleSearch(searchInput)
         }
     })
 
@@ -166,28 +177,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchContainer.appendChild(searchButton)
     searchSection.appendChild(searchContainer)
 
-    // 네비게이션 섹션
+    // 네비게이션 섹션 생성
     const navSection = document.createElement("div")
     navSection.className = "nav-section"
 
-    // 알림 아이콘
+    // 알림 아이콘 생성
     const alarmIcon = createIconWithDropdown(
         "https://raw.githubusercontent.com/withong/my-storage/main/budderz/free-icon-notification-bell-8377307.png",
         "알림",
         `<div class="empty-message">알림이 없습니다</div>`,
     )
 
-    // 채팅 아이콘
+    // 채팅 아이콘 생성
     const chatIcon = createIconWithDropdown(
         "https://raw.githubusercontent.com/withong/my-storage/main/budderz/free-icon-conversation-5323491.png",
         "채팅",
         `<div class="empty-message">채팅 내역이 없습니다</div>`,
     )
 
-    // 프로필 드롭다운
+    // 프로필 드롭다운 메뉴 생성
     const profileDropdownContent = `
-        <div class="dropdown-item" onclick="window.location.href='/test/user/my-page.html'">
-            👤 내 정보 조회
+        <div class="dropdown-item" onclick="window.location.href='/test/my/profile.html'">
+            👤 내 정보
         </div>
         <div class="dropdown-item" onclick="logoutUser()">
             🚪 로그아웃
@@ -214,19 +225,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.prepend(header)
 })
 
-// 알림/채팅용 placeholder 함수
+// 알림 목록 조회 (향후 구현 예정)
 function fetchAlarmList() {
     return Promise.resolve([])
 }
 
+// 채팅 목록 조회 (향후 구현 예정)
 function fetchChatList() {
     return Promise.resolve([])
 }
 
+// 알림 드롭다운 렌더링 (향후 구현 예정)
 function renderAlarmDropdown(alarms) {
     // 향후 구현
 }
 
+// 채팅 드롭다운 렌더링 (향후 구현 예정)
 function renderChatDropdown(chats) {
     // 향후 구현
 }
