@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import team.budderz.buddyspace.api.notification.response.FindsNotificationResponse;
+import team.budderz.buddyspace.api.notification.response.NotificationResponse;
 import team.budderz.buddyspace.domain.notification.service.NotificationService;
 import team.budderz.buddyspace.global.response.BaseResponse;
 import team.budderz.buddyspace.global.security.UserAuth;
@@ -19,11 +19,11 @@ public class NotificationController {
 
     // 알림 전체 조회
     @GetMapping
-    public BaseResponse<Page<FindsNotificationResponse>> findsNotice (
+    public BaseResponse<Page<NotificationResponse>> findsNotice (
             @AuthenticationPrincipal UserAuth userAuth,
             Pageable pageable
     ) {
-        Page<FindsNotificationResponse> response = notificationService.findsNotice(userAuth.getUserId(), pageable);
+        Page<NotificationResponse> response = notificationService.findsNotice(userAuth.getUserId(), pageable);
         return new BaseResponse<>(response);
     }
 
