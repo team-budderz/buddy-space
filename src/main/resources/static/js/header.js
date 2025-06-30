@@ -44,10 +44,70 @@ async function fetchWithAuth(url, options = {}) {
     return response
 }
 
+let notificationEventSource = null;
+
 // 로그아웃
 function logoutUser() {
     localStorage.removeItem("accessToken")
     window.location.href = "/test/login.html"
+}
+
+// SSE 연결 함수
+function connectNotificationSSE() {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    if (notificationEventSource) {
+        notificationEventSource.close();
+    }
+
+    let clientId = localStorage.getItem('clientId');
+    if (!clientId) {
+        clientId = crypto.randomUUID();
+        localStorage.setItem('clientId', clientId);
+    }
+
+    notificationEventSource = new EventSource(`${API_BASE_URL}/api/notifications/subscribe?clientId=${clientId}`, {
+        withCredentials: true
+    });
+
+    notificationEventSource.addEventListener("connect", (event) => {
+        console.log("SSE 연결 성공:", event.data);
+        const statusEl = document.getElementById("sse-status");
+        if (statusEl) {
+            statusEl.textContent = "SSE: 연결 성공";
+            statusEl.style.backgroundColor = "#d4edda";
+            statusEl.style.borderColor = "#c3e6cb";
+            statusEl.style.color = "#155724";
+        }
+    });
+
+    notificationEventSource.addEventListener("notification", async (event) => {
+        const notification = JSON.parse(event.data);
+        console.log("새 알림 도착:", notification);
+
+        await initAlarmDropdownWithPaging(); // 새 알림에 따라 전체 목록 재갱신
+
+        const alarms = await fetchAlarmList();
+        if (alarms.some(alarm => !alarm.isRead)) {
+            showNotificationRedDot();
+        }
+    });
+
+    notificationEventSource.onerror = (event) => {
+        console.error("SSE 연결 오류 또는 종료", event);
+        notificationEventSource.close();
+
+        const statusEl = document.getElementById("sse-status");
+        if (statusEl) {
+            statusEl.textContent = "SSE: 연결 실패 또는 종료됨";
+            statusEl.style.backgroundColor = "#f8d7da";
+            statusEl.style.borderColor = "#f5c6cb";
+            statusEl.style.color = "#721c24";
+        }
+
+        setTimeout(connectNotificationSSE, 5000);
+    };
 }
 
 // 드롭다운 생성 함수
@@ -99,6 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     getAccessTokenOrRedirect()
     window.loggedInUser = null
+    await initAlarmDropdownWithPaging();    // 처음 페이지 접속 시 알림 무한스크롤 세팅
     let profileImageUrl = "https://raw.githubusercontent.com/withong/my-storage/main/budderz/default.png"
 
     try {
@@ -200,6 +261,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profileImg = profileWrapper.querySelector("img")
     profileImg.className = "profile-image"
 
+    // SSE 상태 표시용 DOM 요소 생성
+    const sseStatus = document.createElement("div");
+    sseStatus.id = "sse-status";
+    sseStatus.className = "sse-status";
+    sseStatus.textContent = "SSE: 연결 대기 중";
+
     // 네비게이션에 아이콘들 추가
     navSection.appendChild(alarmIcon)
     navSection.appendChild(chatIcon)
@@ -209,24 +276,249 @@ document.addEventListener("DOMContentLoaded", async () => {
     header.appendChild(logoSection)
     header.appendChild(searchSection)
     header.appendChild(navSection)
+    header.appendChild(sseStatus)   // SSE 연결 여부 확인 css (테스트용)
 
     // 페이지에 헤더 추가
     document.body.prepend(header)
+
+    // 페이지 하단에 SSE 연결 여부 확인 (테스트용)
+    document.body.appendChild(sseStatus);
+
+    // 알림 목록 로드 및 렌더링
+    async function initAlarms() {
+        const alarms = await fetchAlarmList();
+        renderAlarmDropdown(alarms);
+        if (alarms.some(alarm => !alarm.isRead)) {
+            showNotificationRedDot();
+        }
+    }
+
+    initAlarms();
+    connectNotificationSSE();
 })
 
 // 알림/채팅용 placeholder 함수
-function fetchAlarmList() {
-    return Promise.resolve([])
+// 알림 리스트 API 호출
+async function fetchAlarmList() {
+    try {
+        const response = await fetchWithAuth("/api/notifications");
+        if (!response.ok) throw new Error("알림 불러오기 실패");
+        const data = await response.json();
+        return data.result.content || [];
+    } catch (error) {
+        console.error("알림 목록 요청 중 오류:", error);
+        return [];
+    }
+}
+
+// 알림 드롭다운 렌더링
+function renderAlarmDropdown(alarms) {
+    const alarmWrapper = document.querySelector('img[alt="알림"]')?.parentElement;
+    const dropdown = alarmWrapper?.querySelector('div');
+    if (!dropdown) return;
+
+    if (!alarms || alarms.length === 0) {
+        dropdown.innerHTML = `<div style="padding: 10px;">알림이 없습니다</div>`;
+        return;
+    }
+
+    const listHTML = alarms.map(alarm => {
+        const date = new Date(alarm.createdAt);
+        const formattedDate = date.toLocaleString('ko-KR', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        return `
+            <div class="alarm-item" data-url="${alarm.url}" data-id="${alarm.notificationId}" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
+                <div style="font-weight: ${alarm.isRead ? 'normal' : 'bold'};">${alarm.content}</div>
+                <div style="font-size: 12px; color: #666;">${alarm.groupName} · ${formattedDate}</div>
+            </div>
+        `;
+    }).join("");
+
+    dropdown.innerHTML = listHTML;
+
+    dropdown.querySelectorAll('.alarm-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            const notificationId = item.dataset.id;
+            const apiUrl = item.dataset.url;
+            const contentEl = item.querySelector("div");
+
+            try {
+                const res = await fetchWithAuth(`/api/notifications/${notificationId}/read`, {
+                    method: "PATCH"
+                });
+
+                if (res.ok && contentEl) {
+                    contentEl.style.fontWeight = "normal";
+                    const pageUrl = convertApiUrlToPageUrl(apiUrl);
+                    window.location.href = pageUrl;
+                } else {
+                    console.warn("알림 읽음 처리 실패");
+                }
+            } catch (e) {
+                console.error("읽음 처리 중 오류:", e);
+            }
+        });
+    });
+}
+
+// API URL → 실제 페이지 URL로 변환
+function convertApiUrlToPageUrl(apiUrl) {
+    const postMatch = apiUrl.match(/^\/api\/groups\/(\d+)\/posts\/(\d+)$/);
+    if (postMatch) {
+        const groupId = postMatch[1];
+        const postId = postMatch[2];
+        return `/test/group/post.html?groupId=${groupId}&postId=${postId}`;
+    }
+    return apiUrl;
+}
+
+// 빨간점 표시
+function showNotificationRedDot() {
+    const alarmWrapper = document.querySelector('img[alt="알림"]')?.parentElement;
+    if (!alarmWrapper || alarmWrapper.querySelector('.red-dot')) return;
+
+    const dot = document.createElement("span");
+    dot.classList.add("red-dot");
+    dot.setAttribute("style", redDotStyle);
+    alarmWrapper.style.position = "relative"; // 포지션 필요
+    alarmWrapper.appendChild(dot);
+}
+
+function setCookie(name, value, days = 1) {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${expires}`;
+}
+
+function deleteCookie(name) {
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+}
+
+let currentPage = 0;
+let lastPage = false;
+
+/**
+ * 페이지 단위로 알림 목록을 불러오는 함수
+ * @param {number} page - 요청할 페이지 번호 (0부터 시작)
+ * @returns {Promise<Array>} 알림 목록 배열
+ */
+async function fetchAlarmListPage(page = 0) {
+    try {
+        const response = await fetchWithAuth(`/api/notifications?page=${page}`);
+        if (!response.ok) throw new Error("알림 페이지 요청 실패");
+
+        const data = await response.json();
+
+        lastPage = data.result.last;         // 다음 페이지 없으면 true
+        currentPage = data.result.number + 1; // 다음 요청할 페이지 번호 업데이트
+
+        return data.result.content || [];    // 알림 목록 반환
+    } catch (error) {
+        console.error("알림 페이지 불러오기 오류:", error);
+        lastPage = true; // 에러 시 추가 요청 막기
+        return [];
+    }
+}
+
+// 드롭다운 끝에 sentinel 요소 추가
+const sentinel = document.createElement("div");
+sentinel.id = "alarm-sentinel";
+sentinel.style.height = "1px";
+sentinel.style.visibility = "hidden";
+dropdown.appendChild(sentinel);
+
+// IntersectionObserver로 감시
+const observer = new IntersectionObserver(async (entries) => {
+    const entry = entries[0];
+    if (entry.isIntersecting && !lastPage) {
+        const moreAlarms = await fetchAlarmListPage(currentPage);
+        if (moreAlarms.length > 0) {
+            const moreHTML = renderAlarmItemsHTML(moreAlarms); // 기존 render와 분리 필요
+            dropdown.insertAdjacentHTML("beforeend", moreHTML);
+        }
+    }
+}, { threshold: 1 });
+
+observer.observe(sentinel);
+
+function renderAlarmItemsHTML(alarms) {
+    return alarms.map(alarm => {
+        const date = new Date(alarm.createdAt);
+        const formattedDate = date.toLocaleString('ko-KR', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        return `
+            <div class="alarm-item" data-url="${alarm.url}" data-id="${alarm.notificationId}" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
+                <div style="font-weight: ${alarm.isRead ? 'normal' : 'bold'};">${alarm.content}</div>
+                <div style="font-size: 12px; color: #666;">${alarm.groupName} · ${formattedDate}</div>
+            </div>
+        `;
+    }).join("");
+}
+
+async function initAlarmDropdownWithPaging() {
+    const alarmWrapper = document.querySelector('img[alt="알림"]')?.parentElement;
+    const dropdown = alarmWrapper?.querySelector('div');
+    if (!dropdown) return;
+
+    dropdown.innerHTML = ""; // 기존 내용 제거
+    currentPage = 0;
+    lastPage = false;
+
+    const alarms = await fetchAlarmListPage(currentPage);
+    dropdown.innerHTML = renderAlarmItemsHTML(alarms);
+    rebindAlarmClickEvents(dropdown); // 클릭 이벤트 다시 연결
+
+    const sentinel = document.createElement("div");
+    sentinel.id = "alarm-sentinel";
+    sentinel.style.height = "1px";
+    sentinel.style.visibility = "hidden";
+    dropdown.appendChild(sentinel);
+
+    const observer = new IntersectionObserver(async (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !lastPage) {
+            const moreAlarms = await fetchAlarmListPage(currentPage);
+            const moreHTML = renderAlarmItemsHTML(moreAlarms);
+            dropdown.insertAdjacentHTML("beforeend", moreHTML);
+            rebindAlarmClickEvents(dropdown);
+        }
+    }, { threshold: 1 });
+
+    observer.observe(sentinel);
+}
+
+function rebindAlarmClickEvents(dropdown) {
+    dropdown.querySelectorAll('.alarm-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            const notificationId = item.dataset.id;
+            const apiUrl = item.dataset.url;
+            const contentEl = item.querySelector("div");
+
+            try {
+                const res = await fetchWithAuth(`/api/notifications/${notificationId}/read`, { method: "PATCH" });
+
+                if (res.ok && contentEl) {
+                    contentEl.style.fontWeight = "normal";
+                    const pageUrl = convertApiUrlToPageUrl(apiUrl);
+                    window.location.href = pageUrl;
+                } else {
+                    console.warn("알림 읽음 처리 실패");
+                }
+            } catch (e) {
+                console.error("읽음 처리 중 오류:", e);
+            }
+        });
+    });
 }
 
 function fetchChatList() {
-    return Promise.resolve([])
-}
-
-function renderAlarmDropdown(alarms) {
-    // 향후 구현
+    return Promise.resolve([]);
 }
 
 function renderChatDropdown(chats) {
-    // 향후 구현
 }
