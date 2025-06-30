@@ -4,6 +4,12 @@ const loginBtn = document.getElementById('loginBtn');
 const btnText = loginBtn.querySelector('.btn-text');
 const loading = loginBtn.querySelector('.loading');
 
+// 쿠키 설정
+function setCookie(name, value, days = 1) {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${expires}`;
+}
+
 // 메시지 표시 함수
 function showMessage(text, type = 'error') {
     message.textContent = text;
@@ -55,6 +61,7 @@ form.addEventListener('submit', async (e) => {
             if (accessToken) {
                 showMessage('로그인 성공! 메인 페이지로 이동합니다...', 'success');
                 localStorage.setItem('accessToken', accessToken);
+                setCookie("accessToken", accessToken); // 로그인시 쿠키 저장
 
                 setTimeout(() => {
                     window.location.href = 'main.html';
