@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.domain.membership.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.membership.response.MemberResponse;
@@ -8,6 +9,8 @@ import team.budderz.buddyspace.api.membership.response.MembershipResponse;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
+import team.budderz.buddyspace.domain.membership.event.MembershipJoinApprovedEvent;
+import team.budderz.buddyspace.domain.membership.event.MembershipJoinRequestedEvent;
 import team.budderz.buddyspace.domain.membership.exception.MembershipErrorCode;
 import team.budderz.buddyspace.domain.membership.exception.MembershipException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
@@ -34,6 +37,7 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final GroupValidator validator;
     private final UserProfileImageProvider profileImageProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 로그인한 사용자가 가입되어 있는 특정 모임과의 멤버십 정보 조회
@@ -100,6 +104,8 @@ public class MembershipService {
         Membership membership = Membership.fromRequest(user, group);
         membershipRepository.save(membership);
 
+        eventPublisher.publishEvent(new MembershipJoinRequestedEvent(group.getId(), user, group.getLeader()));
+
         return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
 
@@ -116,6 +122,9 @@ public class MembershipService {
         Group group = validator.findGroupOrThrow(groupId);
         validator.validateLeader(loginUserId, groupId);
 
+        User requester = findUserById(memberId);
+        User leader = findUserById(loginUserId);
+
         Membership membership = findMembershipByUserAndGroup(memberId, groupId);
 
         if (membership.getJoinStatus() != JoinStatus.REQUESTED) {
@@ -123,6 +132,8 @@ public class MembershipService {
         }
 
         membership.approve();
+
+        eventPublisher.publishEvent(new MembershipJoinApprovedEvent(group.getId(), requester, leader));
 
         return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
