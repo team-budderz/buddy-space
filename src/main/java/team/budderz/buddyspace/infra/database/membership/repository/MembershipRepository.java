@@ -22,4 +22,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     void deleteByUser_IdAndGroup_Id(Long userId, Long groupId);
 
     List<Membership> findByGroup_IdAndJoinStatus(Long groupId, JoinStatus joinStatus);
+
+    List<Membership> findByUser_IdAndJoinStatus(Long userId, JoinStatus joinStatus);
 }

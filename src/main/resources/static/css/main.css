@@ -105,6 +105,52 @@ main {
     white-space: nowrap;
 }
 
+/* 관심사 필터 */
+.interest-filter-container {
+    display: flex;
+    justify-content: center;
+    margin: 24px 0;
+    animation: fadeInUp 0.6s ease-out 0.15s both;
+}
+
+.interest-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.interest-filter {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    background: transparent;
+    color: #718096;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.interest-filter:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    transform: translateY(-1px);
+}
+
+.interest-filter.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
 /* 컨텐츠 헤더 */
 .content-header {
     display: flex;
@@ -412,6 +458,16 @@ main {
     .sort-options {
         order: 2;
     }
+
+    .interest-filters {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .interest-filter {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -430,6 +486,16 @@ main {
     .group-grid {
         grid-template-columns: 1fr;
         gap: 16px;
+    }
+
+    .interest-filters {
+        padding: 6px;
+        gap: 4px;
+    }
+
+    .interest-filter {
+        padding: 5px 10px;
+        font-size: 0.75rem;
     }
 }
 
@@ -458,6 +524,20 @@ main {
 
     .tab:hover {
         color: #e2e8f0;
+    }
+
+    .interest-filters {
+        background: rgba(45, 55, 72, 0.9);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .interest-filter {
+        color: #a0aec0;
+    }
+
+    .interest-filter:hover {
+        background: rgba(102, 126, 234, 0.2);
+        color: #90cdf4;
     }
 
     .group-card {
@@ -496,6 +576,7 @@ main {
 
 /* 포커스 스타일 */
 .tab:focus,
+.interest-filter:focus,
 .group-card:focus,
 .create-card:focus {
     outline: 2px solid #667eea;

@@ -31,6 +31,7 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupSortType;
 import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
+import team.budderz.buddyspace.infra.database.membership.entity.JoinStatus;
 import team.budderz.buddyspace.infra.database.membership.entity.MemberRole;
 import team.budderz.buddyspace.infra.database.membership.entity.Membership;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
@@ -161,6 +162,35 @@ public class GroupService {
         String coverImageUrl = getCoverImageUrl(group, coverAttachment);
 
         return GroupResponse.from(group, coverImageUrl);
+    }
+
+    @Transactional(readOnly = true)
+    public GroupResponse findGroup(Long groupId, Long userId) {
+        validator.validateMember(userId, groupId);
+        Group group = validator.findGroupOrThrow(groupId);
+        String coverImageUrl = getCoverImageUrl(group, group.getCoverAttachment());
+
+        return GroupResponse.from(group, coverImageUrl);
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupResponse> findMyRequested(Long userId) {
+        List<Membership> memberships = membershipRepository.findByUser_IdAndJoinStatus(userId, JoinStatus.REQUESTED);
+
+        return memberships.stream()
+                .map(Membership::getGroup)
+                .map(group -> {
+                    String url;
+
+                    if (group.getCoverAttachment() != null) {
+                        url = attachmentService.getViewUrl(group.getCoverAttachment().getId());
+                    } else {
+                        url = defaultImageProvider.getDefaultGroupCoverImageUrl(group.getType());
+                    }
+
+                    return GroupResponse.from(group, url);
+                })
+                .toList();
     }
 
     /**

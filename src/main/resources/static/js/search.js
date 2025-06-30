@@ -1,3 +1,10 @@
+/**
+ * 모임 검색 페이지
+ * - 키워드 기반 모임 검색
+ * - 모임 참여 요청 처리
+ * - 관심사별 필터링
+ */
+
 const groupTypeMap = {
     ONLINE: "온라인",
     OFFLINE: "오프라인",
@@ -16,25 +23,92 @@ const groupInterestMap = {
     OTHER: "기타",
 }
 
+// 현재 검색 상태
+let currentKeyword = ""
+let currentInterest = ""
+let currentPage = 0
+
 document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search)
-    const keyword = urlParams.get("keyword")
-    const page = Number.parseInt(urlParams.get("page")) || 0
+    currentKeyword = urlParams.get("keyword")
+    currentInterest = urlParams.get("interest") || ""
+    currentPage = Number.parseInt(urlParams.get("page")) || 0
 
-    if (!keyword) {
+    if (!currentKeyword) {
         document.getElementById("keyword-display").textContent = "검색어가 없습니다."
         document.getElementById("result-count").textContent = ""
         showEmptyState("검색어를 입력해주세요.")
         return
     }
 
-    document.getElementById("keyword-display").textContent = `"${keyword}" 검색 결과`
+    document.getElementById("keyword-display").textContent = `"${currentKeyword}" 검색 결과`
 
+    // 관심사 필터 초기화
+    initializeInterestFilter()
+
+    // 관심사 필터 이벤트 리스너 설정
+    setupInterestFilterListeners()
+
+    // 검색 실행
+    await performSearch()
+})
+
+// 관심사 필터 초기화
+function initializeInterestFilter() {
+    const interestFilters = document.querySelectorAll(".interest-filter")
+    interestFilters.forEach((filter) => {
+        filter.classList.remove("active")
+        if (filter.dataset.interest === currentInterest) {
+            filter.classList.add("active")
+        }
+    })
+}
+
+// 관심사 필터 이벤트 리스너 설정
+function setupInterestFilterListeners() {
+    const interestFilters = document.querySelectorAll(".interest-filter")
+    interestFilters.forEach((filter) => {
+        filter.addEventListener("click", () => {
+            // 활성 상태 변경
+            interestFilters.forEach((f) => f.classList.remove("active"))
+            filter.classList.add("active")
+
+            // 관심사 필터 변경 및 검색 재실행
+            currentInterest = filter.dataset.interest
+            currentPage = 0
+            updateURL()
+            performSearch()
+        })
+    })
+}
+
+// URL 업데이트
+function updateURL() {
+    const params = new URLSearchParams()
+    params.set("keyword", currentKeyword)
+    if (currentInterest) {
+        params.set("interest", currentInterest)
+    }
+    if (currentPage > 0) {
+        params.set("page", currentPage.toString())
+    }
+
+    const newURL = `/test/search.html?${params.toString()}`
+    window.history.replaceState({}, "", newURL)
+}
+
+// 검색 실행
+async function performSearch() {
     // 로딩 상태 표시
     showLoading()
 
     try {
-        const response = await fetchWithAuth(`/api/groups/search?keyword=${encodeURIComponent(keyword)}&page=${page}`)
+        let url = `/api/groups/search?keyword=${encodeURIComponent(currentKeyword)}&page=${currentPage}`
+        if (currentInterest) {
+            url += `&interest=${currentInterest}`
+        }
+
+        const response = await fetchWithAuth(url)
         const data = await response.json()
 
         if (!response.ok || !data.result) {
@@ -44,22 +118,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         const groupList = data.result.content
         const totalPages = data.result.totalPages
         const totalElements = data.result.totalElements
-        const currentPage = data.result.pageNumber
+        const currentPageNum = data.result.pageNumber
 
         document.getElementById("result-count").textContent = `총 ${totalElements}개의 모임을 찾았습니다`
 
         if (groupList.length === 0) {
-            showEmptyState(keyword)
+            showEmptyState(currentKeyword)
         } else {
             renderGroups(groupList)
-            addPagination(currentPage, totalPages, keyword)
+            addPagination(currentPageNum, totalPages, currentKeyword, currentInterest)
         }
     } catch (err) {
         document.getElementById("result-count").textContent = "검색 중 오류가 발생했습니다."
         showError("검색 중 오류가 발생했습니다.")
         console.error(err)
     }
-})
+}
 
 // main.js와 완전히 동일한 그룹 렌더링 함수
 function renderGroups(groups) {
@@ -83,12 +157,6 @@ function renderGroups(groups) {
         const name = document.createElement("h3")
         name.textContent = group.groupName
         info.appendChild(name)
-
-        // if (group.groupDescription) {
-        //     const desc = document.createElement("p")
-        //     desc.textContent = group.groupDescription
-        //     info.appendChild(desc)
-        // }
 
         const meta = document.createElement("div")
         meta.className = "group-meta"
@@ -199,8 +267,8 @@ function showError(message) {
     `
 }
 
-// 페이지네이션 (메인 페이지 스타일 적용)
-function addPagination(currentPage, totalPages, keyword) {
+// 페이지네이션 (관심사 필터 포함)
+function addPagination(currentPageNum, totalPages, keyword, interest) {
     const existing = document.getElementById("pagination")
     if (existing) existing.remove()
 
@@ -210,22 +278,35 @@ function addPagination(currentPage, totalPages, keyword) {
     pagination.id = "pagination"
     pagination.className = "pagination-container"
 
+    // URL 생성 헬퍼 함수
+    const createPageURL = (page) => {
+        const params = new URLSearchParams()
+        params.set("keyword", keyword)
+        if (interest) {
+            params.set("interest", interest)
+        }
+        if (page > 0) {
+            params.set("page", page.toString())
+        }
+        return `/test/search.html?${params.toString()}`
+    }
+
     // 이전 페이지 버튼
-    if (currentPage > 0) {
+    if (currentPageNum > 0) {
         const prevBtn = createPaginationButton("‹ 이전", () => {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}&page=${currentPage - 1}`
+            window.location.href = createPageURL(currentPageNum - 1)
         })
         prevBtn.className = "pagination-btn pagination-prev"
         pagination.appendChild(prevBtn)
     }
 
     // 페이지 번호 버튼들
-    const startPage = Math.max(0, currentPage - 2)
-    const endPage = Math.min(totalPages - 1, currentPage + 2)
+    const startPage = Math.max(0, currentPageNum - 2)
+    const endPage = Math.min(totalPages - 1, currentPageNum + 2)
 
     if (startPage > 0) {
         const firstBtn = createPaginationButton("1", () => {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}&page=0`
+            window.location.href = createPageURL(0)
         })
         firstBtn.className = "pagination-btn"
         pagination.appendChild(firstBtn)
@@ -240,9 +321,9 @@ function addPagination(currentPage, totalPages, keyword) {
 
     for (let i = startPage; i <= endPage; i++) {
         const btn = createPaginationButton(i + 1, () => {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}&page=${i}`
+            window.location.href = createPageURL(i)
         })
-        btn.className = i === currentPage ? "pagination-btn pagination-current" : "pagination-btn"
+        btn.className = i === currentPageNum ? "pagination-btn pagination-current" : "pagination-btn"
         pagination.appendChild(btn)
     }
 
@@ -255,16 +336,16 @@ function addPagination(currentPage, totalPages, keyword) {
         }
 
         const lastBtn = createPaginationButton(totalPages, () => {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}&page=${totalPages - 1}`
+            window.location.href = createPageURL(totalPages - 1)
         })
         lastBtn.className = "pagination-btn"
         pagination.appendChild(lastBtn)
     }
 
     // 다음 페이지 버튼
-    if (currentPage < totalPages - 1) {
+    if (currentPageNum < totalPages - 1) {
         const nextBtn = createPaginationButton("다음 ›", () => {
-            window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}&page=${currentPage + 1}`
+            window.location.href = createPageURL(currentPageNum + 1)
         })
         nextBtn.className = "pagination-btn pagination-next"
         pagination.appendChild(nextBtn)

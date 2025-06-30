@@ -81,14 +81,14 @@ public class GroupPermissionService {
     /**
      * 모임 기능별 접근 권한 조회
      *
-     * @param loginUserId 로그인 사용자 ID (모임 리더)
+     * @param loginUserId 로그인 사용자 ID
      * @param groupId 모임 ID
      * @return 조회된 기능별 권한 정보
      */
     @Transactional(readOnly = true)
     public GroupPermissionResponse findGroupPermissions(Long loginUserId, Long groupId) {
         Group group = validator.findGroupOrThrow(groupId);
-        validator.validateLeader(loginUserId, groupId);
+        validator.validateMember(loginUserId, groupId);
 
         List<GroupPermission> permissions = groupPermissionRepository.findByGroup_Id(groupId);
 

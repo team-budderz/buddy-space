@@ -30,6 +30,7 @@ import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.membership.repository.MembershipRepository;
+import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.entity.UserProvider;
 import team.budderz.buddyspace.infra.database.user.entity.UserRole;
@@ -160,7 +161,22 @@ public class UserService {
         validatePasswordToken(userId, passwordToken, response);
 
         String normalizeAddress = AddressNormalizer.normalizeAddress(updateRequest.address()); // 주소 정제
-        user.updateUser(normalizeAddress, updateRequest.phone());
+        Neighborhood neighborhood = user.getNeighborhood(); // 사용자 동네 인증 정보
+
+        if (neighborhood != null) {
+            String authAddress = neighborhood.getCityName() + " " +
+                    neighborhood.getDistrictName() + " " +
+                    neighborhood.getWardName();
+
+            String normalize = AddressNormalizer.normalizeAddress(authAddress);
+
+            // 주소 변경되면 기존 동네 인증 정보 삭제
+            if (!normalize.equals(normalizeAddress)) {
+                neighborhood = null;
+            }
+        }
+
+        user.updateUser(normalizeAddress, neighborhood, updateRequest.phone());
 
         Attachment profileAttachment = null;
 
@@ -217,9 +233,12 @@ public class UserService {
             // 사용자가 생성한 모든 모임 조회
             List<Group> groups = groupRepository.findAllByLeader_Id(userId);
 
-            // 해당 모임들의 권한 설정 제거
             for (Group group : groups) {
+                // 해당 모임들의 권한 설정 제거
                 groupPermissionRepository.deleteAllByGroup_Id(group.getId());
+
+                // 해당 모임들에 가입 요청 중이거나 차단된 회원들과의 관계 제거
+                membershipRepository.deleteAllByGroup_Id(group.getId());
             }
 
             // 사용자가 속한 모든 모임에서 탈퇴 또는 가입 요청 취소 처리

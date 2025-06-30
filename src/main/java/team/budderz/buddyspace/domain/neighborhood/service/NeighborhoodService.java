@@ -10,7 +10,7 @@ import team.budderz.buddyspace.api.neighborhood.request.NeighborhoodRequest;
 import team.budderz.buddyspace.api.neighborhood.response.NeighborhoodResponse;
 import team.budderz.buddyspace.domain.neighborhood.exception.NeighborhoodErrorCode;
 import team.budderz.buddyspace.domain.neighborhood.exception.NeighborhoodException;
-import team.budderz.buddyspace.infra.config.WebClientConfig;
+import team.budderz.buddyspace.global.util.AddressNormalizer;
 import team.budderz.buddyspace.infra.database.neighborhood.entity.Neighborhood;
 import team.budderz.buddyspace.infra.database.neighborhood.repository.NeighborhoodRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -75,7 +75,8 @@ public class NeighborhoodService {
                 );
 
         String newAddress = neighborhood.getCityName() + " " + neighborhood.getDistrictName() + " " + neighborhood.getWardName();
-        user.updateUserAddress(newAddress, neighborhood);
+        String normalizeAddress = AddressNormalizer.normalizeAddress(newAddress); // 주소 정제
+        user.updateUserAddress(normalizeAddress, neighborhood);
         userRepository.save(user);
 
         return NeighborhoodResponse.from(neighborhood);
