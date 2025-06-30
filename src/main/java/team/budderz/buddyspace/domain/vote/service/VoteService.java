@@ -1,8 +1,16 @@
 package team.budderz.buddyspace.domain.vote.service;
 
-import lombok.RequiredArgsConstructor;
+import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 import team.budderz.buddyspace.api.vote.request.SaveVoteRequest;
 import team.budderz.buddyspace.api.vote.request.SubmitVoteRequest;
 import team.budderz.buddyspace.api.vote.response.SaveVoteResponse;
@@ -13,7 +21,6 @@ import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
 import team.budderz.buddyspace.domain.vote.exception.VoteException;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.PermissionType;
-import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.entity.Vote;
@@ -22,13 +29,6 @@ import team.budderz.buddyspace.infra.database.vote.entity.VoteSelection;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteOptionRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteSelectionRepository;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static team.budderz.buddyspace.domain.vote.exception.VoteErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
