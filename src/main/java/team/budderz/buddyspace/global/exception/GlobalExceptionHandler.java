@@ -1,6 +1,5 @@
 package team.budderz.buddyspace.global.exception;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,9 +22,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<BaseErrorResponse> handleNotFound(NoHandlerFoundException ex) {
         return ResponseEntity
-                .status(404)
+                .status(HttpStatus.NOT_FOUND)
                 .body(BaseErrorResponse.builder()
-                        .status(404)
+                        .status(HttpStatus.NOT_FOUND.value())
                         .code("API_NOT_FOUND")
                         .message("요청한 API가 존재하지 않습니다.")
                         .build());
@@ -45,7 +44,7 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity
-                .status(status.value())
+                .status(status)
                 .body(BaseErrorResponse.builder()
                         .status(status.value())
                         .code(code)
@@ -59,7 +58,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body(BaseErrorResponse.builder()
-                        .status(HttpServletResponse.SC_BAD_REQUEST)
+                        .status(HttpStatus.BAD_REQUEST.value())
                         .code("MISSING_PARAMETER")
                         .message(String.format("필수 파라미터 '%s'가 없습니다.", exception.getParameterName()))
                         .build());
