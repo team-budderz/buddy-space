@@ -29,15 +29,6 @@ services:
       interval: 5s
       retries: 10
 
-  mongodb:
-    image: mongo
-    container_name: buddyspace-mongodb
-    restart: unless-stopped
-    volumes:
-      - ./mongodb-data:/data/db
-    ports:
-      - 27017:27017
-
   buddyspace-backend:
     image: buddyspace/buddyspace-backend:latest
     container_name: buddyspace-backend
@@ -53,8 +44,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      mongodb:
-        condition: service_started
 
   nginx:
     image: nginx
