@@ -12,6 +12,8 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.LinkedHashMap;
+
 @Configuration
 public class SwaggerConfig {
 
@@ -39,41 +41,26 @@ public class SwaggerConfig {
     public OpenApiCustomizer globalResponsesCustomizer() {
         return openApi -> openApi.getPaths().values().forEach(pathItem ->
                 pathItem.readOperations().forEach(operation -> {
-                    operation.getResponses().addApiResponse("400", createErrorResponse(
-                            "잘못된 요청",
-                            400, "C001", "요청 형식이 잘못되었거나 필요한 값이 누락되었습니다."
-                    ));
-                    operation.getResponses().addApiResponse("401", createErrorResponse(
-                            "인증되지 않은 사용자",
-                            401, "C002", "로그인이 필요한 요청입니다."
-                    ));
-                    operation.getResponses().addApiResponse("403", createErrorResponse(
-                            "접근 권한 없음",
-                            403, "C003", "요청에 대한 권한이 없습니다."
-                    ));
-                    operation.getResponses().addApiResponse("404", createErrorResponse(
-                            "요청한 자원이 존재하지 않음",
-                            404, "C004", "요청한 리소스를 찾을 수 없습니다."
-                    ));
-                    operation.getResponses().addApiResponse("409", createErrorResponse(
-                            "이미 존재하거나 충돌 상태",
-                            409, "C005", "이미 존재하는 데이터입니다."
-                    ));
-                    operation.getResponses().addApiResponse("500", createErrorResponse(
-                            "서버 내부 오류",
-                            500, "C006", "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-                    ));
+                    operation.getResponses().addApiResponse("400", createErrorResponse("잘못된 요청"));
+                    operation.getResponses().addApiResponse("401", createErrorResponse("인증되지 않은 사용자"));
+                    operation.getResponses().addApiResponse("403", createErrorResponse("접근 권한 없음"));
+                    operation.getResponses().addApiResponse("404", createErrorResponse("요청한 자원이 존재하지 않음"));
+                    operation.getResponses().addApiResponse("409", createErrorResponse("이미 존재하거나 충돌 상태"));
+                    operation.getResponses().addApiResponse("500", createErrorResponse("서버 내부 오류"));
                 })
         );
     }
 
-    private ApiResponse createErrorResponse(String description, int status, String code, String message) {
+    private ApiResponse createErrorResponse(String description) {
         Schema<?> errorSchema = new Schema<>()
-                .$ref("#/components/schemas/BaseErrorResponse")
-                .example(new java.util.LinkedHashMap<>() {{
-                    put("status", status);
-                    put("code", code);
-                    put("message", message);
+                .type("object")
+                .addProperty("status", new Schema<>().type("integer").example(0))
+                .addProperty("code", new Schema<>().type("string").example("string"))
+                .addProperty("message", new Schema<>().type("string").example("string"))
+                .example(new LinkedHashMap<>() {{
+                    put("status", 0);
+                    put("code", "string");
+                    put("message", "string");
                 }});
 
         return new ApiResponse()
