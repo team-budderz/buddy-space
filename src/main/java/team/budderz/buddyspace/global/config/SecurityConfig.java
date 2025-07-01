@@ -38,23 +38,33 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/users/signup",
+                                "/api/users/login",
+                                "/login/oauth2/**",
+                                "/oauth2/**",
+                                "/api/token/refresh",
+                                "/api/healthy-check"
+                        ).permitAll()
+                        .requestMatchers( // test
                                 "/favicon.ico",
                                 "/test-websocket.html",
-                                "/test-post-attachment.html",
                                 "/test/**",
                                 "/js/**",
                                 "/css/**",
                                 "/ws/**",
-                                "/static/**",
-                                "/api/users/login",
-                                "/api/users/signup",
-                                "/oauth2/**",
-                                "/login/oauth2/**",
-                                "/api/healthy-check",
-                                "/api/token/refresh"
+                                "/static/**"
+                        ).permitAll()
+                        .requestMatchers( // swagger
+                                "/api-ui",
+                                "/api-ui/**",
+                                "/swagger-ui",
+                                "/swagger-ui/**",
+                                "/api-docs",
+                                "/api-docs/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
-                        )
+                )
                 // HTML 페이지가 내려오는 이유는 SecurityFilter 가 토큰을 넣어줘도 인증 실패시 로그인 페이지로 이동하게 되어 있기 때문
                 .exceptionHandling(ex -> ex
                         // 인증이 되지 않은 사용자가 요청할 경우 401 응답
@@ -72,13 +82,13 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth ->
                         oauth.userInfoEndpoint(userInfo ->
-                                userInfo.userService(customOAuth2UserService))
+                                        userInfo.userService(customOAuth2UserService))
                                 .successHandler(oAuth2SuccessHandler)
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable());
 
-                return http.build();
+        return http.build();
     }
 }

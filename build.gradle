@@ -74,6 +74,9 @@ dependencies {
 
     // Tika
     implementation 'org.apache.tika:tika-core:2.9.4'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
 }
 
 tasks.named('test') {
