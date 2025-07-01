@@ -1,11 +1,13 @@
 package team.budderz.buddyspace.global.exception;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import team.budderz.buddyspace.global.response.BaseErrorResponse;
 
 @RestControllerAdvice
@@ -16,6 +18,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(exception.getErrorCode().getStatus())
                 .body(new BaseErrorResponse(exception.getErrorCode()));
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<BaseErrorResponse> handleNotFound(NoHandlerFoundException ex) {
+        return ResponseEntity
+                .status(404)
+                .body(BaseErrorResponse.builder()
+                        .status(404)
+                        .code("API_NOT_FOUND")
+                        .message("요청한 API가 존재하지 않습니다.")
+                        .build());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -41,11 +54,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<String> handleMissingServletRequestParameter(
+    public ResponseEntity<BaseErrorResponse> handleMissingServletRequestParameter(
             MissingServletRequestParameterException exception) {
-        String missingParam = exception.getParameterName();
-        String message = String.format("필수 파라미터 '%s'가 없습니다.", missingParam);
-        return ResponseEntity.badRequest().body(message);
+        return ResponseEntity
+                .badRequest()
+                .body(BaseErrorResponse.builder()
+                        .status(HttpServletResponse.SC_BAD_REQUEST)
+                        .code("MISSING_PARAMETER")
+                        .message(String.format("필수 파라미터 '%s'가 없습니다.", exception.getParameterName()))
+                        .build());
     }
-
 }
