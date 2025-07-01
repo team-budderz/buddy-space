@@ -30,6 +30,15 @@ public class SecurityConfig {
         return web -> web.ignoring().requestMatchers("/favicon.ico");
     }
 
+    /**
+     * Spring Security의 주요 보안 필터 체인을 구성합니다.
+     *
+     * CSRF를 비활성화하고, CORS 설정을 적용하며, 세션을 무상태(Stateless)로 관리합니다. 회원가입, 로그인, OAuth2, 토큰 갱신, 헬스 체크, 정적 리소스, 테스트, Swagger 관련 엔드포인트는 인증 없이 접근을 허용하고, 그 외 모든 요청은 인증을 요구합니다.
+     * 인증되지 않은 요청 시 Authorization 헤더의 유무 및 형식에 따라 401 상태와 함께 적절한 JSON 에러 메시지를 반환하며, 권한이 부족한 경우 403 상태와 JSON 에러 메시지를 반환합니다.
+     * OAuth2 로그인 시 사용자 정보 서비스와 성공 핸들러를 지정하고, 커스텀 보안 필터를 UsernamePasswordAuthenticationFilter 앞에 추가합니다. HTTP Basic 및 폼 로그인을 비활성화합니다.
+     *
+     * @return 구성된 SecurityFilterChain 인스턴스
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

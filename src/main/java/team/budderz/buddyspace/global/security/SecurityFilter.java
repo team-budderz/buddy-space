@@ -23,6 +23,11 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final RedisTemplate<String, String> redisTemplate;
     private final UserDetailsService userDetailsService;
 
+    /**
+     * JWT 기반 인증을 처리하는 Spring Security 필터로, 유효한 Access 토큰이 있는 경우 인증 정보를 설정합니다.
+     *
+     * HTTP 요청에서 JWT 토큰을 추출하여 블랙리스트 여부와 유효성을 검사하고, Access 토큰이 아닌 경우 또는 유효하지 않은 경우에는 JSON 형식의 에러 응답을 반환합니다. 인증이 성공하면 SecurityContext에 인증 정보를 저장하고, 그렇지 않으면 적절한 에러 코드와 메시지로 응답을 종료합니다. 토큰이 없는 경우 또는 인증이 필요 없는 경로에서는 필터 체인을 계속 진행합니다.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -74,6 +79,15 @@ public class SecurityFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * JSON 형식의 에러 응답을 클라이언트에 전송합니다.
+     *
+     * @param response HTTP 응답 객체
+     * @param status HTTP 상태 코드
+     * @param code 에러 코드 문자열
+     * @param message 에러 메시지
+     * @throws IOException 응답 작성 중 입출력 오류가 발생할 경우
+     */
     private void sendErrorResponse(HttpServletResponse response, int status, String code, String message) throws IOException {
         response.setStatus(status);
         response.setContentType("application/json;charset=UTF-8");

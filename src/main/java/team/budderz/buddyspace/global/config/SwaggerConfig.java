@@ -37,6 +37,13 @@ public class SwaggerConfig {
                 .components(components);
     }
 
+    /**
+     * 모든 OpenAPI 엔드포인트에 대해 표준 오류 응답(400, 401, 403, 404, 409, 500)을 자동으로 추가하는 커스터마이저 빈을 생성합니다.
+     *
+     * 각 상태 코드에 대해 일관된 오류 응답 스키마와 설명이 문서에 포함됩니다.
+     *
+     * @return OpenAPI 문서에 글로벌 오류 응답을 추가하는 OpenApiCustomizer 빈
+     */
     @Bean
     public OpenApiCustomizer globalResponsesCustomizer() {
         return openApi -> openApi.getPaths().values().forEach(pathItem ->
@@ -51,6 +58,12 @@ public class SwaggerConfig {
         );
     }
 
+    /**
+     * 지정된 설명과 함께 표준화된 에러 응답 스키마를 생성합니다.
+     *
+     * @param description 에러 응답에 대한 설명
+     * @return status, code, message 필드를 포함하는 JSON 에러 응답 객체
+     */
     private ApiResponse createErrorResponse(String description) {
         Schema<?> errorSchema = new Schema<>()
                 .type("object")
