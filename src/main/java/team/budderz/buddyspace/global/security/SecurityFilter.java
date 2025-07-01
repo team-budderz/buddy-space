@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -28,7 +25,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
         if (requestURI.equals("/api/token/refresh")) {
@@ -42,18 +39,20 @@ public class SecurityFilter extends OncePerRequestFilter {
             token = extractTokenFromCookie(request, "accessToken");
         }
 
-        if(token != null) {
+        if (token != null) {
             // 블랙리스트 확인
-            if(redisTemplate.hasKey(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            if (redisTemplate.hasKey(token)) {
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
+                        "AUTH_BLACKLISTED", "만료되었거나 로그아웃된 토큰입니다.");
                 return; // 예외처리 하면 최상위 예외로 발생
             }
 
             try {
                 // 토큰 검증 + ACCESS 토큰인지 확인
-                if(jwtUtil.validateToken(token)) {
-                    if(!jwtUtil.isAccessToken(token)) {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                if (jwtUtil.validateToken(token)) {
+                    if (!jwtUtil.isAccessToken(token)) {
+                        sendErrorResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                                "INVALID_TOKEN_TYPE", "Access 토큰이 아닙니다.");
                         return;
                     }
 
@@ -67,15 +66,27 @@ public class SecurityFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 접근입니다.");
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
+                        "INVALID_TOKEN", "토큰이 유효하지 않거나 만료되었습니다.");
+                return;
             }
         }
         filterChain.doFilter(request, response);
     }
 
+    private void sendErrorResponse(HttpServletResponse response, int status, String code, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(String.format(
+                "{\"status\": %d, \"code\": \"%s\", \"message\": \"%s\"}",
+                status, code, message
+        ));
+    }
+
     /**
      * [수정] 쿠키에서 토큰을 추출하는 메서드
-     * @param request HTTP 요청
+     *
+     * @param request    HTTP 요청
      * @param cookieName 찾을 쿠키 이름
      * @return 쿠키 값 또는 null
      */

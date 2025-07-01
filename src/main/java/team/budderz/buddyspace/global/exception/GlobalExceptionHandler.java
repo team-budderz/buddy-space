@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import team.budderz.buddyspace.global.response.BaseErrorResponse;
 
 @RestControllerAdvice
@@ -18,10 +19,19 @@ public class GlobalExceptionHandler {
                 .body(new BaseErrorResponse(exception.getErrorCode()));
     }
 
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<BaseErrorResponse> handleNotFound(NoHandlerFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(BaseErrorResponse.builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .code("API_NOT_FOUND")
+                        .message("요청한 API가 존재하지 않습니다.")
+                        .build());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BaseErrorResponse> handleValidationError(MethodArgumentNotValidException exception) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        String code = "VALIDATION_FAILED";
         String message;
         if (!exception.getBindingResult().getFieldErrors().isEmpty()) {
             message = exception.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
@@ -32,20 +42,23 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity
-                .status(status.value())
+                .badRequest()
                 .body(BaseErrorResponse.builder()
-                        .status(status.value())
-                        .code(code)
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .code("VALIDATION_FAILED")
                         .message(message)
                         .build());
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<String> handleMissingServletRequestParameter(
+    public ResponseEntity<BaseErrorResponse> handleMissingServletRequestParameter(
             MissingServletRequestParameterException exception) {
-        String missingParam = exception.getParameterName();
-        String message = String.format("필수 파라미터 '%s'가 없습니다.", missingParam);
-        return ResponseEntity.badRequest().body(message);
+        return ResponseEntity
+                .badRequest()
+                .body(BaseErrorResponse.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .code("MISSING_PARAMETER")
+                        .message(String.format("필수 파라미터 '%s'가 없습니다.", exception.getParameterName()))
+                        .build());
     }
-
 }

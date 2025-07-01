@@ -42,6 +42,20 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
 
+  servlet:
+    multipart:
+      maxFileSize: 20MB
+      maxRequestSize: 100MB
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  web:
+    resources:
+      add-mappings: false
+
+---
+
 logging:
   level:
     root: INFO
@@ -53,11 +67,15 @@ logging:
     path: /var/log/app
     name: spring-app.log
 
+---
+
 kakao:
   map:
     host: https://dapi.kakao.com
     coord2address-uri: /v2/local/geo/coord2address.json
     rest-api-key: ${KAKAO_REST_API_KEY}
+
+---
 
 aws:
   s3:
@@ -67,6 +85,8 @@ aws:
       key: ${AWS_S3_SECRET_KEY}
     region: ap-northeast-2
     bucket: buddyspace
+
+---
 
 app:
   default:
@@ -79,21 +99,14 @@ app:
     base:
       url: https://budderz.co.kr/invite?code=
 
+---
+
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
 
 ---
 
-spring:
-  servlet:
-    multipart:
-      maxFileSize: 20MB
-      maxRequestSize: 100MB
-
----
-
-# Swagger 설정
 springdoc:
   api-docs:
     path: /api-docs

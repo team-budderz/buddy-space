@@ -69,15 +69,21 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         // 인증이 되지 않은 사용자가 요청할 경우 401 응답
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            String token = request.getHeader("Authorization");
                             response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\"error\": \"인증이 필요합니다.\"}");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                            if (token == null || !token.startsWith("Bearer ")) {
+                                response.getWriter().write("{\"status\": 401, \"code\": \"NO_TOKEN\", \"message\": \"인증 토큰이 없습니다. 로그인이 필요합니다.\"}");
+                            } else {
+                                response.getWriter().write("{\"status\": 401, \"code\": \"INVALID_CREDENTIAL\", \"message\": \"인증 정보가 유효하지 않습니다.\"}");
+                            }
                         })
                         // 인증은 되었지만 권한이 부족한 경우 403 응답
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\"error\": \"접근 권한이 없습니다.\"}");
+                            response.getWriter().write("{\"status\": 403, \"code\": \"ACCESS_DENIED\", \"message\": \"접근 권한이 없습니다.\"}");
                         })
                 )
                 .oauth2Login(oauth ->
