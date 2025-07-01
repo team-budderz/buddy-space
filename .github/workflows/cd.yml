@@ -18,6 +18,15 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -32,11 +41,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build --build-cache
 
       - name: Build and push Docker image
         run: |
-          sudo docker build -t buddyspace/buddyspace-backend:latest ./
+          docker build -t buddyspace/buddyspace-backend:latest ./
           docker push buddyspace/buddyspace-backend:latest
 
       - name: SSH and deploy to server
