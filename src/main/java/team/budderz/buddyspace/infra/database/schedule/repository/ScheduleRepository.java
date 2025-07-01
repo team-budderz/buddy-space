@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import team.budderz.buddyspace.infra.database.schedule.entity.Schedule;
-import team.budderz.buddyspace.infra.database.vote.entity.Vote;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 	@Query(""" 
