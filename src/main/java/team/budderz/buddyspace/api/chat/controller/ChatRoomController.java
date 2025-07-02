@@ -1,5 +1,9 @@
 package team.budderz.buddyspace.api.chat.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,7 +18,10 @@ import team.budderz.buddyspace.global.security.UserAuth;
 
 import java.util.List;
 
-/* 채팅방 CRUD */
+/**
+ * 채팅방 생성, 수정, 삭제 및 조회를 처리하는 REST API 컨트롤러입니다.
+ */
+@Tag(name = "채팅방 관리", description = "채팅방 생성, 수정, 삭제 및 참여자 관리 API")
 @RestController
 @RequestMapping("/api/group/{groupId}/chat/rooms")
 @RequiredArgsConstructor
@@ -23,9 +30,19 @@ public class ChatRoomController {
     private final ChatRoomServiceFacade chatRoomService;
 
     // 채팅방 생성 -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "채팅방 생성",
+            description = "새로운 채팅방을 생성합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "채팅방 생성 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+                    @ApiResponse(responseCode = "403", description = "채팅방 생성 권한 없음"),
+                    @ApiResponse(responseCode = "500", description = "서버 오류")
+            }
+    )
     @PostMapping
     public BaseResponse<CreateChatRoomResponse> createChatRoom(
-             @AuthenticationPrincipal UserAuth userAuth,
+             @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
              @PathVariable Long groupId,
              @RequestBody CreateChatRoomRequest request
              ) {
@@ -37,9 +54,18 @@ public class ChatRoomController {
      }
 
     // 채팅방 수정 -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "채팅방 수정",
+            description = "기존 채팅방의 정보를 수정합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "채팅방 수정 성공"),
+                    @ApiResponse(responseCode = "403", description = "수정 권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
+            }
+    )
     @PatchMapping("/{roomId}")
     public BaseResponse<UpdateChatRoomResponse> updateChatRoom(
-            @AuthenticationPrincipal UserAuth userAuth,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId,
             @Valid @RequestBody UpdateChatRoomRequest req
@@ -50,10 +76,19 @@ public class ChatRoomController {
     }
 
     // 채팅방 삭제  -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "채팅방 삭제",
+            description = "채팅방을 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "삭제 성공"),
+                    @ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
+            }
+    )
     @DeleteMapping("/{roomId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteChatRoom(
-            @AuthenticationPrincipal UserAuth userAuth,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId
     ) {
@@ -61,10 +96,15 @@ public class ChatRoomController {
         chatRoomService.deleteChatRoom(groupId, roomId, userId);
     }
 
-     // 채팅방 목록 조회 -----------------------------------------------------------------------------------------------------
+     // 나의 채팅방 목록 조회 -----------------------------------------------------------------------------------------------------
+     @Operation(
+             summary = "나의 채팅방 목록 조회",
+             description = "현재 사용자가 참여 중인 채팅방 목록을 조회합니다."
+     )
+
      @GetMapping("/my")
      public BaseResponse<List<ChatRoomSummaryResponse>> getMyChatRooms(
-             @AuthenticationPrincipal UserAuth userAuth,
+             @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
              @PathVariable Long groupId
      ) {
          Long userId = userAuth.getUserId();
@@ -72,10 +112,14 @@ public class ChatRoomController {
          return new BaseResponse<>(rooms);
      }
 
-    // 단일 채팅방 조회 -----------------------------------------------------------------------------------------------------
+    // 채팅방 상세 조회 -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "채팅방 상세 조회",
+            description = "특정 채팅방의 상세 정보를 조회합니다."
+    )
     @GetMapping("/{roomId}")
     public BaseResponse<ChatRoomDetailResponse> getChatRoomDetail(
-            @AuthenticationPrincipal UserAuth userAuth,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId
     ) {
@@ -85,9 +129,13 @@ public class ChatRoomController {
     }
 
     // 채팅방 입장 후 과거 메시지 조회 -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "채팅 메시지 목록 조회",
+            description = "채팅방의 메시지를 페이지 단위로 조회합니다."
+    )
     @GetMapping("/{roomId}/messages")
     public BaseResponse<GetChatMessagesResponse> getChatMessages(
-            @AuthenticationPrincipal UserAuth userAuth,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId,
             @RequestParam(defaultValue = "0") int page,
@@ -98,10 +146,14 @@ public class ChatRoomController {
         return new BaseResponse<>(response);
     }
 
-    // 멤버 목록 조회 -----------------------------------------------------------------------------------------------------
+    // 채팅방 참여자 목록 조회 -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "채팅방 참여자 목록 조회",
+            description = "채팅방에 참여 중인 사용자 목록을 조회합니다."
+    )
     @GetMapping("/{roomId}/members")
     public BaseResponse<List<ChatRoomMemberResponse>> getChatRoomMembers(
-            @AuthenticationPrincipal UserAuth userAuth,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId
     ) {
@@ -113,9 +165,13 @@ public class ChatRoomController {
     }
 
     // 읽음 상태 조회 -----------------------------------------------------------------------------------------------------
+    @Operation(
+            summary = "읽음 상태 조회",
+            description = "채팅방의 읽음 상태 정보를 조회합니다."
+    )
     @GetMapping("/{roomId}/read-status")
     public BaseResponse<ReadStatusRestResponse> getReadStatus(
-            @AuthenticationPrincipal UserAuth userAuth,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserAuth userAuth,
             @PathVariable Long groupId,
             @PathVariable Long roomId
     ) {

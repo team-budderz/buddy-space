@@ -1,15 +1,14 @@
 package team.budderz.buddyspace.api.chat.request.rest;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
 
 import java.util.List;
 
-/**
- * 채팅방 생성 요청 DTO
- */
+@Schema(description = "채팅방 생성 요청 DTO")
 public record CreateChatRoomRequest(
-        String name,              // 채팅방 이름
-        String description,
-        ChatRoomType chatRoomType,  // GROUP or DIRECT
-        List<Long> participantIds   // 참여자 유저 ID 목록
+        @Schema(description = "채팅방 이름", example = "스터디방") String name,
+        @Schema(description = "채팅방 설명", example = "같이 공부하는 방") String description,
+        @Schema(description = "채팅방 타입 (GROUP 또는 DIRECT)", example = "GROUP") ChatRoomType chatRoomType,
+        @Schema(description = "참여할 사용자 ID 목록", example = "[1, 2, 3]") List<Long> participantIds
 ) {}

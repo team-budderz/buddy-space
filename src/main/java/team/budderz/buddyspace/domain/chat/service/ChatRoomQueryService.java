@@ -25,6 +25,18 @@ import team.budderz.buddyspace.infra.database.membership.repository.MembershipRe
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * 채팅방 관련 조회 기능을 제공하는 서비스입니다.
+ * <p>
+ * 주요 기능:
+ * <ul>
+ *     <li>채팅방 목록 조회</li>
+ *     <li>채팅방 상세 정보 조회</li>
+ *     <li>과거 메시지 페이지네이션 조회</li>
+ *     <li>참여자 목록 조회</li>
+ *     <li>읽음 상태 정보 조회</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,7 +50,13 @@ public class ChatRoomQueryService {
     private final ChatValidator chatValidator;
     private final UserProfileImageProvider profileImageProvider;
 
-    // 채팅방 목록 조회 -------------------------------------------------------------------------------------------------
+    /**
+     * 사용자가 속한 그룹 내의 참여 중인 채팅방 목록을 조회합니다.
+     *
+     * @param groupId 그룹 ID
+     * @param userId 사용자 ID
+     * @return 채팅방 요약 목록
+     */
     public List<ChatRoomSummaryResponse> getMyChatRooms(Long groupId, Long userId) {
 
         // 그룹 멤버 검증
@@ -74,8 +92,16 @@ public class ChatRoomQueryService {
         return participant.getLastReadMessageId();
     }
 
-    // 채팅방 입장 후 과거 메시지 조회 -------------------------------------------------------------------------------------------------
-    @Transactional(readOnly = true)
+    /**
+     * 채팅방에 입장한 후 과거 메시지를 페이지네이션으로 조회합니다.
+     *
+     * @param groupId 그룹 ID
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 페이지 크기
+     * @return 메시지 목록과 페이징 정보
+     */
     public GetChatMessagesResponse getChatMessages(Long groupId, Long roomId, Long userId, int page, int size) {
 
         groupValidator.validateMember(userId, groupId);
@@ -110,7 +136,14 @@ public class ChatRoomQueryService {
         );
     }
 
-    // 채팅방 멤버 목록 조회 -------------------------------------------------------------------------------------------------
+    /**
+     * 채팅방에 속한 모든 활성 사용자 목록을 조회합니다.
+     *
+     * @param groupId 그룹 ID
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return 채팅방 참여자 목록
+     */
     public List<ChatRoomMemberResponse> getChatRoomMembers(Long groupId, Long roomId, Long userId) {
         // 방, 그룹, 멤버 유효성 검사
         chatValidator.validateRoom(roomId);
@@ -135,7 +168,14 @@ public class ChatRoomQueryService {
                 .toList();
     }
 
-    // 단일 방 조회 -------------------------------------------------------------------------------------------------
+    /**
+     * 채팅방 상세 정보를 조회합니다.
+     *
+     * @param groupId 그룹 ID
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return 채팅방 상세 응답 DTO
+     */
     public ChatRoomDetailResponse getChatRoomDetail(Long groupId, Long roomId, Long userId) {
         groupValidator.validateMember(userId, groupId);
         ChatRoom room = chatValidator.validateRoom(roomId);
@@ -160,7 +200,14 @@ public class ChatRoomQueryService {
         );
     }
 
-    // 읽음 상태 조회 (보완용)  -------------------------------------------------------------------------------------------------
+    /**
+     * 사용자 본인의 읽음 상태 및 채팅방 전체 참여자의 읽음 상태를 조회합니다.
+     *
+     * @param groupId 그룹 ID
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return 읽음 상태 응답 DTO
+     */
     public ReadStatusRestResponse getReadStatus(Long groupId, Long roomId, Long userId) {
         // 그룹 멤버 + 방 검증
         groupValidator.validateMember(userId, groupId);
