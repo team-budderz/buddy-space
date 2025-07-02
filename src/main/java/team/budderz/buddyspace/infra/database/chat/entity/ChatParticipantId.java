@@ -7,36 +7,49 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.Objects;
 
-/* chatRoom, user 가 복합기본키이기 때문에, JPA 에서 구분할 수 있도록 선언
-*
-* JPA 에서 @IdClass 사용시, 엔티티 조회/비교할때 equals(), hashCode() 내부적으로 사용함
-* --> equals(), hashCode() 를 재정의하지 않으면 서로 다른 객체로 인식돼 조회 실패 오류 발발
-*/
+/**
+ * {@link ChatParticipant}의 복합 기본 키 클래스입니다.
+ * <p>
+ * chatRoom 과 user 필드를 기준으로 복합 키를 구성하며,
+ * JPA 에서 {@code @IdClass}를 사용할 때 필수적으로 {@code equals}와 {@code hashCode}를 재정의해야
+ * 정확한 엔티티 식별 및 조회가 가능합니다.
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatParticipantId implements Serializable {
 
+    /**
+     * 채팅방 ID (참조용)
+     */
     private Long chatRoom;
+
+    /**
+     * 사용자 ID (참조용)
+     */
     private Long user;
 
-    // ChatParticipantId가 JPA 복합 키로서 정확하게 동작하도록 유도
-    // 메모리 주소가 다르더라도 chatRoom, user 값이 같으면 동일한 참여자로 간주
+    /**
+     * 두 객체가 동일한 복합 키인지 비교합니다.
+     * chatRoom, user 값이 동일하면 같은 키로 간주합니다.
+     *
+     * @param o 비교할 객체
+     * @return 동일한 키이면 true, 아니면 false
+     */
     @Override
     public boolean equals(Object o) {
-        // 두 객체의 메모리 주소 동일한 경우(같은 객체)
         if (this == o) return true;
-
-        // 전달된 객체(o) 가 ChatParticipantId 타입이 아닌 경우(다른 객체)
         if (!(o instanceof ChatParticipantId)) return false;
-
         ChatParticipantId that = (ChatParticipantId) o;
-
-        // 두 필드를 각각 비교 (Objects.equals: null-safe)
         return Objects.equals(chatRoom, that.chatRoom) &&
                 Objects.equals(user, that.user);
     }
 
+    /**
+     * chatRoom 과 user 필드를 기반으로 해시 코드를 생성합니다.
+     *
+     * @return 해시값
+     */
     @Override
     public int hashCode() {
         return Objects.hash(chatRoom, user);
