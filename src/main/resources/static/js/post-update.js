@@ -190,7 +190,7 @@ async function updatePost() {
         alert("게시글이 수정되었습니다.")
 
         setTimeout(() => {
-            location.href = `/test/group/post.html?groupId=${groupId}&postId=${postId}`
+            location.href = `/test/group/post?groupId=${groupId}&postId=${postId}`
         }, 1000)
     } catch (error) {
         console.error("게시글 수정 실패:", error)

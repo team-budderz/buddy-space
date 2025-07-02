@@ -97,7 +97,7 @@ async function submitPost() {
 
         // 게시글 상세 페이지로 이동
         setTimeout(() => {
-            location.href = `/test/group/post.html?groupId=${groupId}&postId=${data.result.postId}`
+            location.href = `/test/group/post?groupId=${groupId}&postId=${data.result.postId}`
         }, 1000)
     } catch (error) {
         console.error("게시글 작성 실패:", error)

@@ -1578,7 +1578,7 @@ async function deleteGroup() {
             showSuccess("벗터가 성공적으로 삭제되었습니다.")
             // 메인 페이지로 이동
             setTimeout(() => {
-                window.location.href = "/test/main.html"
+                window.location.href = "/test/main"
             }, 1000)
         } else {
             const data = await response.json()

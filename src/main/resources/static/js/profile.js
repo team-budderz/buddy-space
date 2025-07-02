@@ -570,7 +570,7 @@ async function deleteAccountAfterAuth() {
             showToast("그동안 이용해주셔서 감사합니다.")
             localStorage.removeItem("accessToken")
             setTimeout(() => {
-                window.location.href = "/test/login.html"
+                window.location.href = "/test/login"
             }, 2000)
         } else {
             const data = await response.json()

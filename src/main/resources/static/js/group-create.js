@@ -95,7 +95,7 @@ async function handleFormSubmit(e) {
                 // 성공 시 메인 페이지로 이동
                 showSuccess("모임이 성공적으로 생성되었습니다!")
                 setTimeout(() => {
-                    window.location.href = "/test/main.html"
+                    window.location.href = "/test/main"
                 }, 1500)
             } else {
                 throw new Error(data.message || "모임 생성에 실패했습니다.")

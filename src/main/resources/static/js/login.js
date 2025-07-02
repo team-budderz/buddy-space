@@ -79,7 +79,7 @@ async function handleLogin(email, password) {
                 setCookie("accessToken", accessToken); // 로그인시 쿠키 저장
 
                 setTimeout(() => {
-                    window.location.href = "main.html"
+                    window.location.href = "main"
                 }, 1500)
             } else {
                 showMessage("로그인 실패: 토큰이 없습니다.", "error")

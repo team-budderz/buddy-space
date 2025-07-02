@@ -26,13 +26,13 @@ const groupInterestMap = {
 // 현재 검색 상태
 let currentKeyword = ""
 let currentInterest = ""
-let currentPage = 0
+let searchCurrentPage = 0
 
 document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search)
     currentKeyword = urlParams.get("keyword")
     currentInterest = urlParams.get("interest") || ""
-    currentPage = Number.parseInt(urlParams.get("page")) || 0
+    searchCurrentPage = Number.parseInt(urlParams.get("page")) || 0
 
     if (!currentKeyword) {
         document.getElementById("keyword-display").textContent = "검색어가 없습니다."
@@ -75,7 +75,7 @@ function setupInterestFilterListeners() {
 
             // 관심사 필터 변경 및 검색 재실행
             currentInterest = filter.dataset.interest
-            currentPage = 0
+            searchCurrentPage = 0
             updateURL()
             performSearch()
         })
@@ -89,11 +89,11 @@ function updateURL() {
     if (currentInterest) {
         params.set("interest", currentInterest)
     }
-    if (currentPage > 0) {
-        params.set("page", currentPage.toString())
+    if (searchCurrentPage > 0) {
+        params.set("page", searchCurrentPage.toString())
     }
 
-    const newURL = `/test/search.html?${params.toString()}`
+    const newURL = `/test/search?${params.toString()}`
     window.history.replaceState({}, "", newURL)
 }
 
@@ -103,7 +103,7 @@ async function performSearch() {
     showLoading()
 
     try {
-        let url = `/api/groups/search?keyword=${encodeURIComponent(currentKeyword)}&page=${currentPage}`
+        let url = `/api/groups/search?keyword=${encodeURIComponent(currentKeyword)}&page=${searchCurrentPage}`
         if (currentInterest) {
             url += `&interest=${currentInterest}`
         }
@@ -220,7 +220,7 @@ function renderGroups(groups) {
         } else {
             // 가입된 그룹은 클릭 시 그룹 페이지로 이동
             card.addEventListener("click", () => {
-                window.location.href = `/test/group/main.html?id=${group.groupId}`
+                window.location.href = `/test/group/main?id=${group.groupId}`
             })
         }
 
@@ -288,7 +288,7 @@ function addPagination(currentPageNum, totalPages, keyword, interest) {
         if (page > 0) {
             params.set("page", page.toString())
         }
-        return `/test/search.html?${params.toString()}`
+        return `/test/search?${params.toString()}`
     }
 
     // 이전 페이지 버튼

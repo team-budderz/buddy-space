@@ -476,7 +476,7 @@ async function withdrawFromGroup() {
         if (response.ok) {
             alert("모임에서 탈퇴되었습니다.")
             // 메인 페이지로 이동
-            window.location.href = "/test/main.html"
+            window.location.href = "/test/main"
         } else {
             const data = await response.json()
             alert(`탈퇴 실패: ${data.message || "알 수 없는 오류"}`)

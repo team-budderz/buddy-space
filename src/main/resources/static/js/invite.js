@@ -39,7 +39,7 @@ function extractInviteCode() {
     const pathParts = window.location.pathname.split("/")
     const lastPart = pathParts[pathParts.length - 1]
 
-    if (lastPart && lastPart !== "invite.html") {
+    if (lastPart && lastPart !== "invite") {
         return lastPart
     }
 
@@ -93,7 +93,7 @@ function showLoginRequired() {
         <button class="btn btn-primary" onclick="goToLogin()">
             로그인하기
         </button>
-        <a href="/test/main.html" class="btn btn-secondary">
+        <a href="/test/main" class="btn btn-secondary">
             메인으로 돌아가기
         </a>
     `
@@ -121,7 +121,7 @@ function showInviteInfo() {
         <button class="btn btn-primary" onclick="joinGroup()" id="join-btn">
             모임 참여하기
         </button>
-        <a href="/test/main.html" class="btn btn-secondary">
+        <a href="/test/main" class="btn btn-secondary">
             취소
         </a>
     `
@@ -208,7 +208,7 @@ function showSuccess(membershipData) {
         <button class="btn btn-success" onclick="goToGroupMain(${membershipData.groupId})">
             모임으로 이동
         </button>
-        <a href="/test/main.html" class="btn btn-secondary">
+        <a href="/test/main" class="btn btn-secondary">
             메인으로 이동
         </a>
     `
@@ -239,7 +239,7 @@ function showError(title, message) {
         <button class="btn btn-primary" onclick="location.reload()">
             다시 시도
         </button>
-        <a href="/test/main.html" class="btn btn-secondary">
+        <a href="/test/main" class="btn btn-secondary">
             메인으로 돌아가기
         </a>
     `
@@ -252,12 +252,12 @@ function showError(title, message) {
 function goToLogin() {
     // 현재 URL을 리다이렉트 파라미터로 저장
     const currentUrl = encodeURIComponent(window.location.href)
-    window.location.href = `/test/login.html?redirect=${currentUrl}`
+    window.location.href = `/test/login?redirect=${currentUrl}`
 }
 
 // 모임 메인으로 이동
 function goToGroupMain(groupId) {
-    window.location.href = `/test/group/main.html?id=${groupId}`
+    window.location.href = `/test/group/main?id=${groupId}`
 }
 
 // 엔터키 이벤트 핸들러 설정
