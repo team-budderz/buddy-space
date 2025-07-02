@@ -194,7 +194,7 @@ function createGroupCard(group) {
     } else {
         // 승인된 멤버는 클릭 시 모임으로 이동
         card.addEventListener("click", () => {
-            window.location.href = `/test/group/main.html?id=${group.groupId}`
+            window.location.href = `/test/group/main?id=${group.groupId}`
         })
     }
 
@@ -211,7 +211,7 @@ function createCreateCard() {
         <div>만들기</div>
     `
     createCard.addEventListener("click", () => {
-        window.location.href = "/test/group/create.html"
+        window.location.href = "/test/group/create"
     })
     return createCard
 }

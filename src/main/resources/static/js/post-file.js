@@ -294,7 +294,7 @@ async function handleCancelClick() {
     await cleanupOrphanedFiles()
 
     // 메인 페이지로 이동
-    window.location.href = `/test/group/main.html?id=${groupId}`
+    window.location.href = `/test/group/main?id=${groupId}`
 }
 
 // 고아 파일 정리

@@ -35,7 +35,7 @@ function updateCreatePostButton() {
 
 // 게시글 작성 페이지로 이동
 function goToPostCreate() {
-    location.href = `/test/group/post/create.html?id=${groupId}`
+    location.href = `/test/group/post/create?id=${groupId}`
 }
 
 // HTML 콘텐츠에서 미리보기 텍스트와 썸네일 추출
@@ -84,7 +84,7 @@ function createNoticeCardHTML(notice) {
 
     return `
         <div class="notice-card"
-            onclick="location.href='/test/group/post.html?groupId=${groupId}&postId=${notice.id}'"
+            onclick="location.href='/test/group/post?groupId=${groupId}&postId=${notice.id}'"
             style="cursor:pointer;">
             ${preview}
         </div>
@@ -124,7 +124,7 @@ function createPostCardHTML(post) {
     const { thumbnailUrl, textPreview, hasMore } = extractPostPreviewAndThumbnail(post.content)
 
     return `
-        <div class="post-card" onclick="location.href='/test/group/post.html?groupId=${groupId}&postId=${post.id}'">
+        <div class="post-card" onclick="location.href='/test/group/post?groupId=${groupId}&postId=${post.id}'">
             ${thumbnailUrl ? `<img src="${thumbnailUrl}" class="post-thumbnail" alt="썸네일">` : ""}
             <div class="post-content">
                 <div class="post-meta">

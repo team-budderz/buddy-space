@@ -8,7 +8,7 @@
 
 // 로그인 페이지로 리다이렉트
 function redirectToLogin() {
-    window.location.href = "/test/login.html"
+    window.location.href = "/test/login"
 }
 
 // 액세스 토큰 확인 및 반환
@@ -58,7 +58,7 @@ let notificationEventSource = null;
 // 사용자 로그아웃 처리
 function logoutUser() {
     localStorage.removeItem("accessToken")
-    window.location.href = "/test/login.html"
+    window.location.href = "/test/login"
 }
 
 // SSE 연결 함수
@@ -161,7 +161,7 @@ function createIconWithDropdown(iconSrc, altText, dropdownContentHTML) {
 function handleSearch(searchInput) {
     const keyword = searchInput.value.trim()
     if (keyword) {
-        window.location.href = `/test/search.html?keyword=${encodeURIComponent(keyword)}`
+        window.location.href = `/test/search?keyword=${encodeURIComponent(keyword)}`
     }
 }
 
@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 로고 섹션 생성
     const logoSection = document.createElement("a")
-    logoSection.href = "/test/main.html"
+    logoSection.href = "/test/main"
     logoSection.className = "logo-section"
 
     const logoImg = document.createElement("img")
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 프로필 드롭다운 메뉴 생성
     const profileDropdownContent = `
-        <div class="dropdown-item" onclick="window.location.href='/test/my/profile.html'">
+        <div class="dropdown-item" onclick="window.location.href='/test/my/profile'">
             👤 내 정보
         </div>
         <div class="dropdown-item" onclick="logoutUser()">
@@ -381,7 +381,7 @@ function convertApiUrlToPageUrl(apiUrl) {
     if (postMatch) {
         const groupId = postMatch[1];
         const postId = postMatch[2];
-        return `/test/group/post.html?groupId=${groupId}&postId=${postId}`;
+        return `/test/group/post?groupId=${groupId}&postId=${postId}`;
     }
     return apiUrl;
 }

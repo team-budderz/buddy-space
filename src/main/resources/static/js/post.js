@@ -423,7 +423,7 @@ function createReplyElement(reply, loginUser) {
 
 // 게시글 수정 페이지로 이동
 function editPost() {
-    location.href = `/test/group/post/update.html?groupId=${groupId}&postId=${postId}`
+    location.href = `/test/group/post/update?groupId=${groupId}&postId=${postId}`
 }
 
 // 게시글 삭제
@@ -440,7 +440,7 @@ async function deletePost() {
             alert(data.result || "게시글이 삭제되었습니다.")
 
             setTimeout(() => {
-                window.location.href = `/test/group/main.html?id=${groupId}`
+                window.location.href = `/test/group/main?id=${groupId}`
             }, 1000)
         } else {
             const data = await response.json()

@@ -93,7 +93,7 @@ function updateURL() {
         params.set("page", currentPage.toString())
     }
 
-    const newURL = `/test/search.html?${params.toString()}`
+    const newURL = `/test/search?${params.toString()}`
     window.history.replaceState({}, "", newURL)
 }
 
@@ -220,7 +220,7 @@ function renderGroups(groups) {
         } else {
             // 가입된 그룹은 클릭 시 그룹 페이지로 이동
             card.addEventListener("click", () => {
-                window.location.href = `/test/group/main.html?id=${group.groupId}`
+                window.location.href = `/test/group/main?id=${group.groupId}`
             })
         }
 
@@ -288,7 +288,7 @@ function addPagination(currentPageNum, totalPages, keyword, interest) {
         if (page > 0) {
             params.set("page", page.toString())
         }
-        return `/test/search.html?${params.toString()}`
+        return `/test/search?${params.toString()}`
     }
 
     // 이전 페이지 버튼

@@ -59,10 +59,10 @@ function createGroupNavigation() {
     // 각 탭 생성 및 활성 상태 설정
     tabs.forEach((tab) => {
         const a = document.createElement("a")
-        a.href = `/test/group/${tab.path}.html?id=${groupId}`
+        a.href = `/test/group/${tab.path}?id=${groupId}`
         a.textContent = tab.name
         if (tab.id) a.id = tab.id
-        if (currentPath === `${tab.path}.html`) a.classList.add("active")
+        if (currentPath === `${tab.path}`) a.classList.add("active")
 
         tabContainer.appendChild(a)
     })
