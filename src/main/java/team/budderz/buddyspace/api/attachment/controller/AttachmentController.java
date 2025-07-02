@@ -48,7 +48,8 @@ public class AttachmentController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "첨부파일 일괄 삭제", description = "첨부파일 식별자를 리스트로 받아 일괄 삭제합니다.")
+    @Operation(summary = "첨부파일 일괄 삭제",
+            description = "첨부파일의 식별자를 리스트로 받아 일괄 삭제합니다. 게시글 작성 중 취소 시 사용됩니다.")
     @ApiResponse(responseCode = "200", description = "첨부파일 일괄 삭제 성공",
             content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @DeleteMapping
@@ -58,7 +59,7 @@ public class AttachmentController {
     }
 
     @Operation(summary = "고아 첨부파일 일괄 삭제",
-            description = "사용자, 모임, 게시글에서 사용되지 않는 고아 첨부파일을 일괄 삭제합니다.")
+            description = "사용자, 모임, 게시글에서 사용되지 않는 고아 첨부파일을 일괄 삭제합니다. (관리자용)")
     @ApiResponse(responseCode = "200", description = "고아 첨부파일 일괄 삭제 성공",
             content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @DeleteMapping("/orphans")
