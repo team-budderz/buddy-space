@@ -47,12 +47,10 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers( // test
                                 "/favicon.ico",
-                                "/test-websocket.html",
                                 "/test/**",
                                 "/js/**",
                                 "/css/**",
-                                "/ws/**",
-                                "/static/**"
+                                "/ws/**"
                         ).permitAll()
                         .requestMatchers( // swagger
                                 "/api-ui",
