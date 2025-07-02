@@ -1,10 +1,16 @@
 package team.budderz.buddyspace.api.chat.response.rest;
 
-/**
- * 채팅방 생성 응답 DTO
- */
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "채팅방 생성 응답 DTO")
 public record CreateChatRoomResponse(
-        String roomId,   // 생성된 방 ID
-        String name,     // 생성된 방 이름
-        String status    // ex. success
+
+        @Schema(description = "생성된 채팅방 ID", example = "room-abc123")
+        String roomId,
+
+        @Schema(description = "생성된 채팅방 이름", example = "새로운 채팅방")
+        String name,
+
+        @Schema(description = "처리 결과 상태", example = "success")
+        String status
 ) {}

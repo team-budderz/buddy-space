@@ -11,6 +11,12 @@ import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRep
 
 import java.util.List;
 
+/**
+ * 채팅방 멤버 관련 이벤트(WebSocket 브로드캐스트)를 처리하는 서비스입니다.
+ * <p>
+ * 사용자가 채팅방에 입장하거나 퇴장, 초대, 강퇴 등의 변동이 있을 경우,
+ * 실시간으로 현재 참여자 목록을 WebSocket 구독자에게 전송합니다.
+ */
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -20,7 +26,19 @@ public class ChatMemberEventService {
     private final SimpMessagingTemplate messagingTemplate;
     private final UserProfileImageProvider profileImageProvider;
 
-    /** 방의 멤버 변동(입장/퇴장/초대/강퇴) 발생 시 호출 */
+    /**
+     * 채팅방의 현재 활성화된 참여자 목록을 조회하고,
+     * WebSocket 채널(`/sub/chat/rooms/{roomId}/members`)로 브로드캐스트합니다.
+     *
+     * <p>다음과 같은 상황에서 호출됩니다:
+     * <ul>
+     *     <li>채팅방에 새 참여자 초대</li>
+     *     <li>기존 참여자 강퇴</li>
+     *     <li>참여자 나가기</li>
+     * </ul>
+     *
+     * @param roomId 대상 채팅방 ID
+     */
     public void broadcastMembers(Long roomId) {
         // 1. 현재 멤버 리스트 추출
         List<ChatParticipant> participants = chatParticipantRepository.findByChatRoomId(roomId);

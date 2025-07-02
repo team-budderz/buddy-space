@@ -1,5 +1,7 @@
 package team.budderz.buddyspace.domain.chat.service;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +31,9 @@ import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 
-// 생성, 수정 등 "쓰기" 성향
+/**
+ * 채팅방 생성, 수정, 삭제, 참여자 관리 등의 쓰기 작업을 담당하는 서비스 클래스입니다.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -44,6 +48,16 @@ public class ChatRoomCommandService {
     private final ChatValidator chatValidator;
     private final ChatMemberEventService chatMemberEventService;
 
+    /**
+     * 채팅방을 생성합니다.
+     *
+     * @param groupId 그룹 ID
+     * @param userId 사용자 ID
+     * @param request 채팅방 생성 요청
+     * @return 생성된 채팅방 정보
+     */
+    @Operation(summary = "채팅방 생성", description = "그룹에 참여한 사용자가 채팅방을 생성합니다. DIRECT 타입은 중복 불가.")
+    @ApiResponse(responseCode = "200", description = "채팅방 생성 성공")
     public CreateChatRoomResponse createChatRoom(Long groupId, Long userId, CreateChatRoomRequest request) {
         // 그룹, 유저, 멤버 검증
         Group group = groupValidator.findGroupOrThrow(groupId);
@@ -81,8 +95,11 @@ public class ChatRoomCommandService {
     }
 
     /**
-     * 채팅방 이름/설명 수정 (생성자만 가능)
+     * 채팅방 이름 및 설명을 수정합니다.
+     * 생성자만 수정할 수 있습니다.
      */
+    @Operation(summary = "채팅방 수정", description = "채팅방 이름과 설명을 수정합니다. 생성자만 수정 가능.")
+    @ApiResponse(responseCode = "200", description = "채팅방 수정 성공")
     public UpdateChatRoomResponse updateChatRoom(
             Long groupId,
             Long roomId,
@@ -103,8 +120,10 @@ public class ChatRoomCommandService {
     }
 
     /**
-     * 채팅방 삭제 (생성자만 가능)
+     * 채팅방을 삭제합니다. 생성자만 삭제할 수 있습니다.
      */
+    @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다. 생성자만 삭제 가능.")
+    @ApiResponse(responseCode = "200", description = "채팅방 삭제 성공")
     public void deleteChatRoom(Long groupId, Long roomId, Long userId) {
         ChatRoom room = requireValidRoom(groupId, roomId, userId);
         requireCreatorPermission(room, userId);
@@ -112,8 +131,10 @@ public class ChatRoomCommandService {
     }
 
     /**
-     * 채팅방에 참여자 추가 (초대)
+     * 채팅방에 새로운 사용자를 초대합니다.
      */
+    @Operation(summary = "참여자 초대", description = "채팅방에 새 사용자를 초대합니다.")
+    @ApiResponse(responseCode = "200", description = "참여자 초대 성공")
     public void addParticipant(
             Long groupId,
             Long roomId,
@@ -155,8 +176,10 @@ public class ChatRoomCommandService {
     }
 
     /**
-     * 채팅방에서 특정 참여자 제거 (강퇴)
+     * 채팅방에서 특정 사용자를 강퇴합니다.
      */
+    @Operation(summary = "참여자 강퇴", description = "채팅방에서 특정 사용자를 강퇴합니다. 생성자 또는 권한 소유자만 가능.")
+    @ApiResponse(responseCode = "200", description = "강퇴 성공")
     public void removeParticipant(
             Long groupId,
             Long roomId,
@@ -192,8 +215,10 @@ public class ChatRoomCommandService {
     }
 
     /**
-     * 채팅방 나가기
+     * 사용자가 채팅방에서 나갑니다.
      */
+    @Operation(summary = "채팅방 나가기", description = "참여자가 채팅방을 나갑니다.")
+    @ApiResponse(responseCode = "200", description = "나가기 성공")
     public void leaveChatRoom(Long groupId, Long roomId, Long userId) {
         groupValidator.validateMember(userId, groupId);
 
