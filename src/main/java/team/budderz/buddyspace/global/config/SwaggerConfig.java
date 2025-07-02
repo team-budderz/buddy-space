@@ -24,15 +24,14 @@ public class SwaggerConfig {
 
         Components components = new Components()
                 .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
-                        .name(jwtSchemeName)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
                 .info(new Info().title("BUDDY SPACE API")
-                        .description("벗터 API 문서")
-                        .version("v1.0.0"))
+                        .description("프로젝트 벗터 API 문서")
+                        .version("1.0.0"))
                 .addSecurityItem(securityRequirement)
                 .components(components);
     }

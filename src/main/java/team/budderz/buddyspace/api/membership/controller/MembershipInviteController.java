@@ -1,5 +1,10 @@
 package team.budderz.buddyspace.api.membership.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -11,10 +16,15 @@ import team.budderz.buddyspace.global.security.UserAuth;
 @RestController
 @RequestMapping("/api/invites")
 @RequiredArgsConstructor
+@Tag(name = "모임 초대 관리", description = "모임 초대 관련 API")
 public class MembershipInviteController {
 
     private final MembershipService membershipService;
 
+    @Operation(summary = "초대 링크로 모임 가입",
+            description = "로그인한 사용자가 초대 링크를 통해 특정 모임에 가입합니다.")
+    @ApiResponse(responseCode = "200", description = "초대 링크로 모임 가입 성공",
+            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @PostMapping
     public BaseResponse<MembershipResponse> inviteJoin(@RequestParam String code,
                                                        @AuthenticationPrincipal UserAuth userAuth) {
