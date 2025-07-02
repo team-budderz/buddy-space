@@ -92,7 +92,8 @@ public class GroupController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "동네 인증 기반 가입 제한 설정", description = "동네 인증 기반으로 오프라인 모임 가입 제한을 설정합니다.")
+    @Operation(summary = "동네 인증 기반 가입 제한 설정",
+            description = "오프라인 모임의 경우, 사용자의 동네 인증 여부에 따라 모임 가입 요청 가능 여부를 설정할 수 있습니다.")
     @ApiResponse(responseCode = "200", description = "동네 인증 기반 가입 제한 설정 성공",
             content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @PatchMapping("/{groupId}/neighborhood-auth-required")
@@ -135,7 +136,7 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "내가 가입 요청한 모임 목록 조회", description = "내가 가입 요청한 모임 목록을 조회합니다.")
+    @Operation(summary = "내가 가입 요청한 모임 목록 조회", description = "로그인한 사용자가 가입 요청한 모임 목록을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공",
             content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @GetMapping("/my-requested")
@@ -164,7 +165,8 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "오프라인 모임 목록 조회", description = "오프라인 모임을 사용자 동네, 정렬 기준, 관심사 기반으로 조회합니다.")
+    @Operation(summary = "오프라인 모임 목록 조회",
+            description = "오프라인 모임을 로그인한 사용자의 동네, 정렬 기준, 관심사 기반으로 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공",
             content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @GetMapping("/off")
@@ -181,7 +183,7 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "모임 이름 검색", description = "모임 이름 키워드로 모임을 검색합니다.")
+    @Operation(summary = "모임 이름 검색", description = "이름 키워드로 모임을 검색합니다.")
     @ApiResponse(responseCode = "200", description = "검색 성공",
             content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @GetMapping("/search")

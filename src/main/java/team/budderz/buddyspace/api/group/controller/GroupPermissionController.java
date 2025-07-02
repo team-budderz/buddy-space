@@ -1,5 +1,10 @@
 package team.budderz.buddyspace.api.group.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,10 +23,14 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/groups/{groupId}/permissions")
+@Tag(name = "모임 기능별 권한 관리", description = "모임 기능별 권한 관련 API")
 public class GroupPermissionController {
 
     private final GroupPermissionService permissionService;
 
+    @Operation(summary = "모임 기능별 권한 설정", description = "모임의 기능별 접근 권한을 설정합니다.")
+    @ApiResponse(responseCode = "200", description = "모임 기능별 접근 권한 설정 성공",
+            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @PostMapping
     public BaseResponse<GroupPermissionResponse> updateGroupPermission(
             @PathVariable Long groupId,
@@ -34,6 +43,9 @@ public class GroupPermissionController {
         return new BaseResponse<>(response);
     }
 
+    @Operation(summary = "모임 기능별 권한 조회", description = "모임의 기능별 접근 권한을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "모임 기능별 접근 권한 조회 성공",
+            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     @GetMapping
     public BaseResponse<GroupPermissionResponse> findGroupPermissions(
             @PathVariable Long groupId,
