@@ -38,10 +38,6 @@ public class ChatParticipantRestController {
             description = "채팅방에 다른 사용자를 초대합니다.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "참여자 초대 성공"),
-                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-                    @ApiResponse(responseCode = "401", description = "인증 실패"),
-                    @ApiResponse(responseCode = "403", description = "권한 없음"),
-                    @ApiResponse(responseCode = "500", description = "서버 오류")
             }
     )
     @PostMapping
@@ -68,9 +64,6 @@ public class ChatParticipantRestController {
             description = "채팅방에서 특정 사용자를 강퇴합니다.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "참여자 강퇴 성공"),
-                    @ApiResponse(responseCode = "401", description = "인증 실패"),
-                    @ApiResponse(responseCode = "403", description = "권한 없음"),
-                    @ApiResponse(responseCode = "404", description = "대상 사용자를 찾을 수 없음")
             }
     )
     @DeleteMapping("/{targetUserId}")
@@ -96,8 +89,6 @@ public class ChatParticipantRestController {
             description = "현재 사용자가 채팅방에서 나갑니다.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "나가기 성공"),
-                    @ApiResponse(responseCode = "401", description = "인증 실패"),
-                    @ApiResponse(responseCode = "404", description = "채팅방 또는 사용자 정보를 찾을 수 없음")
             }
     )
     @DeleteMapping("/me")

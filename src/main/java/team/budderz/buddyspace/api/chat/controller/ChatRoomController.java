@@ -35,9 +35,6 @@ public class ChatRoomController {
             description = "새로운 채팅방을 생성합니다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "채팅방 생성 성공"),
-                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                    @ApiResponse(responseCode = "403", description = "채팅방 생성 권한 없음"),
-                    @ApiResponse(responseCode = "500", description = "서버 오류")
             }
     )
     @PostMapping
@@ -59,8 +56,6 @@ public class ChatRoomController {
             description = "기존 채팅방의 정보를 수정합니다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "채팅방 수정 성공"),
-                    @ApiResponse(responseCode = "403", description = "수정 권한 없음"),
-                    @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
             }
     )
     @PatchMapping("/{roomId}")
@@ -81,8 +76,6 @@ public class ChatRoomController {
             description = "채팅방을 삭제합니다.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "삭제 성공"),
-                    @ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
-                    @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
             }
     )
     @DeleteMapping("/{roomId}")
