@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.mission.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,9 +27,13 @@ public class MissionController {
 
     private final MissionService missionService;
 
-    @Operation(summary = "미션 생성", description = "새로운 미션을 생성합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 생성 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 생성",
+            description = "새로운 미션을 생성합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 생성 성공")
+            }
+    )
     @PostMapping
     public BaseResponse<SaveMissionResponse> saveMission(@AuthenticationPrincipal UserAuth userAuth,
                                                          @PathVariable Long groupId,
@@ -40,9 +42,13 @@ public class MissionController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "미션 정보 수정", description = "기존 미션의 정보를 수정합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 정보 수정 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 정보 수정",
+            description = "기존 미션의 정보를 수정합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 정보 수정 성공")
+            }
+    )
     @PatchMapping("/{missionId}")
     public BaseResponse<UpdateMissionResponse> updateMission(@AuthenticationPrincipal UserAuth userAuth,
                                                              @PathVariable Long groupId,
@@ -53,9 +59,13 @@ public class MissionController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "미션 삭제", description = "특정 미션을 삭제합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 삭제 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 삭제",
+            description = "특정 미션을 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 삭제 성공")
+            }
+    )
     @DeleteMapping("/{missionId}")
     public BaseResponse<Void> deleteMission(@AuthenticationPrincipal UserAuth userAuth,
                                             @PathVariable Long groupId,
@@ -64,18 +74,26 @@ public class MissionController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "미션 목록 조회", description = "모임의 미션 목록을 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 목록 조회",
+            description = "모임의 미션 목록을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 목록 조회 성공")
+            }
+    )
     @GetMapping
     public BaseResponse<List<MissionResponse>> findMissions(@PathVariable Long groupId) {
         List<MissionResponse> responses = missionService.findMissions(groupId);
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "미션 상세 조회", description = "미션의 상세 정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 상세 조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 상세 조회",
+            description = "미션의 상세 정보를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 상세 조회 성공")
+            }
+    )
     @GetMapping("/{missionId}")
     public BaseResponse<MissionDetailResponse> findMissionDetail(@PathVariable Long groupId,
                                                                  @PathVariable Long missionId) {

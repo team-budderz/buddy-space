@@ -9,7 +9,7 @@ import team.budderz.buddyspace.global.response.ErrorCode;
 @RequiredArgsConstructor
 public enum S3ErrorCode implements ErrorCode {
 
-    FILE_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "S001", "업로드할 파일이 없습니다."),
+    FILE_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "S001", "파일을 찾을 수 없습니다."),
     UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "S002", "S3 업로드에 실패했습니다."),
     DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "S003", "S3 삭제에 실패했습니다."),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST.value(), "S004", "파일 크기가 10MB를 초과했습니다."),

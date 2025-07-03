@@ -13,7 +13,9 @@ import team.budderz.buddyspace.domain.attachment.exception.AttachmentErrorCode;
 import team.budderz.buddyspace.domain.attachment.exception.AttachmentException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
+import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.client.s3.S3Directory;
+import team.budderz.buddyspace.infra.client.s3.S3ErrorCode;
 import team.budderz.buddyspace.infra.client.s3.S3Service;
 import team.budderz.buddyspace.infra.client.s3.ThumbnailGenerator;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
@@ -101,6 +103,7 @@ public class AttachmentService {
     @Transactional(readOnly = true)
     public AttachmentResponse getAttachmentDetail(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
 
         String url = s3Service.generateViewUrl(attachment.getKey());
         String thumbnailUrl = Optional.ofNullable(attachment.getThumbnailKey())
@@ -119,10 +122,13 @@ public class AttachmentService {
     @Transactional(readOnly = true)
     public String getViewUrl(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
+
         return s3Service.generateViewUrl(attachment.getKey());
     }
 
     public String getViewUrlByKey(String key) {
+        validateObjectExists(key);
         return s3Service.generateViewUrl(key);
     }
 
@@ -135,6 +141,8 @@ public class AttachmentService {
     @Transactional(readOnly = true)
     public String getDownloadUrl(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
+
         return s3Service.generateDownloadUrl(attachment.getKey(), attachment.getFilename());
     }
 
@@ -146,6 +154,7 @@ public class AttachmentService {
     @Transactional
     public void delete(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
 
         // S3 원본 파일 삭제
         try {
@@ -286,6 +295,12 @@ public class AttachmentService {
             if (tempVideo != null && tempVideo.exists()) {
                 tempVideo.delete();
             }
+        }
+    }
+
+    private void validateObjectExists(String key) {
+        if (!s3Service.exists(key)) {
+            throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
         }
     }
 }
