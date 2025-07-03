@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.notification.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,17 +16,21 @@ import team.budderz.buddyspace.global.security.UserAuth;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-@Tag(name = "알림", description = "알림 관련 API")
+@Tag(name = "알림 관리", description = "알림 관련 API")
 public class NotificationController {
 
     private final NotificationService notificationService;
 
     // 알림 전체 조회
-    @Operation(summary = "알림 전체 조회", description = "사용자의 알림 목록을 페이지네이션 형태로 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "알림 조회 성공",
-            content = @Content(schema = @Schema(implementation = NotificationResponse.class)))
+    @Operation(
+            summary = "알림 전체 조회",
+            description = "사용자의 알림 목록을 페이지네이션 형태로 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "알림 조회 성공")
+            }
+    )
     @GetMapping
-    public BaseResponse<Page<NotificationResponse>> findsNotice (
+    public BaseResponse<Page<NotificationResponse>> findsNotice(
             @AuthenticationPrincipal UserAuth userAuth,
             Pageable pageable
     ) {
@@ -37,9 +39,13 @@ public class NotificationController {
     }
 
     // 알림 읽음 처리
-    @Operation(summary = "알림 읽음 처리", description = "알림을 읽음 처리합니다.")
-    @ApiResponse(responseCode = "200", description = "알림 읽음 처리 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "알림 읽음 처리",
+            description = "알림을 읽음 처리합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "알림 읽음 처리 성공")
+            }
+    )
     @PatchMapping("/{notificationId}/read")
     public BaseResponse<Void> readNotification(
             @PathVariable Long notificationId,
@@ -50,9 +56,13 @@ public class NotificationController {
     }
 
     // 알림 개수 조회
-    @Operation(summary = "안 읽은 알림 개수 조회", description = "사용자의 읽지 않은 알림 개수를 반환합니다.")
-    @ApiResponse(responseCode = "200", description = "알림 개수 조회 성공",
-            content = @Content(schema = @Schema(implementation = Long.class)))
+    @Operation(
+            summary = "안 읽은 알림 개수 조회",
+            description = "사용자의 읽지 않은 알림 개수를 반환합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "알림 개수 조회 성공")
+            }
+    )
     @GetMapping("/notice-count")
     public BaseResponse<Long> countUnreadNotification(
             @AuthenticationPrincipal UserAuth userAuth

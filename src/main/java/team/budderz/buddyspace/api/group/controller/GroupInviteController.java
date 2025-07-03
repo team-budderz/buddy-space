@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.group.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +19,13 @@ public class GroupInviteController {
 
     private final GroupInviteService groupInviteService;
 
-    @Operation(summary = "모임 초대 링크 생성", description = "모임의 초대 링크를 생성합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 초대 링크 생성 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 초대 링크 생성",
+            description = "모임의 초대 링크를 생성합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 초대 링크 생성 성공")
+            }
+    )
     @PatchMapping
     public BaseResponse<GroupInviteResponse> updateInviteLink(@PathVariable Long groupId,
                                                               @AuthenticationPrincipal UserAuth userAuth) {
@@ -33,9 +35,13 @@ public class GroupInviteController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "모임 초대 링크 조회", description = "모임의 초대 링크를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 초대 링크 조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 초대 링크 조회",
+            description = "모임의 초대 링크를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 초대 링크 조회 성공")
+            }
+    )
     @GetMapping
     public BaseResponse<GroupInviteResponse> findInviteLink(@PathVariable Long groupId,
                                                             @AuthenticationPrincipal UserAuth userAuth) {
@@ -45,9 +51,13 @@ public class GroupInviteController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "초대 링크 삭제", description = "모임의 초대 링크를 삭제합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 초대 링크 삭제 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "초대 링크 삭제",
+            description = "모임의 초대 링크를 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 초대 링크 삭제 성공")
+            }
+    )
     @DeleteMapping
     public BaseResponse<GroupInviteResponse> deleteInviteLink(@PathVariable Long groupId,
                                                               @AuthenticationPrincipal UserAuth userAuth) {

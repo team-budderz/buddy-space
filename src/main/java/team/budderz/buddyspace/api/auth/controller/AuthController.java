@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.auth.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,9 +21,13 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "토큰 재발급", description = "리프레시 토큰으로 새로운 액세스 토큰을 재발급합니다.")
-    @ApiResponse(responseCode = "200", description = "토큰 재발급 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "토큰 재발급",
+            description = "리프레시 토큰으로 새로운 액세스 토큰을 재발급합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "토큰 재발급 성공")
+            }
+    )
     @PostMapping("/refresh")
     public BaseResponse<TokenResponse> reissueToken(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,

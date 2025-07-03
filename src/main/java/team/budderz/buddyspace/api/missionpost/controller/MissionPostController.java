@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.missionpost.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,9 +24,13 @@ public class MissionPostController {
 
     private final MissionPostService missionPostService;
 
-    @Operation(summary = "미션 인증 글 생성", description = "새로운 미션 인증 글을 생성합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 인증 글 생성 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 인증 생성",
+            description = "새로운 미션 인증 글을 생성합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 인증 생성 성공")
+            }
+    )
     @PostMapping
     public BaseResponse<Void> saveMissionPost(@AuthenticationPrincipal UserAuth userAuth,
                                               @PathVariable Long groupId,
@@ -38,9 +40,13 @@ public class MissionPostController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "미션 인증 글 수정", description = "기존의 미션 인증 글을 수정합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 인증 글 수정 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 인증 수정",
+            description = "기존의 미션 인증 글을 수정합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 인증 수정 성공")
+            }
+    )
     @PatchMapping("/{postId}")
     public BaseResponse<Void> updateMissionPost(@AuthenticationPrincipal UserAuth userAuth,
                                                 @PathVariable Long groupId,
@@ -51,9 +57,13 @@ public class MissionPostController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "미션 인증 글 삭제", description = "특정 미션 인증 글을 삭제합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 인증 글 삭제 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 인증 삭제",
+            description = "특정 미션 인증 글을 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 인증 삭제 성공")
+            }
+    )
     @DeleteMapping("/{postId}")
     public BaseResponse<Void> deleteMissionPost(@AuthenticationPrincipal UserAuth userAuth,
                                                 @PathVariable Long groupId,
@@ -63,9 +73,13 @@ public class MissionPostController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "특정 미션의 인증 글 목록 조회", description = "특정 미션의 인증 글 목록을 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "특정 미션의 인증 글 목록 조회",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "특정 미션의 인증 목록 조회",
+            description = "특정 미션의 인증 목록을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "특정 미션의 인증 목록 조회")
+            }
+    )
     @GetMapping
     public BaseResponse<List<MissionPostResponse>> findMissionPosts(@PathVariable Long groupId,
                                                                     @PathVariable Long missionId) {
@@ -73,9 +87,13 @@ public class MissionPostController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "미션 인증 글 상세 조회", description = "특정 미션 인증 글의 상세 정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "미션 인증 글 상세 조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "미션 인증 상세 조회",
+            description = "특정 미션 인증 글의 상세 정보를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "미션 인증 상세 조회 성공")
+            }
+    )
     @GetMapping("/{postId}")
     public BaseResponse<MissionPostDetailResponse> findMissionPostDetail(@PathVariable Long groupId,
                                                                          @PathVariable Long missionId,
