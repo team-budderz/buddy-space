@@ -1,5 +1,9 @@
 package team.budderz.buddyspace.global.sse.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -18,11 +22,20 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
+@Tag(name = "SSE", description = "SSE 관련 API")
 public class NotificationSseController {
 
     private final EmitterRepository emitterRepository;
     private static final Long TIMEOUT = 60 * 60 * 1000L; // 1시간 유지
 
+    @Operation(
+            summary = "SSE 알림 구독",
+            description = """
+        클라이언트가 SSE 연결을 구독합니다. \s
+        `clientId`는 브라우저 탭 또는 클라이언트 고유 식별자로 사용되며, 중복 방지를 위해 사용됩니다. \s
+        연결 후 서버는 `connect`, `heartbeat` 이벤트를 주기적으로 전송합니다."""
+    )
+    @ApiResponse(responseCode = "200", description = "SSE 연결 성공", content = @Content(mediaType = "text/event-stream"))
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
             @AuthenticationPrincipal UserAuth userAuth,
