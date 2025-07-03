@@ -8,7 +8,9 @@ import java.time.temporal.ChronoUnit;
 
 @Schema(description = "미션 응답 DTO")
 public record MissionResponse(
+        @Schema(description = "미션 식별자", example = "3")
         Long missionId,
+
         @Schema(description = "미션 제목", example = "코드카타") String title,
         @Schema(description = "미션 설명", example = "1일 1회 알고리즘 문제 풀이") String description,
         @Schema(description = "미션 시작 날짜", example = "2025-05-27") String startedAt,
