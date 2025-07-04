@@ -57,7 +57,8 @@ public class NeighborhoodService {
 
         String city = address.getString("region_1depth_name");
         String district = address.getString("region_2depth_name");
-        String ward = address.getString("region_3depth_name");
+        String ward = AddressNormalizer.normalizeLastPart(address.getString("region_3depth_name"));
+        String verifiedAddress = city + " " + district + " " + ward;
 
         Neighborhood neighborhood = neighborhoodRepository
                 .findByCityNameAndDistrictNameAndWardName(city, district, ward)
@@ -67,6 +68,7 @@ public class NeighborhoodService {
                                     .cityName(city)
                                     .districtName(district)
                                     .wardName(ward)
+                                    .verifiedAddress(verifiedAddress)
                                     .lat(request.latitude())
                                     .lng(request.longitude())
                                     .build();
@@ -74,9 +76,7 @@ public class NeighborhoodService {
                         }
                 );
 
-        String newAddress = neighborhood.getCityName() + " " + neighborhood.getDistrictName() + " " + neighborhood.getWardName();
-        String normalizeAddress = AddressNormalizer.normalizeAddress(newAddress); // 주소 정제
-        user.updateUserAddress(normalizeAddress, neighborhood);
+        user.updateUserAddress(verifiedAddress, neighborhood);
         userRepository.save(user);
 
         return NeighborhoodResponse.from(neighborhood);

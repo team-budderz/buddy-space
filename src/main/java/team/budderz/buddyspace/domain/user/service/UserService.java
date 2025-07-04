@@ -163,15 +163,12 @@ public class UserService {
         String normalizeAddress = AddressNormalizer.normalizeAddress(updateRequest.address()); // 주소 정제
         Neighborhood neighborhood = user.getNeighborhood(); // 사용자 동네 인증 정보
 
-        if (neighborhood != null) {
-            String authAddress = neighborhood.getCityName() + " " +
-                    neighborhood.getDistrictName() + " " +
-                    neighborhood.getWardName();
+        if (user.getNeighborhood() != null) {
+            // 기존에 인증한 동네 주소
+            String verifiedAddress = user.getNeighborhood().getVerifiedAddress();
 
-            String normalize = AddressNormalizer.normalizeAddress(authAddress);
-
-            // 주소 변경되면 기존 동네 인증 정보 삭제
-            if (!normalize.equals(normalizeAddress)) {
+            // 기존 동네와 변경한 동네가 같은지 검증 - 같은 동네면 인증 유지, 다르면 인증 정보 제거
+            if (!verifiedAddress.equals(normalizeAddress)) {
                 neighborhood = null;
             }
         }
