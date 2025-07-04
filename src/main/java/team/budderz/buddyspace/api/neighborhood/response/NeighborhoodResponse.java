@@ -17,14 +17,14 @@ public record NeighborhoodResponse(
         @Schema(description = "사용자 위치 기반 구 or 시/군", example = "영등포구")
         String districtName,
 
-        @Schema(description = "사용자 위치 기반 동/읍/면/리", example = "문래동3가")
+        @Schema(description = "사용자 위치 기반 동/읍/면/리", example = "문래동")
         String wardName
 
 ) {
     public static NeighborhoodResponse from(Neighborhood neighborhood) {
         return new NeighborhoodResponse(
                 neighborhood.getId(),
-                neighborhood.getCityName() + " " + neighborhood.getDistrictName() + " " + neighborhood.getWardName(),
+                neighborhood.getVerifiedAddress(),
                 neighborhood.getCityName(),
                 neighborhood.getDistrictName(),
                 neighborhood.getWardName()
