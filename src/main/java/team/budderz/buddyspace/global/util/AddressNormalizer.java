@@ -60,7 +60,7 @@ public class AddressNormalizer {
             return name.replaceFirst("\\d+동$", "동");
         }
 
-        log.info("주소 정규화 전={}", name);
+        log.info("주소 정규화 후={}", name);
         return name;
     }
 }
