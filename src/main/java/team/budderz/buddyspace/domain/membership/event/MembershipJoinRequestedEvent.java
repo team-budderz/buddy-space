@@ -1,10 +1,11 @@
 package team.budderz.buddyspace.domain.membership.event;
 
+import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 public record MembershipJoinRequestedEvent(
-        Long groupId,
+        Group group,
         User requester,
-        User leaderId
+        User leader
 ) {
 }
