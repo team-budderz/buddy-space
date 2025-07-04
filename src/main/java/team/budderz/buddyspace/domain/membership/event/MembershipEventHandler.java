@@ -20,8 +20,8 @@ public class MembershipEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMembershipJoinRequest(MembershipJoinRequestedEvent event) {
         NotificationArgs args = new NotificationArgs(
-                null,
-                null,
+                event.requester().getName(),
+                event.group().getName(),
                 "가입 요청",
                 event.leader().getId(),
                 event.group().getId(),
