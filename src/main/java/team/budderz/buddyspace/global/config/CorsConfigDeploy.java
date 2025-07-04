@@ -16,8 +16,8 @@ public class CorsConfigDeploy {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("https://api.budderz.co.kr"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE"));
+        config.setAllowedOriginPatterns(List.of("https://budderz.co.kr"));
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L); // 1시간 캐싱
