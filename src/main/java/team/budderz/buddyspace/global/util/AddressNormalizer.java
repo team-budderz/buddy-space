@@ -37,7 +37,7 @@ public class AddressNormalizer {
     }
 
     private static boolean isLastUnit(String word) {
-        return word.endsWith("동") || word.endsWith("읍") || word.endsWith("면") || word.endsWith("리");
+        return word.endsWith("동") || word.endsWith("읍") || word.endsWith("면") || word.endsWith("리") || word.endsWith("가");
     }
 
     public static String normalizeLastPart(String name) {
