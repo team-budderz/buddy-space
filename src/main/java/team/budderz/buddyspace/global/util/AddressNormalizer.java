@@ -1,8 +1,11 @@
 package team.budderz.buddyspace.global.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 사용자의 전체 지번 주소 문자열에서 시/구/동(또는 읍/면/리) 단위까지만 추출하여 정제된 주소를 반환
  */
+@Slf4j
 public class AddressNormalizer {
 
 
@@ -41,6 +44,7 @@ public class AddressNormalizer {
     }
 
     public static String normalizeLastPart(String name) {
+        log.info("주소 정규화 전={}", name);
         // 공백이 있으면 앞 단어만 사용
         if (name.contains(" ")) {
             name = name.substring(0, name.indexOf(" "));
@@ -56,6 +60,7 @@ public class AddressNormalizer {
             return name.replaceFirst("\\d+동$", "동");
         }
 
+        log.info("주소 정규화 전={}", name);
         return name;
     }
 }
