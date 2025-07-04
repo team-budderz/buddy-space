@@ -40,7 +40,12 @@ public class AddressNormalizer {
         return word.endsWith("동") || word.endsWith("읍") || word.endsWith("면") || word.endsWith("리");
     }
 
-    private static String normalizeLastPart(String name) {
+    public static String normalizeLastPart(String name) {
+        // 공백이 있으면 앞 단어만 사용
+        if (name.contains(" ")) {
+            name = name.substring(0, name.indexOf(" "));
+        }
+
         // "숫자+가" 제거
         if (name.matches(".*\\d+가$")) {
             return name.replaceFirst("\\d+가$", "");
