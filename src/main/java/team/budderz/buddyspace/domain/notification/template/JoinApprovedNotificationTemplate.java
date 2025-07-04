@@ -18,11 +18,12 @@ public class JoinApprovedNotificationTemplate implements NotificationTemplate{
         return "관리자가 가입 요청을 수락했습니다.";
     }
 
+    // 링크 수정 필요
     @Override
     public String generateUrl(NotificationArgs args) {
         if (args == null || args.groupId() == null) {
             throw new BaseException(NotificationErrorCode.INVALID_NOTIFICATION_ARGUMENT);
         }
-        return String.format("/api/groups/%d", args.groupId());
+        return String.format("groups/%d", args.groupId());
     }
 }
