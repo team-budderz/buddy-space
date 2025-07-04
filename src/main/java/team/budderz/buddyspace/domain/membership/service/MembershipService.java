@@ -104,7 +104,7 @@ public class MembershipService {
         Membership membership = Membership.fromRequest(user, group);
         membershipRepository.save(membership);
 
-        eventPublisher.publishEvent(new MembershipJoinRequestedEvent(group.getId(), user, group.getLeader()));
+        eventPublisher.publishEvent(new MembershipJoinRequestedEvent(group, user, group.getLeader()));
 
         return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
@@ -150,7 +150,7 @@ public class MembershipService {
 
         membership.approve();
 
-        eventPublisher.publishEvent(new MembershipJoinApprovedEvent(group.getId(), requester, leader));
+        eventPublisher.publishEvent(new MembershipJoinApprovedEvent(group, requester, leader));
 
         return MembershipResponse.of(group, List.of(membership), profileImageProvider);
     }
