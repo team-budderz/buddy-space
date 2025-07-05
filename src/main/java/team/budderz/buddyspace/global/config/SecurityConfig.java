@@ -23,7 +23,7 @@ public class SecurityConfig {
     private final SecurityFilter securityFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    private final CorsConfigurationSource corsConfigurationSource; // 배포 후 설정
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -33,26 +33,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // 운영할 땐 disable xx
+                .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/users/signup",
                                 "/api/users/login",
-                                "/login/oauth2/**",
+                                "/login/oauth2/**",  // 기존 OAuth2 엔드포인트 유지
                                 "/oauth2/**",
                                 "/api/token/refresh",
-                                "/api/healthy-check"
+                                "/api/healthy-check",
+                                "/api/users/me"
                         ).permitAll()
-                        .requestMatchers( // test
+                        .requestMatchers(
                                 "/favicon.ico",
                                 "/test/**",
                                 "/js/**",
                                 "/css/**",
                                 "/ws/**"
                         ).permitAll()
-                        .requestMatchers( // swagger
+                        .requestMatchers(
                                 "/api-ui",
                                 "/api-ui/**",
                                 "/swagger-ui",
@@ -63,9 +64,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // HTML 페이지가 내려오는 이유는 SecurityFilter 가 토큰을 넣어줘도 인증 실패시 로그인 페이지로 이동하게 되어 있기 때문
                 .exceptionHandling(ex -> ex
-                        // 인증이 되지 않은 사용자가 요청할 경우 401 응답
                         .authenticationEntryPoint((request, response, authException) -> {
                             String token = request.getHeader("Authorization");
                             response.setContentType("application/json;charset=UTF-8");
@@ -77,7 +76,6 @@ public class SecurityConfig {
                                 response.getWriter().write("{\"status\": 401, \"code\": \"INVALID_CREDENTIAL\", \"message\": \"인증 정보가 유효하지 않습니다.\"}");
                             }
                         })
-                        // 인증은 되었지만 권한이 부족한 경우 403 응답
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json;charset=UTF-8");
@@ -88,6 +86,11 @@ public class SecurityConfig {
                         oauth.userInfoEndpoint(userInfo ->
                                         userInfo.userService(customOAuth2UserService))
                                 .successHandler(oAuth2SuccessHandler)
+                                // 실패 시에도 프론트엔드로 리다이렉트
+                                .failureHandler((request, response, exception) -> {
+                                    response.sendRedirect("http://localhost:3000/auth/callback?error=oauth_failed&message=" +
+                                            java.net.URLEncoder.encode("OAuth2 인증에 실패했습니다.", java.nio.charset.StandardCharsets.UTF_8));
+                                })
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(httpBasic -> httpBasic.disable())
