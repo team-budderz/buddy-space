@@ -43,6 +43,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         "http://localhost:8080",             // 로컬테스트
                         "https://app.mydomain.com"         // 추후 운영서버
                 )
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
