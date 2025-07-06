@@ -16,6 +16,12 @@ public record FindsRecommentResponse(
         @Schema(description = "작성자 식별자", example = "5")
         String userName,
 
+        @Schema(description = "대댓글의 부모 댓글 식별자", example = "9")
+        Long commentId,
+
+        @Schema(description = "대댓글 식별자", example = "12")
+        Long recommentId,
+
         @Schema(description = "댓글 내용", example = "댓글 내용 예시입니다.")
         String content,
 
@@ -23,13 +29,15 @@ public record FindsRecommentResponse(
         LocalDateTime createdAt
 
 ) {
-    public static FindsRecommentResponse from(Comment comment, String userImgUrl) {
+    public static FindsRecommentResponse from(Long commentId, Comment recomment, String userImgUrl) {
         return new FindsRecommentResponse(
-                comment.getUser().getId(),
+                recomment.getUser().getId(),
                 userImgUrl,
-                comment.getUser().getName(),
-                comment.getContent(),
-                comment.getCreatedAt()
+                recomment.getUser().getName(),
+                commentId,
+                recomment.getId(),
+                recomment.getContent(),
+                recomment.getCreatedAt()
         );
     }
 }

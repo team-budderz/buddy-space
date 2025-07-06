@@ -13,13 +13,12 @@ import team.budderz.buddyspace.domain.attachment.exception.AttachmentErrorCode;
 import team.budderz.buddyspace.domain.attachment.exception.AttachmentException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
-import team.budderz.buddyspace.global.exception.BaseException;
 import team.budderz.buddyspace.infra.client.s3.S3Directory;
-import team.budderz.buddyspace.infra.client.s3.S3ErrorCode;
 import team.budderz.buddyspace.infra.client.s3.S3Service;
 import team.budderz.buddyspace.infra.client.s3.ThumbnailGenerator;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.attachment.repository.AttachmentRepository;
+import team.budderz.buddyspace.infra.database.attachment.repository.PostAttachmentRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
@@ -38,6 +37,7 @@ import java.util.Set;
 public class AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
+    private final PostAttachmentRepository postAttachmentRepository;
     private final S3Service s3Service;
     private final UserRepository userRepository;
 
@@ -172,6 +172,8 @@ public class AttachmentService {
             }
         });
 
+        // 게시글 연결 정보 삭제
+        postAttachmentRepository.deleteByAttachment(attachment);
         // DB 정보 삭제
         attachmentRepository.delete(attachment);
     }
@@ -300,7 +302,8 @@ public class AttachmentService {
 
     private void validateObjectExists(String key) {
         if (!s3Service.exists(key)) {
-            throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
+            //throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
+            log.error("S3에서 해당 객체를 찾을 수 없습니다. key={}", key);
         }
     }
 }
