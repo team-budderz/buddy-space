@@ -172,13 +172,8 @@ public class AttachmentService {
             }
         });
 
-        boolean existed = postAttachmentRepository.existsAllByAttachment(attachment);
-
-        // 게시글 연결 정보가 존재하면 삭제
-        if (existed) {
-            postAttachmentRepository.deleteByAttachment(attachment);
-        }
-
+        // 게시글 연결 정보 삭제
+        postAttachmentRepository.deleteByAttachment(attachment);
         // DB 정보 삭제
         attachmentRepository.delete(attachment);
     }
