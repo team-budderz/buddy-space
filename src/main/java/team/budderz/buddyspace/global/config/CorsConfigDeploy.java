@@ -16,7 +16,7 @@ public class CorsConfigDeploy {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://budderz.co.kr", "https://buddy-space-front-hwj4.vercel.app/"));
+        config.setAllowedOrigins(List.of("https://budderz.co.kr", "https://buddy-space-front-hwj4.vercel.app"));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
