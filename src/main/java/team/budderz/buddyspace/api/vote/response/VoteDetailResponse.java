@@ -11,6 +11,7 @@ public record VoteDetailResponse(
         boolean isClosed,
         boolean isAnonymous,
         List<OptionDetailResponse> options,
+        Long authorId,
         String authorName,
         String authorImageUrl,
         LocalDate createdAt
@@ -26,6 +27,7 @@ public record VoteDetailResponse(
                 vote.isClosed(),
                 vote.isAnonymous(),
                 optionDetailResponse,
+                vote.getAuthor().getId(),
                 vote.getAuthor().getName(),
                 authorImageUrl,
                 vote.getCreatedAt().toLocalDate()

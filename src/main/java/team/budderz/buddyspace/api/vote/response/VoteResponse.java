@@ -8,6 +8,7 @@ public record VoteResponse (
 	Long voteId,
 	String title,
 	boolean isClosed,
+	Long authorId,
 	String authorName,
 	LocalDate createdAt
 ) {
@@ -16,6 +17,7 @@ public record VoteResponse (
 			vote.getId(),
 			vote.getTitle(),
 			vote.isClosed(),
+			vote.getAuthor().getId(),
 			vote.getAuthor().getName(),
 			vote.getCreatedAt().toLocalDate()
 		);
