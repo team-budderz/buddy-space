@@ -23,6 +23,9 @@ public record VoteDetailResponse(
         @Schema(description = "투표 옵션 목록")
         List<OptionDetailResponse> options,
 
+        @Schema(description = "작성자 식별자", example = "1")
+        Long authorId,
+
         @Schema(description = "작성자 이름", example = "홍길동")
         String authorName,
 
@@ -43,6 +46,7 @@ public record VoteDetailResponse(
                 vote.isClosed(),
                 vote.isAnonymous(),
                 optionDetailResponse,
+                vote.getAuthor().getId(),
                 vote.getAuthor().getName(),
                 authorImageUrl,
                 vote.getCreatedAt().toLocalDate()
