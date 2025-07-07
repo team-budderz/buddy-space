@@ -5,6 +5,10 @@ import lombok.*;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 
 @Entity
+@Table(name = "read_history",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"user_id", "chat_room_id"}
+        ))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

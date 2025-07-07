@@ -263,8 +263,6 @@ public class UserService {
             // 유저가 참여 중이었던 모든 채팅방 ID 목록 조회
             List<Long> roomIds = chatParticipantRepository.findActiveRoomIdsByUserId(userId);
 
-            // 사용자 채팅 참가 정보 삭제
-            chatParticipantRepository.deleteByUserId(userId);
 
             // 유저 제거 이후, 각 채팅방의 남은 참여자 수 확인
             for (Long roomId : roomIds) {
@@ -272,6 +270,9 @@ public class UserService {
                 Long groupId = chatRoomRepository.findGroupIdByRoomId(roomId);
                 chatRoomCommandService.leaveChatRoom(groupId, roomId, userId);
             }
+
+            // 사용자 채팅 참가 정보 삭제
+            chatParticipantRepository.deleteByUserId(userId);
 
             // 사용자 읽음 이력 삭제
             readHistoryRepository.deleteByUserId(userId);
