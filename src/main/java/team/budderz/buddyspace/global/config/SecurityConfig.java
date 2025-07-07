@@ -52,8 +52,8 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/css/**",
                                 "/ws/**",
-                                "/pub",
-                                "/sub"
+                                "/pub/**",
+                                "/sub/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/api-ui",
