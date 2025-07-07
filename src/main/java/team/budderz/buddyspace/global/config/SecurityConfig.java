@@ -32,7 +32,6 @@ public class SecurityConfig {
     private final SecurityFilter securityFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -43,7 +42,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -110,20 +108,5 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable());
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://budderz.co.kr"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Member", "Set-Cookie"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Member", "Set-Cookie"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // Preflight 요청 캐싱 시간
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 적용
-        return source;
     }
 }
