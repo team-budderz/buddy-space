@@ -39,10 +39,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .addInterceptors(new JwtHandshakeInterceptor(jwtUtil)) // 핸드셰이크 단계에서 JWT 토큰을 검증해서 인증된 사용자만 WebSocket 연결을 허용
                 .setHandshakeHandler(wsHandshakeHandler()) // 세션에 저장된 principal 을 Spring Messaging 의 simpUser 로 매핑.
-                .setAllowedOrigins(
-                        "http://localhost:8080",             // 로컬테스트
-                        "https://api.budderz.co.kr"         // 추후 운영서버
-                )
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
