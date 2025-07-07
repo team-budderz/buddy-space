@@ -24,6 +24,6 @@ public class JoinRequestNotificationTemplate implements NotificationTemplate{
         if (args == null || args.groupId() == null || args.memberId() == null) {
             throw new BaseException(NotificationErrorCode.INVALID_NOTIFICATION_ARGUMENT);
         }
-        return String.format("groups/%d/setting", args.groupId());
+        return String.format("/meeting/group/%d/setting", args.groupId());
     }
 }

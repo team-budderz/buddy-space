@@ -20,9 +20,9 @@ public class ReplyNotificationTemplate implements NotificationTemplate{
 
     @Override
     public String generateUrl(NotificationArgs args) {
-        if (args == null || args.groupId() == null || args.postId() == null || args.commentId() == null) {
+        if (args == null || args.groupId() == null || args.postId() == null) {
             throw new BaseException(NotificationErrorCode.INVALID_NOTIFICATION_ARGUMENT);
         }
-        return String.format("/api/groups/%d/posts/%d/comments/%d", args.groupId(), args.postId(), args.commentId());
+        return String.format("/meeting/group/%d/posts/%d", args.groupId(), args.postId());
     }
 }
