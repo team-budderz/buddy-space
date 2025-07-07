@@ -23,6 +23,6 @@ public class NoticeNotificationTemplate implements NotificationTemplate{
         if (args == null || args.groupId() == null || args.postId() == null) {
             throw new BaseException(NotificationErrorCode.INVALID_NOTIFICATION_ARGUMENT);
         }
-        return String.format("/api/groups/%d/posts/%d", args.groupId(), args.postId());
+        return String.format("/meeting/group/%d/posts/%d", args.groupId(), args.postId());
     }
 }
