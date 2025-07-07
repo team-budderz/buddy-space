@@ -88,7 +88,7 @@ app:
       hybrid: group-cover/default_hybrid.png
   invite:
     base:
-      url: http://localhost:8080/test/group/invite?code=
+      url: http://localhost:3000/invite?code=
   oauth2:
     redirect-uri: http://localhost:3000/auth/callback
 

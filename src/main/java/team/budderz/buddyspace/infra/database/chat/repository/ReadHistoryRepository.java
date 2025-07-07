@@ -15,4 +15,9 @@ public interface ReadHistoryRepository extends JpaRepository<ReadHistory, Long> 
     @Transactional
     @Query("DELETE FROM ReadHistory rh WHERE rh.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM ReadHistory rh WHERE rh.user.id = :userId AND rh.chatRoom.group.id = :groupId")
+    void deleteByUserIdAndGroupId(@Param("userId") Long userId, @Param("groupId") Long groupId);
 }
