@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatMessage;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 
@@ -52,4 +53,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
      * @return 해당 조건에 부합하는 메시지 개수
      */
     long countByChatRoom_IdAndIdGreaterThan(Long roomId, Long lastReadMessageId);
+
+    @Transactional
+    void deleteByChatRoom_Id(Long roomId);
+
 }

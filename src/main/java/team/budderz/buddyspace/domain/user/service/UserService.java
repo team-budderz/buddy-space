@@ -17,6 +17,7 @@ import team.budderz.buddyspace.api.user.response.SignupResponse;
 import team.budderz.buddyspace.api.user.response.UserDetailResponse;
 import team.budderz.buddyspace.api.user.response.UserUpdateResponse;
 import team.budderz.buddyspace.domain.attachment.service.AttachmentService;
+import team.budderz.buddyspace.domain.chat.service.ChatRoomCommandService;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
@@ -26,6 +27,10 @@ import team.budderz.buddyspace.global.util.AddressNormalizer;
 import team.budderz.buddyspace.global.util.RedisUtil;
 import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
+import team.budderz.buddyspace.infra.database.chat.repository.ReadHistoryRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.repository.GroupPermissionRepository;
 import team.budderz.buddyspace.infra.database.group.repository.GroupRepository;
@@ -56,9 +61,14 @@ public class UserService {
     private final DefaultImageProvider defaultImageProvider;
     private final UserProfileImageProvider profileImageProvider;
     private final AttachmentService attachmentService;
+    private final ChatRoomCommandService chatRoomCommandService;
     private final GroupValidator groupValidator;
     private final GroupRepository groupRepository;
     private final GroupPermissionRepository groupPermissionRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final ReadHistoryRepository readHistoryRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -249,6 +259,23 @@ public class UserService {
             if (profileAttachment != null && !defaultImageProvider.isDefaultProfileKey(profileAttachment.getKey())) {
                 attachmentService.delete(profileAttachment.getId());
             }
+
+            // 유저가 참여 중이었던 모든 채팅방 ID 목록 조회
+            List<Long> roomIds = chatParticipantRepository.findActiveRoomIdsByUserId(userId);
+
+
+            // 유저 제거 이후, 각 채팅방의 남은 참여자 수 확인
+            for (Long roomId : roomIds) {
+                // 각 채팅방의 groupId 조회 필요
+                Long groupId = chatRoomRepository.findGroupIdByRoomId(roomId);
+                chatRoomCommandService.leaveChatRoom(groupId, roomId, userId);
+            }
+
+            // 사용자 채팅 참가 정보 삭제
+            chatParticipantRepository.deleteByUserId(userId);
+
+            // 사용자 읽음 이력 삭제
+            readHistoryRepository.deleteByUserId(userId);
 
             // 사용자 계정 삭제
             userRepository.deleteById(userId);

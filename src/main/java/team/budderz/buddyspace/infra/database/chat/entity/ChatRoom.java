@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.user.entity.User;
@@ -62,7 +64,8 @@ public class ChatRoom extends BaseEntity {
      * 채팅방을 생성한 사용자
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by", nullable = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private User createdBy;
 
     /**
