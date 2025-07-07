@@ -1,5 +1,7 @@
 package team.budderz.buddyspace.global.config;
 
+import java.util.Arrays;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +12,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import team.budderz.buddyspace.global.oauth2.handler.OAuth2SuccessHandler;
 import team.budderz.buddyspace.global.oauth2.service.CustomOAuth2UserService;
 import team.budderz.buddyspace.global.security.SecurityFilter;
@@ -100,5 +105,20 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable());
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("https://budderz.co.kr")); // 프론트엔드 도메인
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Member", "Set-Cookie"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Member", "Set-Cookie"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // Preflight 요청 캐싱 시간
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 적용
+        return source;
     }
 }

@@ -11,21 +11,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
-@Configuration
-@Profile("deploy")
-public class CorsConfigDeploy implements WebMvcConfigurer {
-    public static final String ALLOWED_METHOD_NAMES = "GET,HEAD,POST,PUT,DELETE,TRACE,OPTIONS,PATCH";
-
-    @Override
-    public void addCorsMappings(final CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("Authorization", "Content-Type", "Accept")
-                .exposedHeaders("Authorization", "Set-Cookie")
-                .allowCredentials(true)
-                .maxAge(3600);
-    }
+// @Configuration
+// @Profile("deploy")
+// public class CorsConfigDeploy implements WebMvcConfigurer {
+    // public static final String ALLOWED_METHOD_NAMES = "GET,HEAD,POST,PUT,DELETE,TRACE,OPTIONS,PATCH";
+    //
+    // @Override
+    // public void addCorsMappings(final CorsRegistry registry) {
+    //     registry.addMapping("/**")
+    //             .allowedOriginPatterns("*")
+    //             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+    //             .allowedHeaders("Authorization", "Content-Type", "Accept")
+    //             .exposedHeaders("Authorization", "Set-Cookie")
+    //             .allowCredentials(true)
+    //             .maxAge(3600);
+    // }
 
 
     // @Bean
@@ -41,4 +41,4 @@ public class CorsConfigDeploy implements WebMvcConfigurer {
     //     source.registerCorsConfiguration("/**", config);
     //     return source;
     // }
-}
+// }
