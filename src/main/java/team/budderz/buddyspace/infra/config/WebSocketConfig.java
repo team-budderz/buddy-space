@@ -69,23 +69,33 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                     String authHeader = accessor.getFirstNativeHeader("Authorization");
+                    String token = null;
+
+                    // [1] Authorization 헤더에서 가져오기
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                        String token = authHeader.substring(7);
-                        if (jwtUtil.validateToken(token) && jwtUtil.isAccessToken(token)) {
-                            accessor.getSessionAttributes()
-                                    .put("userId", jwtUtil.getUserIdFromToken(token));
-                            accessor.getSessionAttributes()
-                                    .put("principal",
-                                            new WebSocketPrincipal(jwtUtil.getUserIdFromToken(token)));
-                            return message; // 인증 성공
-                        }
+                        token = authHeader.substring(7);
                     }
+
+                    // [2] 없으면 쿼리 파라미터에서 가져오기 (SockJS fallback 대응)
+                    if (token == null && accessor.getNativeHeader("access_token") != null) {
+                        token = accessor.getFirstNativeHeader("access_token");
+                    }
+
+                    // [3] 검증 및 설정
+                    if (token != null && jwtUtil.validateToken(token) && jwtUtil.isAccessToken(token)) {
+                        Long userId = jwtUtil.getUserIdFromToken(token);
+                        accessor.getSessionAttributes().put("userId", userId);
+                        accessor.getSessionAttributes().put("principal", new WebSocketPrincipal(userId));
+                        return message;
+                    }
+
                     throw new IllegalArgumentException("Invalid or missing token");
                 }
                 return message;
             }
         });
     }
+
 
 
     /* simpUser 에 WebSocketPrincipal 매핑 */

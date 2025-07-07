@@ -19,12 +19,14 @@ public class CorsConfigDeploy implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(final CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOriginPatterns("https://budderz.co.kr", "https://api.budderz.co.kr")
-            .allowedMethods(ALLOWED_METHOD_NAMES.split(","))
-            .exposedHeaders("Authorization", "Set-Cookie")
-            .allowCredentials(true)
-            .maxAge(3600);
+                .allowedOriginPatterns("https://budderz.co.kr", "https://api.budderz.co.kr")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("Authorization", "Content-Type", "Accept")
+                .exposedHeaders("Authorization", "Set-Cookie")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
+
 
     // @Bean
     // public CorsConfigurationSource corsConfigurationSource() {
