@@ -134,6 +134,11 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     @Query("DELETE FROM ChatParticipant cp WHERE cp.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
 
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM ChatParticipant cp WHERE cp.user.id = :userId AND cp.chatRoom.group.id = :groupId")
+    void deleteByUserIdAndGroupId(@Param("userId") Long userId, @Param("groupId") Long groupId);
+
     @Query("SELECT COUNT(cp) FROM ChatParticipant cp WHERE cp.chatRoom.id = :roomId AND cp.isActive = true")
     long countActiveParticipantsByRoomId(@Param("roomId") Long roomId);
 

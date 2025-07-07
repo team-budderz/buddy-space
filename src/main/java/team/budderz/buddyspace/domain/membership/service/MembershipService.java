@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.api.membership.response.MemberResponse;
 import team.budderz.buddyspace.api.membership.response.MembershipResponse;
+import team.budderz.buddyspace.domain.chat.service.ChatRoomCommandService;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
 import team.budderz.buddyspace.domain.group.validator.GroupValidator;
@@ -16,6 +17,10 @@ import team.budderz.buddyspace.domain.membership.exception.MembershipException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
 import team.budderz.buddyspace.domain.user.exception.UserException;
 import team.budderz.buddyspace.domain.user.provider.UserProfileImageProvider;
+import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
+import team.budderz.buddyspace.infra.database.chat.repository.ReadHistoryRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
 import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 import team.budderz.buddyspace.infra.database.membership.entity.JoinPath;
@@ -38,6 +43,10 @@ public class MembershipService {
     private final GroupValidator validator;
     private final UserProfileImageProvider profileImageProvider;
     private final ApplicationEventPublisher eventPublisher;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomCommandService chatRoomCommandService;
+    private final ReadHistoryRepository readHistoryRepository;
 
     /**
      * 로그인한 사용자가 가입되어 있는 특정 모임과의 멤버십 정보 조회
@@ -222,6 +231,7 @@ public class MembershipService {
         validator.validateLeader(loginUserId, groupId);
         validator.validateMember(memberId, groupId);
 
+        leaveChat(memberId, groupId);
         membershipRepository.deleteByUser_IdAndGroup_Id(memberId, groupId);
     }
 
@@ -239,6 +249,7 @@ public class MembershipService {
         validator.validateLeader(loginUserId, groupId);
         validator.validateMember(memberId, groupId);
 
+        leaveChat(memberId, groupId);
         Membership membership = findMembershipByUserAndGroup(memberId, groupId);
         membership.block();
 
@@ -285,6 +296,7 @@ public class MembershipService {
             throw new MembershipException(MembershipErrorCode.NOT_APPROVED_MEMBER);
         }
 
+        leaveChat(loginUserId, groupId);
         membershipRepository.deleteByUser_IdAndGroup_Id(loginUserId, groupId);
     }
 
@@ -401,5 +413,22 @@ public class MembershipService {
     private Membership findMembershipByUserAndGroup(Long userId, Long groupId) {
         return membershipRepository.findByUser_IdAndGroup_Id(userId, groupId)
                 .orElseThrow(() -> new MembershipException(MembershipErrorCode.MEMBERSHIP_NOT_FOUND));
+    }
+
+    private void leaveChat(Long userId, Long groupId) {
+        // 유저가 참여 중이었던 모든 채팅방 ID 목록 조회
+        List<ChatParticipant> participants = chatParticipantRepository.findByUserAndGroupAndIsActive(userId, groupId);
+
+        // 유저 제거 이후, 각 채팅방의 남은 참여자 수 확인
+        for (ChatParticipant participant : participants) {
+            Long roomId = participant.getChatRoom().getId();
+            chatRoomCommandService.leaveChatRoom(groupId, roomId, userId);
+        }
+
+        // 사용자 채팅 참가 정보 삭제
+        chatParticipantRepository.deleteByUserIdAndGroupId(userId, groupId);
+
+        // 사용자 읽음 이력 삭제
+        readHistoryRepository.deleteByUserIdAndGroupId(userId, groupId);
     }
 }
