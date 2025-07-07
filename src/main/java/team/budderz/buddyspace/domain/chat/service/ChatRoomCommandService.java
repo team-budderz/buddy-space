@@ -19,6 +19,7 @@ import team.budderz.buddyspace.domain.group.validator.GroupValidator;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoomType;
+import team.budderz.buddyspace.infra.database.chat.repository.ChatMessageRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatParticipantRepository;
 import team.budderz.buddyspace.infra.database.chat.repository.ChatRoomRepository;
 import team.budderz.buddyspace.infra.database.group.entity.Group;
@@ -47,6 +48,7 @@ public class ChatRoomCommandService {
     private final GroupValidator groupValidator;
     private final ChatValidator chatValidator;
     private final ChatMemberEventService chatMemberEventService;
+    private final ChatMessageRepository chatMessageRepository;
 
     /**
      * 채팅방을 생성합니다.
@@ -235,6 +237,13 @@ public class ChatRoomCommandService {
         // isActive = false, leftAt 세팅
         participant.leave();
 
+        // 남은 참가자 수 확인
+        long remaining = chatParticipantRepository.countActiveParticipantsByRoomId(roomId);
+        if (remaining == 0) {
+            chatMessageRepository.deleteByChatRoom_Id(roomId);
+            chatRoomRepository.deleteById(roomId);
+        }
+
         // 커밋 후 브로드캐스트
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronization() {
@@ -245,6 +254,7 @@ public class ChatRoomCommandService {
                 }
         );
     }
+
 
     // -------------------- Private Helpers --------------------
 
@@ -353,5 +363,7 @@ public class ChatRoomCommandService {
             }
         });
     }
+
+
 
 }

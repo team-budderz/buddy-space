@@ -3,6 +3,7 @@ package team.budderz.buddyspace.infra.database.chat.repository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipant;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatParticipantId;
 import team.budderz.buddyspace.infra.database.chat.entity.ChatRoom;
@@ -127,4 +128,22 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             @Param("userId") Long userId,
             @Param("lastRead") Long lastReadMessageId
     );
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM ChatParticipant cp WHERE cp.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(cp) FROM ChatParticipant cp WHERE cp.chatRoom.id = :roomId AND cp.isActive = true")
+    long countActiveParticipantsByRoomId(@Param("roomId") Long roomId);
+
+    @Query("""
+    SELECT DISTINCT cp.chatRoom.id
+    FROM ChatParticipant cp
+    WHERE cp.user.id = :userId
+      AND cp.isActive = true
+    """)
+    List<Long> findActiveRoomIdsByUserId(@Param("userId") Long userId);
+
+
 }

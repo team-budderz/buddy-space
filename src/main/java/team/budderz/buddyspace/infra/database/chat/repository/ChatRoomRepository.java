@@ -53,4 +53,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
      */
     @Query("select count(p) from ChatParticipant p where p.chatRoom.id = :roomId and p.isActive = true")
     int countActiveParticipants(@Param("roomId") Long roomId);
+
+    @Query("SELECT cr.group.id FROM ChatRoom cr WHERE cr.id = :roomId")
+    Long findGroupIdByRoomId(@Param("roomId") Long roomId);
+
 }
