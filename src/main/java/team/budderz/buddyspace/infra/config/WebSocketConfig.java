@@ -41,7 +41,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setHandshakeHandler(wsHandshakeHandler()) // 세션에 저장된 principal 을 Spring Messaging 의 simpUser 로 매핑.
                 .setAllowedOrigins(
                         "http://localhost:8080",             // 로컬테스트
-                        "https://api.budderz.co.kr"         // 추후 운영서버
+                        "https://app.mydomain.com"         // 추후 운영서버
                 )
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
