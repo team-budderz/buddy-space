@@ -1,6 +1,7 @@
 package team.budderz.buddyspace.domain.membership.event;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -19,19 +20,19 @@ public class MembershipEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMembershipJoinRequest(MembershipJoinRequestedEvent event) {
         NotificationArgs args = new NotificationArgs(
-                null,
-                null,
+                event.requester().getName(),
+                event.group().getName(),
                 "가입 요청",
-                event.leaderId().getId(),
-                event.groupId(),
+                event.leader().getId(),
+                event.group().getId(),
                 null,
                 null
         );
 
         notificationService.sendNotice(
                 NotificationType.GROUP_JOIN_REQUEST,
-                event.leaderId(),
-                null,
+                event.leader(),
+                event.group(),
                 args
         );
     }
@@ -41,18 +42,18 @@ public class MembershipEventHandler {
     public void handleMembershipJoinApproved(MembershipJoinApprovedEvent event) {
         NotificationArgs args = new NotificationArgs(
                 null,
-                null,
+                event.group().getName(),
                 "가입 승인",
-                event.requesterId().getId(),
-                event.groupId(),
+                event.requester().getId(),
+                event.group().getId(),
                 null,
                 null
         );
 
         notificationService.sendNotice(
                 NotificationType.GROUP_JOIN_APPROVED,
-                event.requesterId(),
-                null,
+                event.requester(),
+                event.group(),
                 args
         );
     }

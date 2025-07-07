@@ -1,9 +1,13 @@
 package team.budderz.buddyspace.global.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 사용자의 전체 지번 주소 문자열에서 시/구/동(또는 읍/면/리) 단위까지만 추출하여 정제된 주소를 반환
  */
+@Slf4j
 public class AddressNormalizer {
+
 
     public static String normalizeAddress(String address) {
         if (address == null || address.isBlank()) return address;
@@ -11,27 +15,52 @@ public class AddressNormalizer {
         String[] parts = address.trim().split("\\s+");
         if (parts.length < 3) return address;
 
-        String part1 = parts[0]; // 시 or 도
-        String part2 = parts[1]; // 구 or 시/군
-        String part3 = parts[2]; // 동/읍/면/리 등
+        // 맨 뒤에서부터 동/읍/면/리 찾기
+        int lastIndex = -1;
+        for (int i = parts.length - 1; i >= 0; i--) {
+            if (isLastUnit(parts[i])) {
+                lastIndex = i;
+                break;
+            }
+        }
 
-        String normalized = part1 + " " + part2 + " " + normalizeLastPart(part3);
+        // 못 찾았으면 원본 반환
+        if (lastIndex == -1 || lastIndex < 2) return address;
 
-        return normalized.trim();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i <= lastIndex; i++) {
+            if (i == lastIndex) {
+                sb.append(normalizeLastPart(parts[i]));
+            } else {
+                sb.append(parts[i]).append(" ");
+            }
+        }
+
+        return sb.toString().trim();
     }
 
-    private static String normalizeLastPart(String name) {
-        // 1. 숫자+가 로 끝나는 경우 → 제거
+    private static boolean isLastUnit(String word) {
+        return word.endsWith("동") || word.endsWith("읍") || word.endsWith("면") || word.endsWith("리") || word.endsWith("가");
+    }
+
+    public static String normalizeLastPart(String name) {
+        log.info("주소 정규화 전={}", name);
+        // 공백이 있으면 앞 단어만 사용
+        if (name.contains(" ")) {
+            name = name.substring(0, name.indexOf(" "));
+        }
+
+        // "숫자+가" 제거
         if (name.matches(".*\\d+가$")) {
             return name.replaceFirst("\\d+가$", "");
         }
 
-        // 2. 숫자+동으로 끝나는 경우 → 숫자 제거, '동' 유지
+        // "숫자+동"이면 숫자 제거
         if (name.matches(".*\\d+동$")) {
-            return name.replaceFirst("(\\d+)동$", "동");
+            return name.replaceFirst("\\d+동$", "동");
         }
 
-        // 3. 그 외는 그대로
+        log.info("주소 정규화 후={}", name);
         return name;
     }
 }

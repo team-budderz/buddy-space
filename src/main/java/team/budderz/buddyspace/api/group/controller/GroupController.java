@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.group.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,9 +35,13 @@ public class GroupController {
 
     private final GroupService groupService;
 
-    @Operation(summary = "모임 생성", description = "새로운 모임을 생성합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 생성 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 생성",
+            description = "새로운 모임을 생성합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 생성 성공")
+            }
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<GroupResponse> saveGroup(
             @RequestPart("request") @Valid SaveGroupRequest request,
@@ -52,9 +54,13 @@ public class GroupController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "모임 정보 수정", description = "기존 모임의 정보를 수정합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 수정 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 정보 수정",
+            description = "기존 모임의 정보를 수정합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 수정 성공")
+            }
+    )
     @PutMapping(value = "/{groupId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<GroupResponse> updateGroup(
             @PathVariable Long groupId,
@@ -68,9 +74,13 @@ public class GroupController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "모임 상세 조회", description = "특정 모임의 상세 정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 상세 조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 상세 조회",
+            description = "특정 모임의 상세 정보를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 상세 조회 성공")
+            }
+    )
     @GetMapping("/{groupId}")
     public BaseResponse<GroupResponse> findGroup(@PathVariable Long groupId,
                                                  @AuthenticationPrincipal UserAuth userAuth) {
@@ -80,9 +90,13 @@ public class GroupController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "모임 동네 재설정", description = "모임의 동네 주소를 리더의 현재 수조로 재설정합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 동네 재설정 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 동네 재설정",
+            description = "모임의 동네 주소를 리더의 현재 수조로 재설정합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 동네 재설정 성공")
+            }
+    )
     @PatchMapping("/{groupId}/address")
     public BaseResponse<GroupResponse> updateGroupAddress(@PathVariable Long groupId,
                                                           @AuthenticationPrincipal UserAuth userAuth) {
@@ -92,10 +106,13 @@ public class GroupController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "동네 인증 기반 가입 제한 설정",
-            description = "오프라인 모임의 경우, 사용자의 동네 인증 여부에 따라 모임 가입 요청 가능 여부를 설정할 수 있습니다.")
-    @ApiResponse(responseCode = "200", description = "동네 인증 기반 가입 제한 설정 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "동네 인증 기반 가입 제한 설정",
+            description = "오프라인 모임의 경우, 사용자의 동네 인증 여부에 따라 모임 가입 요청 가능 여부를 설정할 수 있습니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "동네 인증 기반 가입 제한 설정 성공")
+            }
+    )
     @PatchMapping("/{groupId}/neighborhood-auth-required")
     public BaseResponse<GroupResponse> updateGroupNeighborhoodAuthRequired(
             @PathVariable Long groupId,
@@ -109,9 +126,13 @@ public class GroupController {
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "모임 삭제", description = "특정 모임을 삭제합니다.")
-    @ApiResponse(responseCode = "200", description = "모임 삭제 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 삭제",
+            description = "특정 모임을 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "모임 삭제 성공")
+            }
+    )
     @DeleteMapping("/{groupId}")
     public BaseResponse<Void> deleteGroup(@PathVariable Long groupId,
                                           @AuthenticationPrincipal UserAuth userAuth) {
@@ -121,9 +142,13 @@ public class GroupController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "내가 속한 모임 조회", description = "로그인한 사용자가 참여 중인 모임 목록을 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "내가 속한 모임 조회",
+            description = "로그인한 사용자가 참여 중인 모임 목록을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공")
+            }
+    )
     @GetMapping("/my")
     public BaseResponse<PageResponse<GroupListResponse>> findGroupsByUser(
             @AuthenticationPrincipal UserAuth userAuth,
@@ -136,9 +161,13 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "내가 가입 요청한 모임 목록 조회", description = "로그인한 사용자가 가입 요청한 모임 목록을 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "내가 가입 요청한 모임 목록 조회",
+            description = "로그인한 사용자가 가입 요청한 모임 목록을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공")
+            }
+    )
     @GetMapping("/my-requested")
     public BaseResponse<List<GroupResponse>> findMyRequested(@AuthenticationPrincipal UserAuth userAuth) {
 
@@ -148,9 +177,13 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "온라인 모임 목록 조회", description = "온라인 모임을 정렬 기준과 관심사 기반으로 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "온라인 모임 목록 조회",
+            description = "온라인 모임을 정렬 기준과 관심사 기반으로 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공")
+            }
+    )
     @GetMapping("/on")
     public BaseResponse<PageResponse<GroupListResponse>> findOnlineGroups(
             @AuthenticationPrincipal UserAuth userAuth,
@@ -165,10 +198,14 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "오프라인 모임 목록 조회",
-            description = "오프라인 모임을 로그인한 사용자의 동네, 정렬 기준, 관심사 기반으로 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "오프라인 모임 목록 조회",
+            description = "오프라인 모임을 로그인한 사용자의 동네, 정렬 기준, 관심사 기반으로 조회합니다.",
+            responses = {
+
+                    @ApiResponse(responseCode = "200", description = "조회 성공")
+            }
+    )
     @GetMapping("/off")
     public BaseResponse<PageResponse<GroupListResponse>> findOfflineGroups(
             @AuthenticationPrincipal UserAuth userAuth,
@@ -183,9 +220,13 @@ public class GroupController {
         return new BaseResponse<>(responses);
     }
 
-    @Operation(summary = "모임 이름 검색", description = "이름 키워드로 모임을 검색합니다.")
-    @ApiResponse(responseCode = "200", description = "검색 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "모임 이름 검색",
+            description = "이름 키워드로 모임을 검색합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "검색 성공")
+            }
+    )
     @GetMapping("/search")
     public BaseResponse<PageResponse<GroupListResponse>> searchGroupsByName(
             @AuthenticationPrincipal UserAuth userAuth,

@@ -205,6 +205,7 @@ public class CommentService {
 
         return comments.stream()
                 .map(recomment -> FindsRecommentResponse.from(
+                        commentId,
                         recomment,
                         profileImageProvider.getProfileImageUrl(recomment.getUser())
                 ))

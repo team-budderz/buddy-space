@@ -18,6 +18,7 @@ import team.budderz.buddyspace.infra.client.s3.S3Service;
 import team.budderz.buddyspace.infra.client.s3.ThumbnailGenerator;
 import team.budderz.buddyspace.infra.database.attachment.entity.Attachment;
 import team.budderz.buddyspace.infra.database.attachment.repository.AttachmentRepository;
+import team.budderz.buddyspace.infra.database.attachment.repository.PostAttachmentRepository;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 
@@ -36,6 +37,7 @@ import java.util.Set;
 public class AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
+    private final PostAttachmentRepository postAttachmentRepository;
     private final S3Service s3Service;
     private final UserRepository userRepository;
 
@@ -101,6 +103,7 @@ public class AttachmentService {
     @Transactional(readOnly = true)
     public AttachmentResponse getAttachmentDetail(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
 
         String url = s3Service.generateViewUrl(attachment.getKey());
         String thumbnailUrl = Optional.ofNullable(attachment.getThumbnailKey())
@@ -119,10 +122,13 @@ public class AttachmentService {
     @Transactional(readOnly = true)
     public String getViewUrl(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
+
         return s3Service.generateViewUrl(attachment.getKey());
     }
 
     public String getViewUrlByKey(String key) {
+        validateObjectExists(key);
         return s3Service.generateViewUrl(key);
     }
 
@@ -135,6 +141,8 @@ public class AttachmentService {
     @Transactional(readOnly = true)
     public String getDownloadUrl(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
+
         return s3Service.generateDownloadUrl(attachment.getKey(), attachment.getFilename());
     }
 
@@ -146,6 +154,7 @@ public class AttachmentService {
     @Transactional
     public void delete(Long attachmentId) {
         Attachment attachment = findAttachmentOrThrow(attachmentId);
+        validateObjectExists(attachment.getKey());
 
         // S3 원본 파일 삭제
         try {
@@ -163,6 +172,8 @@ public class AttachmentService {
             }
         });
 
+        // 게시글 연결 정보 삭제
+        postAttachmentRepository.deleteByAttachment(attachment);
         // DB 정보 삭제
         attachmentRepository.delete(attachment);
     }
@@ -286,6 +297,13 @@ public class AttachmentService {
             if (tempVideo != null && tempVideo.exists()) {
                 tempVideo.delete();
             }
+        }
+    }
+
+    private void validateObjectExists(String key) {
+        if (!s3Service.exists(key)) {
+            //throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
+            log.error("S3에서 해당 객체를 찾을 수 없습니다. key={}", key);
         }
     }
 }

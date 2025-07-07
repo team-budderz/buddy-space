@@ -89,6 +89,8 @@ app:
   invite:
     base:
       url: http://localhost:8080/test/group/invite?code=
+  oauth2:
+    redirect-uri: http://localhost:3000/auth/callback
 
 ---
 

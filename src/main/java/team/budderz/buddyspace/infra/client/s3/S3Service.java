@@ -237,7 +237,10 @@ public class S3Service {
             return false;
 
         } catch (S3Exception e) {
-            log.error("S3 file 확인 실패 - key: {}", key);
+            if (e.statusCode() == 404) {
+                return false;
+            }
+            log.error("S3 파일 존재 여부 확인 실패 - key: {}", key);
             throw new BaseException(S3ErrorCode.CHECK_FAILED);
         }
     }

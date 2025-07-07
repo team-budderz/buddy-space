@@ -1,8 +1,6 @@
 package team.budderz.buddyspace.api.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,18 +28,26 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
-    @ApiResponse(responseCode = "200", description = "회원가입 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "회원가입",
+            description = "새로운 사용자를 등록합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "회원가입 성공")
+            }
+    )
     @PostMapping("/signup")
     public BaseResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
         SignupResponse response = userService.signup(signupRequest);
         return new BaseResponse<>(response);
     }
 
-    @Operation(summary = "로그인", description = "사용자 로그인을 수행합니다.")
-    @ApiResponse(responseCode = "200", description = "로그인 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "로그인",
+            description = "사용자 로그인을 수행합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "로그인 성공")
+            }
+    )
     @PostMapping("/login")
     public BaseResponse<TokenResponse> login(@RequestBody LoginRequest loginRequest,
                                              HttpServletResponse response) {
@@ -49,9 +55,13 @@ public class UserController {
         return new BaseResponse<>(tokenResponse);
     }
 
-    @Operation(summary = "로그아웃", description = "현재 로그인한 사용자를 로그아웃합니다.")
-    @ApiResponse(responseCode = "200", description = "로그아웃 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "로그아웃",
+            description = "현재 로그인한 사용자를 로그아웃합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "로그아웃 성공")
+            }
+    )
     @PostMapping("/logout")
     public BaseResponse<Void> logout(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
@@ -60,9 +70,13 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "사용자 정보 수정", description = "사용자의 프로필 정보를 수정합니다. (쿠키로 인증된 사용자만 수행 가능)")
-    @ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "사용자 정보 수정",
+            description = "사용자의 프로필 정보를 수정합니다. (쿠키로 인증된 사용자만 수행 가능)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공")
+            }
+    )
     @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<UserUpdateResponse> updateUser(
             @AuthenticationPrincipal UserAuth userAuth,
@@ -76,9 +90,13 @@ public class UserController {
         return new BaseResponse<>(updateResponse);
     }
 
-    @Operation(summary = "비밀번호 변경", description = "사용자의 비밀번호를 변경합니다. (쿠키로 인증된 사용자만 수행 가능)")
-    @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "비밀번호 변경",
+            description = "사용자의 비밀번호를 변경합니다. (쿠키로 인증된 사용자만 수행 가능)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공")
+            }
+    )
     @PatchMapping("/password")
     public BaseResponse<Void> updateUserPassword(
             @AuthenticationPrincipal UserAuth userAuth,
@@ -90,9 +108,13 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "회원 탈퇴", description = "사용자 계정을 삭제합니다. (쿠키로 인증된 사용자만 수행 가능)")
-    @ApiResponse(responseCode = "200", description = "회원 탈퇴 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "회원 탈퇴",
+            description = "사용자 계정을 삭제합니다. (쿠키로 인증된 사용자만 수행 가능)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "회원 탈퇴 성공")
+            }
+    )
     @DeleteMapping
     public BaseResponse<Void> deleteUser(
             @AuthenticationPrincipal UserAuth userAuth,
@@ -103,9 +125,13 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "비밀번호 인증", description = "사용자 정보 및 비밀번호 변경, 탈퇴 전에 비밀번호를 확인합니다.")
-    @ApiResponse(responseCode = "200", description = "비밀번호 인증 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "비밀번호 인증",
+            description = "사용자 정보 및 비밀번호 변경, 탈퇴 전에 비밀번호를 확인합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "비밀번호 인증 성공")
+            }
+    )
     @PostMapping("/verify-password")
     public BaseResponse<Void> verifyPassword(@AuthenticationPrincipal UserAuth userAuth,
                                              @Valid @RequestBody PasswordRequest request,
@@ -114,9 +140,13 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "내 정보 조회 성공",
-            content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    @Operation(
+            summary = "내 정보 조회",
+            description = "현재 로그인한 사용자의 정보를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "내 정보 조회 성공")
+            }
+    )
     @GetMapping("/me")
     public BaseResponse<UserDetailResponse> getMyInfo(@AuthenticationPrincipal UserAuth userAuth) {
         UserDetailResponse response = userService.getMyPage(userAuth.getUserId());
