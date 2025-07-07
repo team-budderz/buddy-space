@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import team.budderz.buddyspace.global.entity.BaseEntity;
 import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.chat.entity.MessageType;
@@ -40,7 +42,8 @@ public class ChatMessage extends BaseEntity {
 
     /** 메시지를 보낸 사용자 */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private User sender;
 
     /** 메시지 유형 (TEXT, IMAGE 등) */

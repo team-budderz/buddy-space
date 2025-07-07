@@ -91,4 +91,5 @@ public class ChatParticipant extends BaseEntity {
             }
         }
     }
+
 }
