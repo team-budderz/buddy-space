@@ -9,7 +9,7 @@
 > 바쁜 일상 속에서는 생각보다 쉽지 않습니다.  
 > 벗터는 이런 만남과 관계가 더 쉬워지도록 돕는 커뮤니티 플랫폼입니다.
 
----
+<br>
 
 ## 📌 서비스 개요
 
@@ -18,7 +18,7 @@
 - 초대 링크로 빠르게 참여하거나, 가입 요청/승인/거절 등 체계적인 멤버십 관리도 지원합니다.
 - 사진첩, 일정, 미션, 투표, 채팅 등 **활발한 커뮤니티 활동**을 위한 기능이 통합되어 있습니다.
 
----
+<br>
 
 ## 🚩 프로젝트 기간
 
@@ -26,7 +26,7 @@
 - **기획·디자인**: 약 1주
 - **개발 기간**: 약 5주 (주간 스프린트 및 매일 코드 리뷰 진행)
 
----
+<br>
 
 ## 🛠 기술 스택
 
@@ -52,7 +52,7 @@
 - SSE (Server-Sent Events) - 알림
 - WebSocket - 채팅
 
----
+<br>
 
 ## ✨ 주요 기능
 
@@ -97,7 +97,7 @@
 - Fluent Bit → OpenSearch
 - Discord 실시간 알림
 
----
+<br>
 
 ## 🔗 시스템 문서 및 설계
 
@@ -113,7 +113,7 @@
     - [WebSocket 채팅 API](https://www.notion.so/WebSocket-API-21dd1de91b88801db74be46dd0d6c9af?pvs=21)
     - [SSE 알림 API](https://www.notion.so/SSE-API-21dd1de91b8880e8ae96ff3ed30bd620?pvs=21)
 
----
+<br>
 
 ## ⚙ 기술적 의사 결정
 
@@ -124,7 +124,7 @@
 - [SSE 기반 알림 시스템](https://www.notion.so/SSE-Server-Sent-Events-21d2dc3ef5148037833ed6703e144816?pvs=21)
 - [도커 기반 인프라 구성](https://www.notion.so/21d2dc3ef51480a9b3adcc8f6e484b94?pvs=21)
 
----
+<br>
 
 ## 🧩 트러블슈팅 및 성능 개선
 
@@ -133,7 +133,7 @@
 - [WebSocket 연결 오류 해결](https://www.notion.so/WebSocket-Connection-Failed-21d2dc3ef514805b8d10ea6f6cab81dc?pvs=21)
 - [SSE 실시간 알림 수신 실패](https://www.notion.so/SSE-21d2dc3ef51480968ed0ff88f4dd892a?pvs=21)
 
----
+<br>
 
 ## 👨‍👩‍👧‍👦 팀 소개
 
@@ -148,7 +148,7 @@
 | [@ssongyi](https://github.com/jrl103)    | 백엔드       | 실시간 채팅              |
 | [@haneul](https://github.com/haneul02)         | 프론트엔드     | 메인 UI/UX 및 프론트엔드 전반 |
 
----
+<br>
 
 ## 📚 프로젝트 정보
 
