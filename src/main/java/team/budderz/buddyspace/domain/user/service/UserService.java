@@ -105,14 +105,26 @@ public class UserService {
         // Redis 저장
         redisUtil.setData("RT:" + user.getId(), refreshToken, jwtUtil.getRefreshTokenExpireTime());
 
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+        // accessToken 쿠키 설정
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("Lax")
+                .sameSite("None")
+                .path("/")
+                .maxAge(Duration.ofDays(1))
+                .build();
+
+        // refreshToken 쿠키 설정
+        ResponseCookie refreshTokenCookie  = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(Duration.ofDays(7))
                 .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         return new TokenResponse(accessToken);
     }
