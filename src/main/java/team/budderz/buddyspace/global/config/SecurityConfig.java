@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 "/test/**",
                                 "/js/**",
                                 "/css/**",
+                                "/ws",
                                 "/ws/**",
                                 "/pub/**",
                                 "/sub/**"
