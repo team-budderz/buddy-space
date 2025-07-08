@@ -24,21 +24,24 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // 리프레시 토큰 재발급 경로는 이 필터를 건너뜀
+        if (path.equals("/api/token/refresh")) {
+            return true;
+        }
+        // OAuth2 인증 시작 및 콜백 경로는 JWT 토큰 검사가 필요 없으므로 건너뜀
+        // Spring Security의 OAuth2 인증 필터가 이 경로들을 처리
+        if (path.startsWith("/login/oauth2/authorization/") ||
+            path.startsWith("/login/oauth2/code/")) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
-
-        String requestURI = request.getRequestURI();
-        if (requestURI.equals("/api/token/refresh")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (requestURI.startsWith("/login/oauth2/authorization/") ||
-            requestURI.startsWith("/login/oauth2/code/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String token = jwtUtil.extractToken(request);
         // JWT 토큰이 HTTP 요청에 없을 경우, 쿠키에서 꺼내서 사용
         if (token == null) {
@@ -63,12 +66,9 @@ public class SecurityFilter extends OncePerRequestFilter {
                     }
 
                     String email = jwtUtil.getEmailFromToken(token);
-
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
                     UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
