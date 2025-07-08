@@ -42,8 +42,7 @@ public class SecurityConfig {
                                 "/api/users/login",
                                 "/api/token/refresh",
                                 "/api/healthy-check",
-                                "/api/users/me",
-                                "/login/oauth2/**"
+                                "/api/users/me"
                         ).permitAll()
                         .requestMatchers(
                                 "/login/oauth2/**",
