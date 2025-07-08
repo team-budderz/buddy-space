@@ -44,7 +44,8 @@ public class SecurityConfig {
                     "/oauth2/**",
                     "/api/token/refresh",
                     "/api/healthy-check",
-                    "/api/users/me"
+                    "/api/users/me",
+                    "/login/oauth2/code/**"
                 ).permitAll()
                 .requestMatchers(
                     "/favicon.ico",
@@ -94,9 +95,6 @@ public class SecurityConfig {
                         response.sendRedirect("https://budderz.co.kr/auth/callback?error=oauth_failed&message=" +
                             java.net.URLEncoder.encode("OAuth2 인증에 실패했습니다.", java.nio.charset.StandardCharsets.UTF_8));
                     })
-                    .redirectionEndpoint(redir ->
-                        redir.baseUri("/login/oauth2/code/*")
-                    )
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
             .httpBasic(httpBasic -> httpBasic.disable())

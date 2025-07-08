@@ -25,10 +25,16 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
         if (requestURI.equals("/api/token/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (requestURI.startsWith("/login/oauth2/authorization/") ||
+            requestURI.startsWith("/login/oauth2/code/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -43,7 +49,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             // 블랙리스트 확인
             if (redisTemplate.hasKey(token)) {
                 sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
-                        "AUTH_BLACKLISTED", "만료되었거나 로그아웃된 토큰입니다.");
+                    "AUTH_BLACKLISTED", "만료되었거나 로그아웃된 토큰입니다.");
                 return; // 예외처리 하면 최상위 예외로 발생
             }
 
@@ -52,7 +58,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 if (jwtUtil.validateToken(token)) {
                     if (!jwtUtil.isAccessToken(token)) {
                         sendErrorResponse(response, HttpServletResponse.SC_FORBIDDEN,
-                                "INVALID_TOKEN_TYPE", "Access 토큰이 아닙니다.");
+                            "INVALID_TOKEN_TYPE", "Access 토큰이 아닙니다.");
                         return;
                     }
 
@@ -61,13 +67,13 @@ public class SecurityFilter extends OncePerRequestFilter {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
                 sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
-                        "INVALID_TOKEN", "토큰이 유효하지 않거나 만료되었습니다.");
+                    "INVALID_TOKEN", "토큰이 유효하지 않거나 만료되었습니다.");
                 return;
             }
         }
@@ -78,8 +84,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         response.setStatus(status);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(String.format(
-                "{\"status\": %d, \"code\": \"%s\", \"message\": \"%s\"}",
-                status, code, message
+            "{\"status\": %d, \"code\": \"%s\", \"message\": \"%s\"}",
+            status, code, message
         ));
     }
 
