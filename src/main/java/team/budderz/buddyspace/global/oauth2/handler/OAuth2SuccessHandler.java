@@ -38,7 +38,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         if (accessToken == null || refreshToken == null) {
             log.error("토큰이 null입니다");
-            response.sendRedirect("http://localhost:3000/auth/callback?error=token_not_found&message=" +
+            response.sendRedirect("https://budderz.co.kr/auth/callback?error=token_not_found&message=" +
                 java.net.URLEncoder.encode("토큰 생성에 실패했습니다.", java.nio.charset.StandardCharsets.UTF_8));
             return;
         }
