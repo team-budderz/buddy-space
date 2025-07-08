@@ -40,8 +40,6 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/users/signup",
                     "/api/users/login",
-                    "/login/oauth2/**",  // 기존 OAuth2 엔드포인트 유지
-                    "/oauth2/**",
                     "/api/token/refresh",
                     "/api/healthy-check",
                     "/api/users/me"
@@ -89,7 +87,6 @@ public class SecurityConfig {
                 oauth.userInfoEndpoint(userInfo ->
                         userInfo.userService(customOAuth2UserService))
                     .successHandler(oAuth2SuccessHandler)
-                    // 실패 시에도 프론트엔드로 리다이렉트
                     .failureHandler((request, response, exception) -> {
                         response.sendRedirect("https://budderz.co.kr/auth/callback?error=oauth_failed&message=" +
                             java.net.URLEncoder.encode("OAuth2 인증에 실패했습니다.", java.nio.charset.StandardCharsets.UTF_8));
