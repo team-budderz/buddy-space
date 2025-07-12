@@ -201,11 +201,11 @@
 
 | 이름                                       | 역할        | 담당 업무                                                   |
 |------------------------------------------|-----------|---------------------------------------------------------|
-| [@withong](https://github.com/withong)   | 팀장 / 백엔드  | 모임 생성 및 관리, 모임 멤버 및 권한 관리, 초대 링크 기능, 첨부파일 관리, 테스트 화면 작성 |
+| [@withong](https://github.com/withong)   | 팀장 / 백엔드  | 모임 생성 및 관리, 모임 멤버 및 권한 관리, 초대 링크 기능, 첨부파일 관리 |
 | [@exmrim](https://github.com/exmrim)     | 부팀장 / 백엔드 | 인증/인가, 사용자 및 동네 관리, 미션 및 미션 인증 기능                       |
-| [@dawn](https://github.com/dawn0920)     | 백엔드       | 게시글 및 댓글 기능, 실시간 알림 기능, 테스트 화면 작성 |
+| [@dawn](https://github.com/dawn0920)     | 백엔드       | 게시글 및 댓글 기능, 실시간 알림 기능 |
 | [@somin](https://github.com/somin-jeong) | 백엔드       | 일정 및 투표 기능, 배포 및 CI/CD 구축, 로그 수집 및 모니터링 |
-| [@ssongyi](https://github.com/jrl103)    | 백엔드       | 실시간 채팅 기능, 테스트 화면 작성  |
+| [@ssongyi](https://github.com/jrl103)    | 백엔드       | 실시간 채팅 기능 |
 | [@haneul](https://github.com/haneul02)         | 프론트엔드     | 메인 UI/UX 설계 및 프론트엔드 전반 구현  |
 
 <br>
