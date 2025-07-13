@@ -14,7 +14,7 @@
 ## 📌 서비스 개요
 
 * **누구나 관심사와 성향에 따라** 온라인, 오프라인, 또는 온·오프라인 혼합 형태의 모임을 직접 생성할 수 있습니다.
-* **취미, 가족, 학교, 업무, 운동, 게임, 스터디, 팬 활동 등 다양한 주제**의 모임을 탐색하고, 원하는 모임에 가입 요청을 보낼 수 있습니다.
+* **취미, 가족, 학교, 업무, 운동, 게임, 스터디, 팬 활동 등 다양한 주제**의 모임을 탐색하고, 가입 요청을 보낼 수 있습니다.
 * **초대 링크를 통해 바로 가입**할 수 있어, 친구나 가족이 운영하는 모임에는 승인 없이 빠르고 간편하게 참여할 수 있습니다.
 * 가입 요청, 승인/거절, 멤버 차단 및 권한 설정 등 **체계적인 멤버십 관리 기능**을 제공합니다.
 * 사진첩, 일정, 미션, 투표, 채팅 등 **풍부한 커뮤니케이션 도구**를 통해 활발한 커뮤니티 활동이 가능합니다.
@@ -24,7 +24,7 @@
 
 ## 🚩 프로젝트 기간
 
-- **진행 기간**: 2025.05.27 ~ 2025.07.07 (6주)
+**진행 기간**: 2025.05.27 ~ 2025.07.07 (6주)
 - **1주차**: 주제 선정 및 프로젝트 구조 설계
 - **2주차**: 자료 조사 및 기본 기능 구현
 - **3주차**: 서버 배포 및 심화 기능 설계
@@ -84,11 +84,13 @@
 - **ERD**  
   ![erd.png](docs/images/erd.png)
 
-- **API 문서**
+<br>
+
+## 📜 API 명세서
   - [벗터 API 명세서](https://team-budderz.github.io/buddy-space-api/)
   - [Postman 문서](https://documenter.getpostman.com/view/43185152/2sB2xEA8Fu)
-  - [WebSocket 채팅 API](https://www.notion.so/WebSocket-API-21dd1de91b88801db74be46dd0d6c9af?pvs=21)
-  - [SSE 알림 API](https://www.notion.so/SSE-API-21dd1de91b8880e8ae96ff3ed30bd620?pvs=21)
+  - [WebSocket 기반 채팅 API](https://www.notion.so/WebSocket-API-21dd1de91b88801db74be46dd0d6c9af?pvs=21)
+  - [SSE 기반 알림 API](https://www.notion.so/SSE-API-21dd1de91b8880e8ae96ff3ed30bd620?pvs=21)
 
 <br>
 
@@ -213,5 +215,5 @@
 ## 📚 프로젝트 정보
 
 > 본 프로젝트는 **내일배움캠프 Spring 6기 최종 프로젝트**로 진행되었습니다.  
-> 프로젝트에 대한 더 자세한 내용은 👉 [브로셔를 참고해주세요.](https://torch-garment-743.notion.site/229fcc3eaffc80fc837ce6a39f774a44)
+> 프로젝트에 대한 더 자세한 내용은 👉 [브로셔를 참고해주세요.](https://withong.notion.site/229fcc3eaffc80fc837ce6a39f774a44)
 
