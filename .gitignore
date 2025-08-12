@@ -8,6 +8,7 @@ logs
 
 ### Performance Test ###
 src/main/java/team/budderz/buddyspace/support
+docs/test
 
 ### STS ###
 .apt_generated
