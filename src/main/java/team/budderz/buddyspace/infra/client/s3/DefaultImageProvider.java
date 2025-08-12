@@ -3,6 +3,7 @@ package team.budderz.buddyspace.infra.client.s3;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import team.budderz.buddyspace.domain.attachment.cache.DefaultImageCacheService;
 import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 
 @Component
@@ -10,6 +11,7 @@ import team.budderz.buddyspace.infra.database.group.entity.GroupType;
 public class DefaultImageProvider {
 
     private final S3Service s3Service;
+    private final DefaultImageCacheService cacheService;
 
     @Value("${app.default.profile-image}")
     private String defaultProfileKey;
@@ -24,7 +26,7 @@ public class DefaultImageProvider {
     private String defaultGroupHybridKey;
 
     public String getDefaultProfileImageUrl() {
-        return s3Service.generateViewUrl(defaultProfileKey);
+        return cacheService.getOrLoad(defaultProfileKey, s3Service::generateViewUrl);
     }
 
     public String getDefaultGroupCoverImageUrl(GroupType type) {

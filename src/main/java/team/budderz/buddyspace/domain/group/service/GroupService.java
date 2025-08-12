@@ -14,6 +14,7 @@ import team.budderz.buddyspace.api.group.request.SaveGroupRequest;
 import team.budderz.buddyspace.api.group.request.UpdateGroupRequest;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.api.group.response.GroupResponse;
+import team.budderz.buddyspace.domain.attachment.cache.PresignedUrlCacheService;
 import team.budderz.buddyspace.domain.attachment.service.AttachmentService;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
@@ -43,6 +44,8 @@ import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +65,7 @@ public class GroupService {
     private final GroupValidator validator;
     private final AttachmentService attachmentService;
     private final DefaultImageProvider defaultImageProvider;
+    private final PresignedUrlCacheService cacheService;
 
     public static final int DEFAULT_PAGE_SIZE = 100;
 
@@ -147,7 +151,7 @@ public class GroupService {
             coverAttachment = getCoverAttachment(coverImage, userId);
 
         } else if (request.coverAttachmentId() != null) {
-            // 기존 이미지 유지
+            // 기존 이미지 유지 (변경 없음) → 캐시 무효화 불필요
             coverAttachment = attachmentService.findAttachmentOrThrow(request.coverAttachmentId());
 
         } else {
@@ -183,7 +187,7 @@ public class GroupService {
                     String url;
 
                     if (group.getCoverAttachment() != null) {
-                        url = attachmentService.getViewUrl(group.getCoverAttachment().getId());
+                        url = cacheService.getOrLoad(group.getCoverAttachment().getId(), attachmentService::getViewUrl);
                     } else {
                         url = defaultImageProvider.getDefaultGroupCoverImageUrl(group.getType());
                     }
@@ -405,22 +409,36 @@ public class GroupService {
             // null 일 경우 모임 유형 기반 기본 이미지 반환
             return defaultImageProvider.getDefaultGroupCoverImageUrl(group.getType());
         }
-        return attachmentService.getViewUrl(coverAttachment.getId());
+        return cacheService.getOrLoad(coverAttachment.getId(), attachmentService::getViewUrl);
     }
 
     // 모임 목록 조회 응답에 커버 이미지 조회용 url 삽입
     private Page<GroupListResponse> generateCoverImageUrls(Page<GroupListResponse> result) {
-        List<GroupListResponse> contents = result.getContent().stream()
-                .map(group -> {
+        // 1) 캐시 대상 attachmentId 수집
+        List<GroupListResponse> rows = result.getContent();
+        List<Long> ids = rows.stream()
+                .map(GroupListResponse::coverAttachmentId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // 2) 캐시 일괄 조회 + 미스 로딩
+        Map<Long, String> urlMap = cacheService.mgetOrLoad(ids, attachmentService::getViewUrl);
+
+        // 3) 매핑 (attachmentId 없으면 기본 이미지)
+        List<GroupListResponse> contents = rows.stream()
+                .map(g -> {
                     String url;
-
-                    if (group.coverAttachmentId() != null) {
-                        url = attachmentService.getViewUrl(group.coverAttachmentId());
+                    if (g.coverAttachmentId() != null) {
+                        url = urlMap.get(g.coverAttachmentId());
+                        // 방어: 혹시 null이면 기본 이미지
+                        if (url == null) {
+                            url = defaultImageProvider.getDefaultGroupCoverImageUrl(g.groupType());
+                        }
                     } else {
-                        url = defaultImageProvider.getDefaultGroupCoverImageUrl(group.groupType());
+                        url = defaultImageProvider.getDefaultGroupCoverImageUrl(g.groupType());
                     }
-
-                    return group.withCoverImageUrl(url);
+                    return g.withCoverImageUrl(url);
                 })
                 .toList();
 

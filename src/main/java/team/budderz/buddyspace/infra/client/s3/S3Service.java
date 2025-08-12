@@ -11,13 +11,16 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import team.budderz.buddyspace.global.exception.BaseException;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,7 +42,7 @@ public class S3Service {
      *
      * @param file       업로드할 파일
      * @param uploaderId 업로더 ID
-     * @param directory     S3 디렉토리
+     * @param directory  S3 디렉토리
      * @return 업로드된 S3 객체의 key
      */
     public String upload(MultipartFile file, Long uploaderId, S3Directory directory) {
@@ -100,6 +103,27 @@ public class S3Service {
                 .build();
 
         s3Client.putObject(request, RequestBody.fromBytes(bytes));
+        return key;
+    }
+
+    /**
+     * File 업로드 - 성능 테스트용
+     *
+     * @param file      업로드할 파일 데이터
+     * @param directory S3 디렉토리
+     * @return 업로드된 S3 객체의 key
+     */
+    public String upload(File file, S3Directory directory) throws IOException {
+        String key = directory.getPath() + "/" + UUID.randomUUID() + "_" + file.getName();
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(Files.probeContentType(file.toPath()))
+                .build();
+
+        s3Client.putObject(request, RequestBody.fromFile(file));
+
         return key;
     }
 
