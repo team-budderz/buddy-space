@@ -6,6 +6,9 @@ build/
 !**/src/test/**/build/
 logs
 
+### Performance Test ###
+src/main/java/team/budderz/buddyspace/support
+
 ### STS ###
 .apt_generated
 .classpath
