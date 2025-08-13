@@ -43,6 +43,7 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -414,29 +415,35 @@ public class GroupService {
 
     // 모임 목록 조회 응답에 커버 이미지 조회용 url 삽입
     private Page<GroupListResponse> generateCoverImageUrls(Page<GroupListResponse> result) {
-        // 1) 캐시 대상 attachmentId 수집
         List<GroupListResponse> rows = result.getContent();
+
+        // 1) 캐시 대상 수집
         List<Long> ids = rows.stream()
                 .map(GroupListResponse::coverAttachmentId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
-        // 2) 캐시 일괄 조회 + 미스 로딩
+        // 2) 첨부파일 URL 일괄 로딩 (캐시 우선)
         Map<Long, String> urlMap = cacheService.mgetOrLoad(ids, attachmentService::getViewUrl);
 
-        // 3) 매핑 (attachmentId 없으면 기본 이미지)
+        // 2-1) 디폴트 URL을 타입별로 미리 1회만 계산 (중복 호출 방지)
+        Map<GroupType, String> defaultUrlByType = new EnumMap<>(GroupType.class);
+        for (GroupType t : GroupType.values()) {
+            defaultUrlByType.put(t, defaultImageProvider.getDefaultGroupCoverImageUrl(t));
+        }
+
+        // 3) 매핑
         List<GroupListResponse> contents = rows.stream()
                 .map(g -> {
                     String url;
                     if (g.coverAttachmentId() != null) {
                         url = urlMap.get(g.coverAttachmentId());
-                        // 방어: 혹시 null이면 기본 이미지
                         if (url == null) {
-                            url = defaultImageProvider.getDefaultGroupCoverImageUrl(g.groupType());
+                            url = defaultUrlByType.get(g.groupType());
                         }
                     } else {
-                        url = defaultImageProvider.getDefaultGroupCoverImageUrl(g.groupType());
+                        url = defaultUrlByType.get(g.groupType());
                     }
                     return g.withCoverImageUrl(url);
                 })
