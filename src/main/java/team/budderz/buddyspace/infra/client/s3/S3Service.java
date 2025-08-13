@@ -5,19 +5,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import team.budderz.buddyspace.global.exception.BaseException;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,7 +43,7 @@ public class S3Service {
      *
      * @param file       업로드할 파일
      * @param uploaderId 업로더 ID
-     * @param directory     S3 디렉토리
+     * @param directory  S3 디렉토리
      * @return 업로드된 S3 객체의 key
      */
     public String upload(MultipartFile file, Long uploaderId, S3Directory directory) {
@@ -101,6 +105,41 @@ public class S3Service {
 
         s3Client.putObject(request, RequestBody.fromBytes(bytes));
         return key;
+    }
+
+    /**
+     * File 업로드 - 성능 테스트용
+     *
+     * @param file      업로드할 파일 데이터
+     * @param directory S3 디렉토리
+     * @return 업로드된 S3 객체의 key
+     */
+    public String upload(File file, S3Directory directory) {
+        // 기본 검증 (기존 정책과 동일)
+        if (file == null || !file.exists() || file.length() == 0L) {
+            throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
+        }
+        if (file.length() > MAX_FILE_SIZE) {
+            throw new BaseException(S3ErrorCode.FILE_SIZE_EXCEEDED);
+        }
+
+        String key = directory.getPath() + "/" + UUID.randomUUID() + "_" + file.getName();
+
+        try {
+            String contentType = Files.probeContentType(file.toPath());
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType != null ? contentType : "application/octet-stream")
+                    .build();
+
+            s3Client.putObject(request, RequestBody.fromFile(file));
+            log.info("S3 file upload 성공 - key: {}", key);
+            return key;
+        } catch (IOException | S3Exception | SdkClientException e) {
+            log.error("S3 file upload 실패 - key: {}", key, e);
+            throw new BaseException(S3ErrorCode.UPLOAD_FAILED);
+        }
     }
 
     /**

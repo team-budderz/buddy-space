@@ -5,6 +5,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import team.budderz.buddyspace.api.attachment.response.AttachmentResponse;
+import team.budderz.buddyspace.domain.attachment.cache.PresignedUrlCacheService;
 import team.budderz.buddyspace.domain.attachment.service.AttachmentService;
 import team.budderz.buddyspace.infra.client.s3.S3Directory;
 import team.budderz.buddyspace.infra.client.s3.DefaultImageProvider;
@@ -17,6 +18,7 @@ public class UserProfileImageProvider {
 
     private final DefaultImageProvider defaultImageProvider;
     private final AttachmentService attachmentService;
+    private final PresignedUrlCacheService cacheService;
 
     public Attachment getProfileAttachment(MultipartFile profile, Long userId) {
         if (profile == null || profile.isEmpty()) {
@@ -32,7 +34,7 @@ public class UserProfileImageProvider {
         if (profileAttachment == null) {
             return defaultImageProvider.getDefaultProfileImageUrl();
         }
-        return attachmentService.getViewUrl(profileAttachment.getId());
+        return cacheService.getOrLoad(profileAttachment.getId(), attachmentService::getViewUrl);
     }
 
     public String getProfileImageUrl(@Nullable Long profileAttachmentId) {
@@ -40,6 +42,6 @@ public class UserProfileImageProvider {
             return defaultImageProvider.getDefaultProfileImageUrl();
         }
         Attachment profileAttachment = attachmentService.findAttachmentOrThrow(profileAttachmentId);
-        return attachmentService.getViewUrl(profileAttachment.getId());
+        return cacheService.getOrLoad(profileAttachmentId, attachmentService::getViewUrl);
     }
 }

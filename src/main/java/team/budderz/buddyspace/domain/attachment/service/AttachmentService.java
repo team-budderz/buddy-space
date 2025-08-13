@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import team.budderz.buddyspace.api.attachment.response.AttachmentResponse;
+import team.budderz.buddyspace.domain.attachment.cache.PresignedUrlCacheService;
 import team.budderz.buddyspace.domain.attachment.exception.AttachmentErrorCode;
 import team.budderz.buddyspace.domain.attachment.exception.AttachmentException;
 import team.budderz.buddyspace.domain.user.exception.UserErrorCode;
@@ -40,6 +41,7 @@ public class AttachmentService {
     private final PostAttachmentRepository postAttachmentRepository;
     private final S3Service s3Service;
     private final UserRepository userRepository;
+    private final PresignedUrlCacheService cacheService;
 
     private final Tika tika = new Tika(); // 파일 내용 기반 MIME 타입 판별기
 
@@ -176,6 +178,12 @@ public class AttachmentService {
         postAttachmentRepository.deleteByAttachment(attachment);
         // DB 정보 삭제
         attachmentRepository.delete(attachment);
+        // 캐시 무효화 (캐시 장애로 인한 본 삭제 트랜잭션 실패 방지)
+        try {
+            cacheService.evict(attachment.getId());
+        } catch (Exception e) {
+            log.warn("첨부파일 캐시 무효화 실패: attachmentId={}, errorMessage={}", attachment.getId(), e.getMessage(), e);
+        }
     }
 
     /**

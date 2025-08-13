@@ -14,6 +14,7 @@ import team.budderz.buddyspace.api.group.request.SaveGroupRequest;
 import team.budderz.buddyspace.api.group.request.UpdateGroupRequest;
 import team.budderz.buddyspace.api.group.response.GroupListResponse;
 import team.budderz.buddyspace.api.group.response.GroupResponse;
+import team.budderz.buddyspace.domain.attachment.cache.PresignedUrlCacheService;
 import team.budderz.buddyspace.domain.attachment.service.AttachmentService;
 import team.budderz.buddyspace.domain.group.exception.GroupErrorCode;
 import team.budderz.buddyspace.domain.group.exception.GroupException;
@@ -42,7 +43,10 @@ import team.budderz.buddyspace.infra.database.user.entity.User;
 import team.budderz.buddyspace.infra.database.user.repository.UserRepository;
 import team.budderz.buddyspace.infra.database.vote.repository.VoteRepository;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +66,7 @@ public class GroupService {
     private final GroupValidator validator;
     private final AttachmentService attachmentService;
     private final DefaultImageProvider defaultImageProvider;
+    private final PresignedUrlCacheService cacheService;
 
     public static final int DEFAULT_PAGE_SIZE = 100;
 
@@ -147,7 +152,7 @@ public class GroupService {
             coverAttachment = getCoverAttachment(coverImage, userId);
 
         } else if (request.coverAttachmentId() != null) {
-            // 기존 이미지 유지
+            // 기존 이미지 유지 (변경 없음) → 캐시 무효화 불필요
             coverAttachment = attachmentService.findAttachmentOrThrow(request.coverAttachmentId());
 
         } else {
@@ -183,7 +188,7 @@ public class GroupService {
                     String url;
 
                     if (group.getCoverAttachment() != null) {
-                        url = attachmentService.getViewUrl(group.getCoverAttachment().getId());
+                        url = cacheService.getOrLoad(group.getCoverAttachment().getId(), attachmentService::getViewUrl);
                     } else {
                         url = defaultImageProvider.getDefaultGroupCoverImageUrl(group.getType());
                     }
@@ -405,22 +410,42 @@ public class GroupService {
             // null 일 경우 모임 유형 기반 기본 이미지 반환
             return defaultImageProvider.getDefaultGroupCoverImageUrl(group.getType());
         }
-        return attachmentService.getViewUrl(coverAttachment.getId());
+        return cacheService.getOrLoad(coverAttachment.getId(), attachmentService::getViewUrl);
     }
 
     // 모임 목록 조회 응답에 커버 이미지 조회용 url 삽입
     private Page<GroupListResponse> generateCoverImageUrls(Page<GroupListResponse> result) {
-        List<GroupListResponse> contents = result.getContent().stream()
-                .map(group -> {
+        List<GroupListResponse> rows = result.getContent();
+
+        // 1) 캐시 대상 수집
+        List<Long> ids = rows.stream()
+                .map(GroupListResponse::coverAttachmentId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // 2) 첨부파일 URL 일괄 로딩 (캐시 우선)
+        Map<Long, String> urlMap = cacheService.mgetOrLoad(ids, attachmentService::getViewUrl);
+
+        // 2-1) 디폴트 URL을 타입별로 미리 1회만 계산 (중복 호출 방지)
+        Map<GroupType, String> defaultUrlByType = new EnumMap<>(GroupType.class);
+        for (GroupType t : GroupType.values()) {
+            defaultUrlByType.put(t, defaultImageProvider.getDefaultGroupCoverImageUrl(t));
+        }
+
+        // 3) 매핑
+        List<GroupListResponse> contents = rows.stream()
+                .map(g -> {
                     String url;
-
-                    if (group.coverAttachmentId() != null) {
-                        url = attachmentService.getViewUrl(group.coverAttachmentId());
+                    if (g.coverAttachmentId() != null) {
+                        url = urlMap.get(g.coverAttachmentId());
+                        if (url == null) {
+                            url = defaultUrlByType.get(g.groupType());
+                        }
                     } else {
-                        url = defaultImageProvider.getDefaultGroupCoverImageUrl(group.groupType());
+                        url = defaultUrlByType.get(g.groupType());
                     }
-
-                    return group.withCoverImageUrl(url);
+                    return g.withCoverImageUrl(url);
                 })
                 .toList();
 
