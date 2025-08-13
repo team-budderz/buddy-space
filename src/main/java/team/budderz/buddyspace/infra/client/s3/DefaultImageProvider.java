@@ -35,7 +35,7 @@ public class DefaultImageProvider {
             case OFFLINE -> defaultGroupOfflineKey;
             case HYBRID -> defaultGroupHybridKey;
         };
-        return s3Service.generateViewUrl(key);
+        return cacheService.getOrLoad(key, s3Service::generateViewUrl);
     }
 
     public boolean isDefaultGroupCoverKey(String key) {
