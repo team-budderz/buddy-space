@@ -83,7 +83,7 @@ public class PresignedUrlCacheService {
             cached = Collections.nCopies(keys.size(), null);
         }
 
-        Map<Long, String> result = new HashMap<>(ids.size());
+        Map<Long, String> result = new HashMap<>(idList.size());
         List<Long> misses = new ArrayList<>();
 
         // 3. 히트/미스 분류
@@ -132,7 +132,7 @@ public class PresignedUrlCacheService {
             }
         }
 
-        log.debug("presigned cache - requested: {}, hit: {}, miss: {}", ids.size(), ids.size() - misses.size(), misses.size());
+        log.debug("presigned cache - requested: {}, hit: {}, miss: {}", idList.size(), idList.size() - misses.size(), misses.size());
         return result;
     }
 
