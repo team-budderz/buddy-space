@@ -30,7 +30,12 @@ public class PresignedUrlCacheService {
      */
     public String getOrLoad(Long attachmentId, Function<Long, String> loader) {
         String key = key(attachmentId);
-        String cached = redis.opsForValue().get(key);
+        String cached = null;
+        try {
+            cached = redis.opsForValue().get(key);
+        } catch (RuntimeException e) {
+            // Redis 읽기 실패 시: 캐시 미사용 폴백
+        }
 
         if (cached != null) {
             return cached;
@@ -39,20 +44,40 @@ public class PresignedUrlCacheService {
         String loaded = loader.apply(attachmentId);
 
         if (loaded != null) {
-            redis.opsForValue().set(key, loaded, TTL);
+            try {
+                redis.opsForValue().set(key, loaded, TTL);
+            } catch (RuntimeException e) {
+                // Redis 쓰기 실패 시: 결과만 반환
+            }
         }
 
         return loaded;
     }
 
     public Map<Long, String> mgetOrLoad(Collection<Long> ids, Function<Long, String> loader) {
-        if (ids.isEmpty()) return Collections.emptyMap();
+        if (ids == null || ids.isEmpty()) return Collections.emptyMap();
+        // 순회 순서 고정 및 null id 제거
+        List<Long> idList = new ArrayList<>(ids);
+        idList.removeIf(Objects::isNull);
 
         // 1. 키 목록 생성
-        List<String> keys = ids.stream().map(this::key).toList();
+        List<String> keys = idList.stream().map(this::key).toList();
 
-        // 2. 캐시 일괄 조회 (방어: null 처리)
-        List<String> cached = redis.opsForValue().multiGet(keys);
+        // 2. 캐시 일괄 조회 (방어: null 처리  Redis 장애 폴백)
+        List<String> cached;
+        try {
+            cached = redis.opsForValue().multiGet(keys);
+        } catch (RuntimeException e) {
+            // Redis 장애 폴백: 로더로 전부 조회
+            Map<Long, String> fallback = new HashMap<>(idList.size());
+            for (Long id : idList) {
+                String url = loader.apply(id);
+                if (url != null) {
+                    fallback.put(id, url);
+                }
+            }
+            return fallback;
+        }
         if (cached == null) {
             // 구현체에 따라 null 반환 가능성 → 요청 키 수만큼 null 리스트로 대체
             cached = Collections.nCopies(keys.size(), null);
@@ -62,9 +87,9 @@ public class PresignedUrlCacheService {
         List<Long> misses = new ArrayList<>();
 
         // 3. 히트/미스 분류
-        int i = 0;
-        for (Long id : ids) {
-            String v = cached.get(i++);
+        for (int i = 0; i < idList.size(); i++) {
+            Long id = idList.get(i);
+            String v = cached.get(i);
             if (v != null) {
                 result.put(id, v);
             } else {
@@ -83,21 +108,25 @@ public class PresignedUrlCacheService {
             }
 
             if (!loaded.isEmpty()) {
-                redis.executePipelined(new SessionCallback<Void>() {
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public Void execute(RedisOperations operations) throws DataAccessException {
-                        // 제네릭 안전 캐스팅 (StringRedisTemplate 기반)
-                        RedisOperations<String, String> ops = (RedisOperations<String, String>) operations;
-                        ValueOperations<String, String> v = ops.opsForValue();
+                try {
+                    redis.executePipelined(new SessionCallback<Void>() {
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        public Void execute(RedisOperations operations) throws DataAccessException {
+                            // 제네릭 안전 캐스팅 (StringRedisTemplate 기반)
+                            RedisOperations<String, String> ops = (RedisOperations<String, String>) operations;
+                            ValueOperations<String, String> v = ops.opsForValue();
 
-                        for (Map.Entry<Long, String> e : loaded.entrySet()) {
-                            // key(id) 규칙을 그대로 사용하고, TTL(Duration)과 함께 저장
-                            v.set(key(e.getKey()), e.getValue(), TTL);
+                            for (Map.Entry<Long, String> e : loaded.entrySet()) {
+                                // key(id) 규칙을 그대로 사용하고, TTL(Duration)과 함께 저장
+                                v.set(key(e.getKey()), e.getValue(), TTL);
+                            }
+                            return null;
                         }
-                        return null;
-                    }
-                });
+                    });
+                } catch (RuntimeException e) {
+                    // Redis 쓰기 실패 시: 무시하고 결과만 반환
+                }
 
                 result.putAll(loaded);
             }

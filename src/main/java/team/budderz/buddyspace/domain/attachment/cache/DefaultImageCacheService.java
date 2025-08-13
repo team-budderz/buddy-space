@@ -20,7 +20,12 @@ public class DefaultImageCacheService {
 
     public String getOrLoad(String s3Key, Function<String, String> loader) {
         String key = key(s3Key);
-        String cached = redis.opsForValue().get(key);
+        String cached = null;
+        try {
+            cached = redis.opsForValue().get(key);
+        } catch (RuntimeException e) {
+            // Redis 읽기 실패 시: 캐시 미사용 폴백
+        }
 
         if (cached != null) {
             return cached;
@@ -29,7 +34,11 @@ public class DefaultImageCacheService {
         String loaded = loader.apply(s3Key);
 
         if (loaded != null) {
-            redis.opsForValue().set(key, loaded, TTL);
+            try {
+                redis.opsForValue().set(key, loaded, TTL);
+            } catch (RuntimeException e) {
+                // Redis 쓰기 실패 시: 결과만 반환
+            }
         }
 
         return loaded;
