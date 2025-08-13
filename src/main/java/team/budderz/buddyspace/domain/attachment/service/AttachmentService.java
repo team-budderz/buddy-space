@@ -178,8 +178,12 @@ public class AttachmentService {
         postAttachmentRepository.deleteByAttachment(attachment);
         // DB 정보 삭제
         attachmentRepository.delete(attachment);
-        // 캐시 무효화
-        cacheService.evict(attachment.getId());
+        // 캐시 무효화 (캐시 장애로 인한 본 삭제 트랜잭션 실패 방지)
+        try {
+            cacheService.evict(attachment.getId());
+        } catch (Exception e) {
+            log.warn("첨부파일 캐시 무효화 실패: attachmentId={}, errorMessage={}", attachment.getId(), e.getMessage(), e);
+        }
     }
 
     /**
