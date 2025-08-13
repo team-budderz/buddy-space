@@ -113,18 +113,30 @@ public class S3Service {
      * @param directory S3 디렉토리
      * @return 업로드된 S3 객체의 key
      */
-    public String upload(File file, S3Directory directory) throws IOException {
+    public String upload(File file, S3Directory directory) {
         String key = directory.getPath() + "/" + UUID.randomUUID() + "_" + file.getName();
+        // 기본 검증 (기존 정책과 동일)
+        if (file == null || !file.exists() || file.length() == 0L) {
+            throw new BaseException(S3ErrorCode.FILE_NOT_FOUND);
+        }
+        if (file.length() > MAX_FILE_SIZE) {
+            throw new BaseException(S3ErrorCode.FILE_SIZE_EXCEEDED);
+        }
+        try {
+            String contentType = Files.probeContentType(file.toPath());
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType != null ? contentType : "application/octet-stream")
+                    .build();
 
-        PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .contentType(Files.probeContentType(file.toPath()))
-                .build();
-
-        s3Client.putObject(request, RequestBody.fromFile(file));
-
-        return key;
+            s3Client.putObject(request, RequestBody.fromFile(file));
+            log.info("S3 file upload 성공 - key: {}", key);
+            return key;
+        } catch (IOException | S3Exception e) {
+            log.error("S3 file upload 실패 - key: {}", key, e);
+            throw new BaseException(S3ErrorCode.UPLOAD_FAILED);
+        }
     }
 
     /**
